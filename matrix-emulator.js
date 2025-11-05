@@ -242,33 +242,31 @@ const SIMPLE_ICONS = {
     'cloud': generateCloudIcon()
 };
 
-// Icon generators (25x32 icons to match SCREENY)
+// Icon generators (25x28 icons to match SCREENY)
 function generatePumpkinIcon() {
-    const icon = Array(32).fill(null).map(() => Array(25).fill('transparent'));
+    const icon = Array(28).fill(null).map(() => Array(25).fill('transparent'));
     // Simple pumpkin shape
-    for (let y = 10; y < 25; y++) {
+    for (let y = 8; y < 22; y++) {
         for (let x = 5; x < 20; x++) {
-            if (Math.abs(x - 12.5) < 7 && Math.abs(y - 17.5) < 7) {
+            if (Math.abs(x - 12.5) < 7 && Math.abs(y - 15) < 7) {
                 icon[y][x] = '#FF6600';
             }
         }
     }
     // Eyes
-    icon[15][9] = '#000000';
-    icon[15][10] = '#000000';
-    icon[15][15] = '#000000';
-    icon[15][16] = '#000000';
+    icon[13][9] = '#000000';
+    icon[13][10] = '#000000';
+    icon[13][15] = '#000000';
+    icon[13][16] = '#000000';
     return icon;
 }
 
 function generateHeartIcon() {
-    const icon = Array(32).fill(null).map(() => Array(25).fill('transparent'));
-    // Larger heart
-    for (let y = 8; y < 24; y++) {
+    const icon = Array(28).fill(null).map(() => Array(25).fill('transparent'));
+    for (let y = 6; y < 22; y++) {
         for (let x = 5; x < 20; x++) {
             const dx = x - 12.5;
-            const dy = y - 12;
-            // Heart shape equation
+            const dy = y - 10;
             if ((dx*dx + dy*dy - 40) < 0 || (dy > 0 && Math.abs(dx) < 5 && dy < 10)) {
                 icon[y][x] = '#FF0088';
             }
@@ -278,18 +276,16 @@ function generateHeartIcon() {
 }
 
 function generateStarIcon() {
-    const icon = Array(32).fill(null).map(() => Array(25).fill('transparent'));
-    // Larger star
+    const icon = Array(28).fill(null).map(() => Array(25).fill('transparent'));
     for (let i = 0; i < 5; i++) {
         const angle = (i * 4 * Math.PI / 5) - Math.PI / 2;
         const x = Math.floor(12.5 + 10 * Math.cos(angle));
-        const y = Math.floor(16 + 10 * Math.sin(angle));
-        // Draw thicker lines
+        const y = Math.floor(14 + 10 * Math.sin(angle));
         for (let dy = -1; dy <= 1; dy++) {
             for (let dx = -1; dx <= 1; dx++) {
                 const px = x + dx;
                 const py = y + dy;
-                if (py >= 0 && py < 32 && px >= 0 && px < 25) {
+                if (py >= 0 && py < 28 && px >= 0 && px < 25) {
                     icon[py][px] = '#FFFF00';
                 }
             }
@@ -299,11 +295,10 @@ function generateStarIcon() {
 }
 
 function generateSunIcon() {
-    const icon = Array(32).fill(null).map(() => Array(25).fill('transparent'));
-    // Larger sun
-    for (let y = 10; y < 22; y++) {
+    const icon = Array(28).fill(null).map(() => Array(25).fill('transparent'));
+    for (let y = 8; y < 20; y++) {
         for (let x = 7; x < 19; x++) {
-            const dist = Math.sqrt((x - 12.5) ** 2 + (y - 16) ** 2);
+            const dist = Math.sqrt((x - 12.5) ** 2 + (y - 14) ** 2);
             if (dist < 5) {
                 icon[y][x] = '#FFFF00';
             }
@@ -313,9 +308,8 @@ function generateSunIcon() {
 }
 
 function generateCloudIcon() {
-    const icon = Array(32).fill(null).map(() => Array(25).fill('transparent'));
-    // Larger cloud
-    for (let y = 12; y < 20; y++) {
+    const icon = Array(28).fill(null).map(() => Array(25).fill('transparent'));
+    for (let y = 10; y < 18; y++) {
         for (let x = 5; x < 20; x++) {
             icon[y][x] = '#AAAAAA';
         }
