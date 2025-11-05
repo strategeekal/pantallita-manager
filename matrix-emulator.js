@@ -110,6 +110,121 @@ class MatrixEmulator {
 	}
 }
 
+// Near the top of matrix-emulator.js, after the class declaration
+
+// Helper: Get font metrics
+getFontMetrics(font, text) {
+    const DESCENDER_CHARS = ['g', 'j', 'p', 'q', 'y'];
+    
+    let maxHeight = 0;
+    let maxDescent = 0;
+    
+    for (let char of text.toUpperCase()) {
+        const glyph = font.glyphs[char];
+        if (!glyph) continue;
+        
+        const glyphHeight = glyph.height;
+        const glyphDescent = Math.abs(glyph.yoffset);
+        
+        maxHeight = Math.max(maxHeight, glyphHeight);
+        maxDescent = Math.max(maxDescent, glyphDescent);
+    }
+    
+    return {
+        height: maxHeight || font.metadata.defaultHeight || 6,
+        descent: maxDescent,
+        baseline: font.metadata.ascent - maxDescent
+    };
+}
+
+// Calculate bottom-aligned positions (matches your Python code exactly!)
+calculateBottomAlignedPositions(font, line1Text, line2Text, displayHeight = 32) {
+    const BOTTOM_MARGIN = 2;
+    const LINE_SPACING = 1;
+    const DESCENDER_EXTRA_MARGIN = 2;
+    const DESCENDER_CHARS = ['g', 'j', 'p', 'q', 'y'];
+    
+    // Get font metrics
+    const combinedText = line1Text + line2Text;
+    const metrics = this.getFontMetrics(font, combinedText);
+    const fontHeight = metrics.height;
+    const baselineOffset = metrics.baseline;
+    
+    // Check for descenders in ONLY the bottom line
+    const hasDescenders = line2Text.toLowerCase().split('').some(char => 
+        DESCENDER_CHARS.includes(char)
+    );
+    
+    // Adjust bottom margin for descenders
+    const adjustedBottomMargin = BOTTOM_MARGIN + (hasDescenders ? DESCENDER_EXTRA_MARGIN : 0);
+    
+    // Calculate positions from bottom up
+    const bottomEdge = displayHeight - adjustedBottomMargin;
+    
+    // Second line position (bottom line)
+    const line2Y = bottomEdge - baselineOffset;
+    
+    // First line position
+    let line1Y = line2Y - fontHeight - LINE_SPACING;
+    
+    // Ensure we don't go above display area
+    if (line1Y < baselineOffset) {
+        line1Y = baselineOffset;
+    }
+    
+    return {
+        line1Y: Math.round(line1Y),
+        line2Y: Math.round(line2Y)
+    };
+}
+
+// Draw text using BDF font
+drawTextWithFont(text, x, y, color, font) {
+    if (!font || !text) return;
+    
+    text = text.toUpperCase();
+    let currentX = x;
+    
+    for (let i = 0; i < text.length; i++) {
+        const char = text[i];
+        const glyph = font.glyphs[char];
+        
+        if (!glyph) {
+            // Use default spacing if character not found
+            currentX += font.metadata.defaultWidth || 5;
+            continue;
+        }
+        
+        const charWidth = glyph.width;
+        const charHeight = glyph.height;
+        const xOffset = glyph.xoffset || 0;
+        const yOffset = glyph.yoffset || 0;
+        
+        // Draw character bitmap
+        for (let row = 0; row < charHeight; row++) {
+            if (!glyph.bitmap[row]) continue;
+            
+            const rowData = glyph.bitmap[row];
+            
+            for (let col = 0; col < charWidth; col++) {
+                const bitPosition = 7 - col;  // MSB first
+                const bit = (rowData >> bitPosition) & 1;
+                
+                if (bit) {
+                    this.setPixel(
+                        currentX + xOffset + col,
+                        y + yOffset + row,
+                        color
+                    );
+                }
+            }
+        }
+        
+        // Advance to next character position
+        currentX += charWidth + 1;  // 1 pixel spacing between chars
+    }
+}
+
 // Simple 5x7 bitmap font
 const FONT_5X7 = {
 	'A': [0x04, 0x0A, 0x11, 0x11, 0x1F, 0x11, 0x11],
