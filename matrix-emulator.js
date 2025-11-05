@@ -200,7 +200,7 @@ class MatrixEmulator {
             }
             
             // Advance to next character position
-            currentX += charWidth;  //
+            currentX += charWidth + 1;  //
         }
     }
 }
