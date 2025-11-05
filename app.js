@@ -6,22 +6,25 @@ let matrix = null;
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
-	console.log('SCREENY Manager loaded!');
-	
-	// Initialize matrix emulator
-	matrix = new MatrixEmulator('matrix-container', 64, 32, 8);
-	
-	// Setup tabs
-	setupTabs();
-	
-	// Setup forms
-	setupForms();
-	
-	// Load saved settings
-	loadSettings();
-	
-	// Show initial preview
-	updatePreview();
+    console.log('SCREENY Manager loaded!');
+    
+    // Initialize matrix emulator
+    matrix = new MatrixEmulator('matrix-container', 64, 32, 8);
+    
+    // Setup tabs
+    setupTabs();
+    
+    // Setup forms
+    setupForms();
+    
+    // Load saved settings
+    loadSettings();
+    
+    // Load available images from GitHub
+    loadAvailableImages();
+    
+    // Show initial preview
+    updatePreview();
 });
 
 // Tab switching
@@ -158,16 +161,19 @@ function saveConfig(config) {
 }
 
 function handleSettingsSubmit(e) {
-	e.preventDefault();
+    e.preventDefault();
 
-	const config = {
-		token: document.getElementById('github-token').value,
-		owner: document.getElementById('github-owner').value,
-		repo: document.getElementById('github-repo').value
-	};
+    const config = {
+        token: document.getElementById('github-token').value,
+        owner: document.getElementById('github-owner').value,
+        repo: document.getElementById('github-repo').value
+    };
 
-	saveConfig(config);
-	showStatus('Settings saved!', 'success');
+    saveConfig(config);
+    showStatus('Settings saved!', 'success');
+    
+    // Reload images with new credentials
+    loadAvailableImages();
 }
 
 // Status messages
