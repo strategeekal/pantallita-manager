@@ -4,6 +4,10 @@ const CONFIG_KEY = 'screeny_config';
 // Global matrix emulator instance
 let matrix = null;
 
+// Image loading functionality
+let availableImages = [];
+let imageCache = {};
+
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
     console.log('SCREENY Manager loaded!');
@@ -29,58 +33,64 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Tab switching
 function setupTabs() {
-	const tabs = document.querySelectorAll('.tab');
-	const tabContents = document.querySelectorAll('.tab-content');
+    const tabs = document.querySelectorAll('.tab');
+    const tabContents = document.querySelectorAll('.tab-content');
 
-	tabs.forEach(tab => {
-		tab.addEventListener('click', () => {
-			const targetTab = tab.dataset.tab;
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            const targetTab = tab.dataset.tab;
 
-			tabs.forEach(t => t.classList.remove('active'));
-			tabContents.forEach(tc => tc.classList.remove('active'));
+            tabs.forEach(t => t.classList.remove('active'));
+            tabContents.forEach(tc => tc.classList.remove('active'));
 
-			tab.classList.add('active');
-			document.getElementById(`${targetTab}-tab`).classList.add('active');
-		});
-	});
+            tab.classList.add('active');
+            document.getElementById(`${targetTab}-tab`).classList.add('active');
+        });
+    });
 }
 
 // Form setup
 function setupForms() {
-	// Settings form
-	document.getElementById('settings-form').addEventListener('submit', handleSettingsSubmit);
-	
-	// Character counters
-	document.getElementById('preview-top').addEventListener('input', (e) => {
-		const count = e.target.value.length;
-		document.getElementById('top-count').textContent = `${count}/12`;
-		updatePreview();
-	});
-	
-	document.getElementById('preview-bottom').addEventListener('input', (e) => {
-		const count = e.target.value.length;
-		document.getElementById('bottom-count').textContent = `${count}/12`;
-		updatePreview();
-	});
-	
-	// Color preview
-	document.getElementById('preview-color').addEventListener('change', (e) => {
-		const colorName = e.target.value;
-		const colorHex = COLOR_MAP[colorName];
-		document.getElementById('color-preview').style.background = colorHex;
-		updatePreview();
-	});
-	
-	// Update preview on icon change
-	document.getElementById('preview-icon').addEventListener('change', updatePreview);
+    // Settings form
+    document.getElementById('settings-form').addEventListener('submit', handleSettingsSubmit);
+    
+    // Character counters
+    document.getElementById('preview-top').addEventListener('input', (e) => {
+        const count = e.target.value.length;
+        document.getElementById('top-count').textContent = `${count}/12`;
+        updatePreview();
+    });
+    
+    document.getElementById('preview-bottom').addEventListener('input', (e) => {
+        const count = e.target.value.length;
+        document.getElementById('bottom-count').textContent = `${count}/12`;
+        updatePreview();
+    });
+    
+    // Color preview
+    document.getElementById('preview-color').addEventListener('change', (e) => {
+        const colorName = e.target.value;
+        const colorHex = COLOR_MAP[colorName];
+        document.getElementById('color-preview').style.background = colorHex;
+        updatePreview();
+    });
+    
+    // Update preview on icon change
+    document.getElementById('preview-icon').addEventListener('change', () => {
+        console.log('Icon dropdown changed');
+        updatePreview();
+    });
 }
 
+// Update matrix preview
 async function updatePreview() {
     if (!matrix) return;
     
+    console.log('updatePreview called');
+    
     // Constants matching your SCREENY code
     const TEXT_MARGIN = 2;
-    const EVENT_IMAGE_X = 37;  // For 25px wide images
+    const EVENT_IMAGE_X = 37;
     const EVENT_IMAGE_Y = 2;
     
     // Get form values
@@ -88,6 +98,9 @@ async function updatePreview() {
     const bottomLine = document.getElementById('preview-bottom').value || '';
     const colorName = document.getElementById('preview-color').value;
     const iconName = document.getElementById('preview-icon').value;
+    
+    console.log('Selected icon:', iconName);
+    console.log('Available images count:', availableImages.length);
     
     const color = COLOR_MAP[colorName];
     
@@ -98,18 +111,23 @@ async function updatePreview() {
     let icon = null;
     
     if (availableImages.length > 0 && iconName.endsWith('.bmp')) {
-        // Load real BMP from GitHub
+        console.log('Loading BMP image:', iconName);
         icon = await loadBMPImage(iconName);
+        console.log('Image loaded:', icon ? 'success' : 'failed');
     } else {
-        // Use placeholder icon
+        console.log('Using placeholder icon:', iconName);
         icon = SIMPLE_ICONS[iconName];
     }
     
     if (icon) {
+        console.log('Drawing image at', EVENT_IMAGE_X, EVENT_IMAGE_Y);
+        console.log('Icon dimensions:', icon.length, 'x', icon[0]?.length);
         matrix.drawImage(icon, EVENT_IMAGE_X, EVENT_IMAGE_Y);
+    } else {
+        console.warn('No icon to draw!');
     }
     
-    // Calculate bottom-aligned text positions using TINYBIT font
+    // Calculate bottom-aligned text positions
     const positions = matrix.calculateBottomAlignedPositions(
         TINYBIT_FONT,
         topLine,
@@ -117,7 +135,7 @@ async function updatePreview() {
         32
     );
     
-    // Draw text using actual tinybit6-16 font
+    // Draw text
     if (topLine) {
         matrix.drawTextWithFont(topLine, TEXT_MARGIN, positions.line1Y, color, TINYBIT_FONT);
     }
@@ -132,32 +150,31 @@ async function updatePreview() {
 
 // Clear preview
 function clearPreview() {
-	document.getElementById('preview-top').value = '';
-	document.getElementById('preview-bottom').value = '';
-	document.getElementById('top-count').textContent = '0/12';
-	document.getElementById('bottom-count').textContent = '0/12';
-	
-	if (matrix) {
-		matrix.clear();
-	}
+    document.getElementById('preview-top').value = '';
+    document.getElementById('preview-bottom').value = '';
+    document.getElementById('top-count').textContent = '0/12';
+    document.getElementById('bottom-count').textContent = '0/12';
+    
+    if (matrix) {
+        matrix.clear();
+    }
 }
 
 // Settings management
 function loadSettings() {
-	const config = loadConfig();
-	if (config.token)
-	if (config.token) document.getElementById('github-token').value = config.token;
-	if (config.owner) document.getElementById('github-owner').value = config.owner;
-	if (config.repo) document.getElementById('github-repo').value = config.repo;
+    const config = loadConfig();
+    if (config.token) document.getElementById('github-token').value = config.token;
+    if (config.owner) document.getElementById('github-owner').value = config.owner;
+    if (config.repo) document.getElementById('github-repo').value = config.repo;
 }
 
 function loadConfig() {
-	const config = localStorage.getItem(CONFIG_KEY);
-	return config ? JSON.parse(config) : {};
+    const config = localStorage.getItem(CONFIG_KEY);
+    return config ? JSON.parse(config) : {};
 }
 
 function saveConfig(config) {
-	localStorage.setItem(CONFIG_KEY, JSON.stringify(config));
+    localStorage.setItem(CONFIG_KEY, JSON.stringify(config));
 }
 
 function handleSettingsSubmit(e) {
@@ -178,19 +195,15 @@ function handleSettingsSubmit(e) {
 
 // Status messages
 function showStatus(message, type) {
-	const status = document.getElementById('status');
-	status.textContent = message;
-	status.className = `status ${type}`;
-	status.classList.remove('hidden');
+    const status = document.getElementById('status');
+    status.textContent = message;
+    status.className = `status ${type}`;
+    status.classList.remove('hidden');
 
-	setTimeout(() => {
-		status.classList.add('hidden');
-	}, 3000);
+    setTimeout(() => {
+        status.classList.add('hidden');
+    }, 3000);
 }
-
-// Image loading functionality
-let availableImages = [];
-let imageCache = {};
 
 // Load list of available images from GitHub
 async function loadAvailableImages() {
@@ -198,6 +211,7 @@ async function loadAvailableImages() {
     
     if (!config.token || !config.owner || !config.repo) {
         console.log('GitHub not configured - using placeholder icons');
+        updateImageDropdown();
         return;
     }
     
@@ -214,6 +228,7 @@ async function loadAvailableImages() {
         
         if (!response.ok) {
             console.error('Failed to load images:', response.status);
+            updateImageDropdown();
             return;
         }
         
@@ -233,6 +248,7 @@ async function loadAvailableImages() {
         
     } catch (error) {
         console.error('Error loading images:', error);
+        updateImageDropdown();
     }
 }
 
@@ -302,7 +318,7 @@ async function loadBMPImage(imageName) {
         
         const dataOffset = dataView.getUint32(10, true);
         const width = dataView.getInt32(18, true);
-        const height = Math.abs(dataView.getInt32(22, true)); // Handle negative height
+        const height = Math.abs(dataView.getInt32(22, true));
         const bitsPerPixel = dataView.getUint16(28, true);
         const compression = dataView.getUint32(30, true);
         
@@ -323,16 +339,15 @@ async function loadBMPImage(imageName) {
         // Parse color palette for 8-bit BMPs
         let palette = [];
         if (bitsPerPixel === 8) {
-            const paletteSize = dataView.getUint32(46, true) || 256; // Number of colors
+            const paletteSize = dataView.getUint32(46, true) || 256;
             console.log('Reading', paletteSize, 'color palette entries');
             
-            // Palette starts at byte 54 (after 40-byte info header + 14-byte file header)
+            // Palette starts at byte 54
             for (let i = 0; i < paletteSize; i++) {
                 const paletteIndex = 54 + (i * 4);
                 const b = dataView.getUint8(paletteIndex);
                 const g = dataView.getUint8(paletteIndex + 1);
                 const r = dataView.getUint8(paletteIndex + 2);
-                // 4th byte is reserved (usually 0)
                 palette.push({ r, g, b });
             }
             
@@ -342,19 +357,16 @@ async function loadBMPImage(imageName) {
         // Create 2D array for pixels (28 rows × 25 cols)
         const pixels = Array(28).fill(null).map(() => Array(25).fill('transparent'));
         
-        // BMP stores pixels bottom-to-top
         let pixelsSet = 0;
         
         for (let row = 0; row < 28; row++) {
             for (let col = 0; col < 25; col++) {
-                // Calculate position in BMP data (bottom-to-top)
-                const bmpRow = (27 - row);  // Flip vertically
+                const bmpRow = (27 - row);
                 
                 let r, g, b;
                 
                 if (bitsPerPixel === 8) {
                     // 8-bit indexed color
-                    // Row padding: rows are padded to 4-byte boundaries
                     const rowSize = Math.floor((width * bitsPerPixel + 31) / 32) * 4;
                     const pixelIndex = dataOffset + (bmpRow * rowSize) + col;
                     
@@ -394,7 +406,6 @@ async function loadBMPImage(imageName) {
                 }
                 
                 // Check if pixel is black (treat as transparent)
-                // Use threshold for near-black pixels
                 if (r < 10 && g < 10 && b < 10) {
                     pixels[row][col] = 'transparent';
                 } else {
@@ -415,17 +426,6 @@ async function loadBMPImage(imageName) {
     } catch (error) {
         console.error('Error loading BMP:', error);
         console.error('Error stack:', error.stack);
-        return null;
-    }
-}
-        
-        // Cache the result
-        imageCache[imageName] = pixels;
-        
-        return pixels;
-        
-    } catch (error) {
-        console.error('Error loading BMP:', error);
         return null;
     }
 }
