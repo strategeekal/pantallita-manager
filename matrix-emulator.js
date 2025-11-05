@@ -162,7 +162,6 @@ class MatrixEmulator {
     drawTextWithFont(text, x, y, color, font) {
         if (!font || !text) return;
         
-        text = text.toUpperCase();
         let currentX = x;
         
         for (let i = 0; i < text.length; i++) {
@@ -201,7 +200,7 @@ class MatrixEmulator {
             }
             
             // Advance to next character position
-            currentX += charWidth + 1;  // 1 pixel spacing between chars
+            currentX += charWidth;  //
         }
     }
 }
