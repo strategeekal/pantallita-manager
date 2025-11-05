@@ -74,37 +74,50 @@ function setupForms() {
 
 // Update matrix preview
 function updatePreview() {
-	if (!matrix) return;
-	
-	// Get form values
-	const topLine = document.getElementById('preview-top').value || '';
-	const bottomLine = document.getElementById('preview-bottom').value || '';
-	const colorName = document.getElementById('preview-color').value;
-	const iconName = document.getElementById('preview-icon').value;
-	
-	const color = COLOR_MAP[colorName];
-	
-	// Clear matrix
-	matrix.clear();
-	
-	// Draw icon (column 3: x=43 to x=63)
-	const icon = SIMPLE_ICONS[iconName];
-	if (icon) {
-		matrix.drawImage(icon, 43, 0);
-	}
-	
-	// Draw top text (column 1 area: x=2)
-	if (topLine) {
-		matrix.drawText(topLine, 2, 5, color);
-	}
-	
-	// Draw bottom text (column 1 area: x=2)
-	if (bottomLine) {
-		matrix.drawText(bottomLine, 2, 22, color);
-	}
-	
-	// Render
-	matrix.render();
+    if (!matrix) return;
+    
+    // Constants matching your SCREENY code
+    const TEXT_MARGIN = 2;
+    const EVENT_IMAGE_X = 37;  // For 25px wide images
+    const EVENT_IMAGE_Y = 2;
+    
+    // Get form values
+    const topLine = document.getElementById('preview-top').value || '';
+    const bottomLine = document.getElementById('preview-bottom').value || '';
+    const colorName = document.getElementById('preview-color').value;
+    const iconName = document.getElementById('preview-icon').value;
+    
+    const color = COLOR_MAP[colorName];
+    
+    // Clear matrix
+    matrix.clear();
+    
+    // Draw icon at correct position (x=37, y=2)
+    const icon = SIMPLE_ICONS[iconName];
+    if (icon) {
+        matrix.drawImage(icon, EVENT_IMAGE_X, EVENT_IMAGE_Y);
+    }
+    
+    // Calculate bottom-aligned text positions using TINYBIT font
+    // This matches your Python code exactly!
+    const positions = matrix.calculateBottomAlignedPositions(
+        TINYBIT_FONT,
+        topLine,
+        bottomLine,
+        32  // Display height
+    );
+    
+    // Draw text using actual tinybit6-16 font
+    if (topLine) {
+        matrix.drawTextWithFont(topLine, TEXT_MARGIN, positions.line1Y, color, TINYBIT_FONT);
+    }
+    
+    if (bottomLine) {
+        matrix.drawTextWithFont(bottomLine, TEXT_MARGIN, positions.line2Y, color, TINYBIT_FONT);
+    }
+    
+    // Render
+    matrix.render();
 }
 
 // Clear preview
