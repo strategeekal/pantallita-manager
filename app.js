@@ -72,8 +72,7 @@ function setupForms() {
 	document.getElementById('preview-icon').addEventListener('change', updatePreview);
 }
 
-// Update matrix preview
-function updatePreview() {
+async function updatePreview() {
     if (!matrix) return;
     
     // Constants matching your SCREENY code
@@ -92,19 +91,27 @@ function updatePreview() {
     // Clear matrix
     matrix.clear();
     
-    // Draw icon at correct position (x=37, y=2)
-    const icon = SIMPLE_ICONS[iconName];
+    // Load and draw icon
+    let icon = null;
+    
+    if (availableImages.length > 0 && iconName.endsWith('.bmp')) {
+        // Load real BMP from GitHub
+        icon = await loadBMPImage(iconName);
+    } else {
+        // Use placeholder icon
+        icon = SIMPLE_ICONS[iconName];
+    }
+    
     if (icon) {
         matrix.drawImage(icon, EVENT_IMAGE_X, EVENT_IMAGE_Y);
     }
     
     // Calculate bottom-aligned text positions using TINYBIT font
-    // This matches your Python code exactly!
     const positions = matrix.calculateBottomAlignedPositions(
         TINYBIT_FONT,
         topLine,
         bottomLine,
-        32  // Display height
+        32
     );
     
     // Draw text using actual tinybit6-16 font
