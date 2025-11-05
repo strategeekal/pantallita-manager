@@ -126,33 +126,39 @@ class MatrixEmulator {
         
         // For tinybit font, characters are typically 6 pixels tall
         const fontHeight = 6;  // Height of main characters
-        const baselineOffset = 5;  // Distance from top to baseline
         
-        // Check for descenders in ONLY the bottom line
-        const hasDescenders = line2Text.toLowerCase().split('').some(char => 
+        // Check for descenders in bottom line (affects bottom margin)
+        const bottomLineHasDescenders = line2Text.toLowerCase().split('').some(char => 
             DESCENDER_CHARS.includes(char)
         );
         
-        // Adjust bottom margin for descenders
-        const adjustedBottomMargin = BOTTOM_MARGIN + (hasDescenders ? DESCENDER_EXTRA_MARGIN : 0);
+        // Check for descenders in top line (affects line spacing)
+        const topLineHasDescenders = line1Text.toLowerCase().split('').some(char => 
+            DESCENDER_CHARS.includes(char)
+        );
+        
+        // Adjust bottom margin for descenders in bottom line
+        const adjustedBottomMargin = BOTTOM_MARGIN + (bottomLineHasDescenders ? DESCENDER_EXTRA_MARGIN : 0);
+        
+        // Adjust line spacing for descenders in top line
+        const adjustedLineSpacing = LINE_SPACING + (topLineHasDescenders ? DESCENDER_EXTRA_MARGIN : 0);
         
         // Calculate positions from bottom up
-        // Bottom edge of display
         const bottomEdge = displayHeight - adjustedBottomMargin;
         
         // Line 2: Position so bottom of text is at bottomEdge
-        // Characters extend from y to y+fontHeight
-        // So if we want bottom at bottomEdge, y = bottomEdge - fontHeight
         const line2Y = bottomEdge - fontHeight;
         
-        // Line 1: One font height + spacing above line 2
-        const line1Y = line2Y - fontHeight - LINE_SPACING;
+        // Line 1: One font height + adjusted spacing above line 2
+        const line1Y = line2Y - fontHeight - adjustedLineSpacing;
         
         console.log('Position calculation:', {
             displayHeight,
             bottomEdge,
             adjustedBottomMargin,
-            hasDescenders,
+            adjustedLineSpacing,
+            bottomLineHasDescenders,
+            topLineHasDescenders,
             fontHeight,
             line1Y,
             line2Y
