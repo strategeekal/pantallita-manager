@@ -124,11 +124,9 @@ class MatrixEmulator {
         const DESCENDER_EXTRA_MARGIN = 2;
         const DESCENDER_CHARS = ['g', 'j', 'p', 'q', 'y'];
         
-        // Get font metrics
-        const combinedText = line1Text + line2Text;
-        const metrics = this.getFontMetrics(font, combinedText);
-        const fontHeight = metrics.height;
-        const baselineOffset = metrics.baseline;
+        // For tinybit font, characters are typically 6 pixels tall
+        const fontHeight = 6;  // Height of main characters
+        const baselineOffset = 5;  // Distance from top to baseline
         
         // Check for descenders in ONLY the bottom line
         const hasDescenders = line2Text.toLowerCase().split('').some(char => 
@@ -139,18 +137,26 @@ class MatrixEmulator {
         const adjustedBottomMargin = BOTTOM_MARGIN + (hasDescenders ? DESCENDER_EXTRA_MARGIN : 0);
         
         // Calculate positions from bottom up
+        // Bottom edge of display
         const bottomEdge = displayHeight - adjustedBottomMargin;
         
-        // Second line position (bottom line)
-        const line2Y = bottomEdge - baselineOffset;
+        // Line 2: Position so bottom of text is at bottomEdge
+        // Characters extend from y to y+fontHeight
+        // So if we want bottom at bottomEdge, y = bottomEdge - fontHeight
+        const line2Y = bottomEdge - fontHeight;
         
-        // First line position
-        let line1Y = line2Y - fontHeight - LINE_SPACING;
+        // Line 1: One font height + spacing above line 2
+        const line1Y = line2Y - fontHeight - LINE_SPACING;
         
-        // Ensure we don't go above display area
-        if (line1Y < baselineOffset) {
-            line1Y = baselineOffset;
-        }
+        console.log('Position calculation:', {
+            displayHeight,
+            bottomEdge,
+            adjustedBottomMargin,
+            hasDescenders,
+            fontHeight,
+            line1Y,
+            line2Y
+        });
         
         return {
             line1Y: Math.round(line1Y),
@@ -230,61 +236,69 @@ const SIMPLE_ICONS = {
     'cloud': generateCloudIcon()
 };
 
-// Icon generators (simple 21x32 icons)
+// Icon generators (25x32 icons to match SCREENY)
 function generatePumpkinIcon() {
-    const icon = Array(32).fill(null).map(() => Array(21).fill('transparent'));
-    // Simple pumpkin shape (simplified for demo)
+    const icon = Array(32).fill(null).map(() => Array(25).fill('transparent'));
+    // Simple pumpkin shape
     for (let y = 10; y < 25; y++) {
-        for (let x = 5; x < 16; x++) {
-            if (Math.abs(x - 10.5) < 5 && Math.abs(y - 17.5) < 7) {
+        for (let x = 5; x < 20; x++) {
+            if (Math.abs(x - 12.5) < 7 && Math.abs(y - 17.5) < 7) {
                 icon[y][x] = '#FF6600';
             }
         }
     }
     // Eyes
-    icon[15][8] = '#000000';
-    icon[15][13] = '#000000';
+    icon[15][9] = '#000000';
+    icon[15][10] = '#000000';
+    icon[15][15] = '#000000';
+    icon[15][16] = '#000000';
     return icon;
 }
 
 function generateHeartIcon() {
-    const icon = Array(32).fill(null).map(() => Array(21).fill('transparent'));
-    // Simple heart shape
-    const heartPixels = [
-        [12, 6], [12, 7], [12, 8],
-        [11, 9], [10, 10], [9, 11],
-        [8, 12], [9, 13], [10, 14],
-        [11, 15], [12, 16], [13, 15],
-        [14, 14], [15, 13], [16, 12],
-        [15, 11], [14, 10], [13, 9]
-    ];
-    heartPixels.forEach(([y, x]) => {
-        if (y < 32 && x < 21) icon[y][x] = '#FF0088';
-    });
+    const icon = Array(32).fill(null).map(() => Array(25).fill('transparent'));
+    // Larger heart
+    for (let y = 8; y < 24; y++) {
+        for (let x = 5; x < 20; x++) {
+            const dx = x - 12.5;
+            const dy = y - 12;
+            // Heart shape equation
+            if ((dx*dx + dy*dy - 40) < 0 || (dy > 0 && Math.abs(dx) < 5 && dy < 10)) {
+                icon[y][x] = '#FF0088';
+            }
+        }
+    }
     return icon;
 }
 
 function generateStarIcon() {
-    const icon = Array(32).fill(null).map(() => Array(21).fill('transparent'));
-    // Simple star
+    const icon = Array(32).fill(null).map(() => Array(25).fill('transparent'));
+    // Larger star
     for (let i = 0; i < 5; i++) {
         const angle = (i * 4 * Math.PI / 5) - Math.PI / 2;
-        const x = Math.floor(10.5 + 8 * Math.cos(angle));
-        const y = Math.floor(16 + 8 * Math.sin(angle));
-        if (y >= 0 && y < 32 && x >= 0 && x < 21) {
-            icon[y][x] = '#FFFF00';
+        const x = Math.floor(12.5 + 10 * Math.cos(angle));
+        const y = Math.floor(16 + 10 * Math.sin(angle));
+        // Draw thicker lines
+        for (let dy = -1; dy <= 1; dy++) {
+            for (let dx = -1; dx <= 1; dx++) {
+                const px = x + dx;
+                const py = y + dy;
+                if (py >= 0 && py < 32 && px >= 0 && px < 25) {
+                    icon[py][px] = '#FFFF00';
+                }
+            }
         }
     }
     return icon;
 }
 
 function generateSunIcon() {
-    const icon = Array(32).fill(null).map(() => Array(21).fill('transparent'));
-    // Simple sun
-    for (let y = 12; y < 20; y++) {
-        for (let x = 6; x < 15; x++) {
-            const dist = Math.sqrt((x - 10.5) ** 2 + (y - 16) ** 2);
-            if (dist < 4) {
+    const icon = Array(32).fill(null).map(() => Array(25).fill('transparent'));
+    // Larger sun
+    for (let y = 10; y < 22; y++) {
+        for (let x = 7; x < 19; x++) {
+            const dist = Math.sqrt((x - 12.5) ** 2 + (y - 16) ** 2);
+            if (dist < 5) {
                 icon[y][x] = '#FFFF00';
             }
         }
@@ -293,10 +307,10 @@ function generateSunIcon() {
 }
 
 function generateCloudIcon() {
-    const icon = Array(32).fill(null).map(() => Array(21).fill('transparent'));
-    // Simple cloud
-    for (let y = 12; y < 18; y++) {
-        for (let x = 4; x < 17; x++) {
+    const icon = Array(32).fill(null).map(() => Array(25).fill('transparent'));
+    // Larger cloud
+    for (let y = 12; y < 20; y++) {
+        for (let x = 5; x < 20; x++) {
             icon[y][x] = '#AAAAAA';
         }
     }
