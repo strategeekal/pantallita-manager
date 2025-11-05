@@ -121,7 +121,7 @@ class MatrixEmulator {
     calculateBottomAlignedPositions(font, line1Text, line2Text, displayHeight = 32) {
         const BOTTOM_MARGIN = 2;
         const LINE_SPACING = 1;
-        const DESCENDER_EXTRA_MARGIN = 2;
+        const DESCENDER_EXTRA_MARGIN = 3;
         const DESCENDER_CHARS = ['g', 'j', 'p', 'q', 'y'];
         
         // For tinybit font, characters are typically 6 pixels tall
