@@ -824,15 +824,16 @@ function displayEvents() {
     today.setHours(0, 0, 0, 0);
     
     // Split into upcoming and past events
-    const upcomingEvents = sortedEvents.filter(event => new Date(event.date) >= today);
-    const pastEvents = sortedEvents.filter(event => new Date(event.date) < today);
+    const upcomingEvents = sortedEvents.filter(event => new Date(event.date + 'T00:00:00') >= today);
+    const pastEvents = sortedEvents.filter(event => new Date(event.date + 'T00:00:00') < today);
     
     // Show upcoming + last 10 past events to reduce DOM size
     const eventsToShow = [...upcomingEvents, ...pastEvents.slice(-10)];
     
     // Build HTML - simplified structure for better performance
     const eventsHTML = eventsToShow.map(event => {
-        const eventDate = new Date(event.date);
+        // Parse date without timezone conversion
+        const eventDate = new Date(event.date + 'T00:00:00');
         const isPast = eventDate < today;
         
         const month = eventDate.toLocaleString('default', { month: 'short' }).toUpperCase();
@@ -857,8 +858,8 @@ function displayEvents() {
                     <p class="event-time">${timeInfo}</p>
                 </div>
                 <div class="event-actions">
-                    <button class="btn-pixel btn-primary" onclick="editEvent(${event.index})">✏️ Edit</button>
-                    <button class="btn-pixel btn-secondary" onclick="deleteEvent(${event.index})">🗑️ Delete</button>
+                    <button class="btn-pixel btn-primary" onclick="editEvent(${event.index})">✏️</button>
+                    <button class="btn-pixel btn-secondary" onclick="deleteEvent(${event.index})">🗑️</button>
                 </div>
             </div>
         `;
@@ -1067,8 +1068,15 @@ async function saveEditedEvent() {
 }
 
 // Close edit modal
+// Close edit modal
 function closeEditModal() {
     document.getElementById('edit-event-modal').classList.add('hidden');
+    
+    // Clear the edit matrix to free memory on mobile
+    if (editMatrix) {
+        editMatrix.clear();
+        editMatrix.render();
+    }
 }
 
 // Delete event
