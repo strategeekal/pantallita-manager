@@ -11,11 +11,22 @@ class MatrixEmulator {
         
         // Create canvas
         const container = document.getElementById(containerId);
+        if (!container) {
+            console.error('Container not found:', containerId);
+            return;
+        }
+        
         this.canvas = document.createElement('canvas');
         this.canvas.width = width * pixelSize;
         this.canvas.height = height * pixelSize;
-        this.canvas.style.borderRadius = '8px';
+        this.canvas.style.borderRadius = '4px';
         this.canvas.style.boxShadow = '0 0 20px rgba(0, 200, 255, 0.3), inset 0 0 20px rgba(0, 0, 0, 0.5)';
+        this.canvas.style.border = '3px solid #000';
+        
+        // Make responsive for mobile
+        this.canvas.style.maxWidth = '100%';
+        this.canvas.style.height = 'auto';
+        
         container.appendChild(this.canvas);
         
         this.ctx = this.canvas.getContext('2d');
@@ -37,7 +48,6 @@ class MatrixEmulator {
         this.buffer = Array(this.height).fill(null).map(() => 
             Array(this.width).fill('#000000')
         );
-        this.render();
     }
     
     render() {
@@ -92,31 +102,6 @@ class MatrixEmulator {
         }
     }
     
-    // Get font metrics
-    getFontMetrics(font, text) {
-        const DESCENDER_CHARS = ['g', 'j', 'p', 'q', 'y'];
-        
-        let maxHeight = 0;
-        let maxDescent = 0;
-        
-        for (let char of text.toUpperCase()) {
-            const glyph = font.glyphs[char];
-            if (!glyph) continue;
-            
-            const glyphHeight = glyph.height;
-            const glyphDescent = Math.abs(glyph.yoffset);
-            
-            maxHeight = Math.max(maxHeight, glyphHeight);
-            maxDescent = Math.max(maxDescent, glyphDescent);
-        }
-        
-        return {
-            height: maxHeight || 6,
-            descent: maxDescent,
-            baseline: font.metadata.ascent - maxDescent
-        };
-    }
-    
     // Calculate bottom-aligned positions (matches your Python code exactly!)
     calculateBottomAlignedPositions(font, line1Text, line2Text, displayHeight = 32) {
         const BOTTOM_MARGIN = 2;
@@ -151,18 +136,6 @@ class MatrixEmulator {
         
         // Line 1: One font height + adjusted spacing above line 2
         const line1Y = line2Y - fontHeight - adjustedLineSpacing;
-        
-        console.log('Position calculation:', {
-            displayHeight,
-            bottomEdge,
-            adjustedBottomMargin,
-            adjustedLineSpacing,
-            bottomLineHasDescenders,
-            topLineHasDescenders,
-            fontHeight,
-            line1Y,
-            line2Y
-        });
         
         return {
             line1Y: Math.round(line1Y),
@@ -212,7 +185,7 @@ class MatrixEmulator {
             }
             
             // Advance to next character position
-            currentX += charWidth + 1;  //
+            currentX += charWidth + 1;
         }
     }
 }
@@ -230,7 +203,8 @@ const COLOR_MAP = {
     'PURPLE': '#8800FF',
     'PINK': '#FF0088',
     'WHITE': '#FFFFFF',
-    'CYAN': '#00FFFF'
+    'CYAN': '#00FFFF',
+    'AQUA': '#00FFFF'
 };
 
 // Simple placeholder images (you can replace with actual icon data)
