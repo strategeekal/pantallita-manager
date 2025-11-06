@@ -1,13 +1,17 @@
 // Configuration storage key
 const CONFIG_KEY = 'screeny_config';
 
-// Global matrix emulator instances
-let landingMatrix = null;
-let previewMatrix = null;
+// Global matrix emulator instance
+let matrix = null;
 
 // Image loading functionality
 let availableImages = [];
 let imageCache = {};
+
+// Global variables for events management
+let currentEvents = [];
+let eventMatrix = null;
+let editMatrix = null;
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
@@ -20,10 +24,10 @@ document.addEventListener('DOMContentLoaded', () => {
     drawFeatureIcons();
     
     // Initialize landing matrix emulator
-    landingMatrix = new MatrixEmulator('matrix-container', 64, 32, 6); // Smaller pixel size for landing
+    matrix = new MatrixEmulator('matrix-container', 64, 32, 6); // Smaller pixel size for landing
     
     // Display "Hello!" centered on landing page
-    displayHello(landingMatrix);
+    displayHello(matrix);
     
     // Load saved settings
     loadSettings();
@@ -269,15 +273,11 @@ function showApp() {
     document.getElementById('landing-page').style.display = 'none';
     document.getElementById('main-app').classList.remove('hidden');
     
-    // Initialize preview matrix if not already done
-    if (!previewMatrix) {
-        previewMatrix = new MatrixEmulator('matrix-container-preview', 64, 32, 8);
-        
-        // Setup forms and tabs
-        setupTabs();
-        setupForms();
-        updatePreview();
-    }
+    // Setup tabs
+    setupTabs();
+    
+    // Initialize Events tab immediately (it's now the default)
+    initializeEventsTab();
 }
 
 // Scroll to about section
@@ -312,118 +312,6 @@ function setupTabs() {
 }
 
 // Form setup
-function setupForms() {
-    // Settings form
-    document.getElementById('settings-form').addEventListener('submit', handleSettingsSubmit);
-    
-    // Character counters
-    document.getElementById('preview-top').addEventListener('input', (e) => {
-        const count = e.target.value.length;
-        document.getElementById('top-count').textContent = `${count}/12`;
-        updatePreview();
-    });
-    
-    document.getElementById('preview-bottom').addEventListener('input', (e) => {
-        const count = e.target.value.length;
-        document.getElementById('bottom-count').textContent = `${count}/12`;
-        updatePreview();
-    });
-    
-    // Color preview
-    document.getElementById('preview-color').addEventListener('change', (e) => {
-        const colorName = e.target.value;
-        const colorHex = COLOR_MAP[colorName];
-        document.getElementById('color-preview').style.background = colorHex;
-        updatePreview();
-    });
-    
-    // Update preview on icon change
-    document.getElementById('preview-icon').addEventListener('change', () => {
-        console.log('Icon dropdown changed');
-        updatePreview();
-    });
-}
-
-// Update matrix preview
-async function updatePreview() {
-    if (!previewMatrix) return;
-    
-    console.log('updatePreview called');
-    
-    // Constants matching your SCREENY code
-    const TEXT_MARGIN = 2;
-    const EVENT_IMAGE_X = 37;
-    const EVENT_IMAGE_Y = 2;
-    
-    // Get form values
-    const topLine = document.getElementById('preview-top').value || '';
-    const bottomLine = document.getElementById('preview-bottom').value || '';
-    const colorName = document.getElementById('preview-color').value;
-    const iconName = document.getElementById('preview-icon').value;
-    
-    console.log('Selected icon:', iconName);
-    console.log('Available images count:', availableImages.length);
-    
-    const bottomColor = COLOR_MAP[colorName];
-    const topColor = COLOR_MAP['WHITE']; // Top line is always white
-    
-    // Clear matrix
-    previewMatrix.clear();
-    
-    // Load and draw icon
-    let icon = null;
-    
-    if (availableImages.length > 0 && iconName.endsWith('.bmp')) {
-        console.log('Loading BMP image:', iconName);
-        icon = await loadBMPImage(iconName);
-        console.log('Image loaded:', icon ? 'success' : 'failed');
-    } else {
-        console.log('Using placeholder icon:', iconName);
-        icon = SIMPLE_ICONS[iconName];
-    }
-    
-    if (icon) {
-        console.log('Drawing image at', EVENT_IMAGE_X, EVENT_IMAGE_Y);
-        console.log('Icon dimensions:', icon.length, 'x', icon[0]?.length);
-        previewMatrix.drawImage(icon, EVENT_IMAGE_X, EVENT_IMAGE_Y);
-    } else {
-        console.warn('No icon to draw!');
-    }
-    
-    // Calculate bottom-aligned text positions
-    const positions = previewMatrix.calculateBottomAlignedPositions(
-        TINYBIT_FONT,
-        topLine,
-        bottomLine,
-        32
-    );
-    
-    // Draw text - TOP LINE IN WHITE, BOTTOM LINE IN SELECTED COLOR
-    if (topLine) {
-        previewMatrix.drawTextWithFont(topLine, TEXT_MARGIN, positions.line1Y, topColor, TINYBIT_FONT);
-    }
-    
-    if (bottomLine) {
-        previewMatrix.drawTextWithFont(bottomLine, TEXT_MARGIN, positions.line2Y, bottomColor, TINYBIT_FONT);
-    }
-    
-    // Render
-    previewMatrix.render();
-}
-
-// Clear preview
-function clearPreview() {
-    document.getElementById('preview-top').value = '';
-    document.getElementById('preview-bottom').value = '';
-    document.getElementById('top-count').textContent = '0/12';
-    document.getElementById('bottom-count').textContent = '0/12';
-    
-    if (previewMatrix) {
-        previewMatrix.clear();
-        previewMatrix.render();
-    }
-}
-
 // Settings management
 function loadSettings() {
     const config = loadConfig();
@@ -680,6 +568,9 @@ function initializeEventsTab() {
         
         // Setup event form handlers
         setupEventFormHandlers();
+        
+        // Setup settings form handler
+        document.getElementById('settings-form').addEventListener('submit', handleSettingsSubmit);
         
         // Populate image dropdowns
         populateEventImageDropdowns();
