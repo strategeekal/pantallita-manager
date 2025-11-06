@@ -16,6 +16,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // Create pixelated background
     createPixelBackground();
     
+    // Draw pixelated feature icons
+    drawFeatureIcons();
+    
     // Initialize landing matrix emulator
     landingMatrix = new MatrixEmulator('matrix-container', 64, 32, 6); // Smaller pixel size for landing
     
@@ -78,33 +81,181 @@ function createPixelBackground() {
     });
 }
 
-// Display "Hello!" centered on the matrix
+// Draw pixelated feature icons
+function drawFeatureIcons() {
+    // Calendar icon
+    const calendarCanvas = document.getElementById('calendar-icon');
+    if (calendarCanvas) {
+        const ctx = calendarCanvas.getContext('2d');
+        const pixelSize = 6;
+        
+        // Calendar design (8x8 grid)
+        const calendar = [
+            [0,1,1,1,1,1,1,0],
+            [0,1,2,2,2,2,1,0],
+            [0,1,1,1,1,1,1,0],
+            [0,1,0,1,0,1,0,0],
+            [0,1,1,1,1,1,0,0],
+            [0,1,0,1,0,1,0,0],
+            [0,1,1,1,1,1,0,0],
+            [0,0,0,0,0,0,0,0]
+        ];
+        
+        ctx.fillStyle = '#f0f0f0';
+        ctx.fillRect(0, 0, 48, 48);
+        
+        for (let y = 0; y < 8; y++) {
+            for (let x = 0; x < 8; x++) {
+                if (calendar[y][x] === 1) {
+                    ctx.fillStyle = '#000';
+                    ctx.fillRect(x * pixelSize, y * pixelSize, pixelSize, pixelSize);
+                } else if (calendar[y][x] === 2) {
+                    ctx.fillStyle = '#FF0088';
+                    ctx.fillRect(x * pixelSize, y * pixelSize, pixelSize, pixelSize);
+                }
+            }
+        }
+    }
+    
+    // Clock icon
+    const clockCanvas = document.getElementById('clock-icon');
+    if (clockCanvas) {
+        const ctx = clockCanvas.getContext('2d');
+        const pixelSize = 6;
+        
+        // Clock design (8x8 grid)
+        const clock = [
+            [0,0,1,1,1,1,0,0],
+            [0,1,0,0,0,0,1,0],
+            [1,0,0,0,1,0,0,1],
+            [1,0,0,0,1,0,0,1],
+            [1,0,0,1,1,0,0,1],
+            [1,0,0,0,0,0,0,1],
+            [0,1,0,0,0,0,1,0],
+            [0,0,1,1,1,1,0,0]
+        ];
+        
+        ctx.fillStyle = '#f0f0f0';
+        ctx.fillRect(0, 0, 48, 48);
+        
+        for (let y = 0; y < 8; y++) {
+            for (let x = 0; x < 8; x++) {
+                if (clock[y][x] === 1) {
+                    ctx.fillStyle = '#000';
+                    ctx.fillRect(x * pixelSize, y * pixelSize, pixelSize, pixelSize);
+                }
+            }
+        }
+    }
+    
+    // Eye icon
+    const eyeCanvas = document.getElementById('eye-icon');
+    if (eyeCanvas) {
+        const ctx = eyeCanvas.getContext('2d');
+        const pixelSize = 6;
+        
+        // Eye design (8x8 grid)
+        const eye = [
+            [0,0,0,0,0,0,0,0],
+            [0,0,1,1,1,1,0,0],
+            [0,1,0,0,0,0,1,0],
+            [1,0,0,1,1,0,0,1],
+            [1,0,0,1,1,0,0,1],
+            [0,1,0,0,0,0,1,0],
+            [0,0,1,1,1,1,0,0],
+            [0,0,0,0,0,0,0,0]
+        ];
+        
+        ctx.fillStyle = '#f0f0f0';
+        ctx.fillRect(0, 0, 48, 48);
+        
+        for (let y = 0; y < 8; y++) {
+            for (let x = 0; x < 8; x++) {
+                if (eye[y][x] === 1) {
+                    ctx.fillStyle = '#000';
+                    ctx.fillRect(x * pixelSize, y * pixelSize, pixelSize, pixelSize);
+                }
+            }
+        }
+    }
+}
+
+// Display "Hello!" centered on the matrix, with optional name from URL
 function displayHello(matrix) {
     if (!matrix) return;
     
     matrix.clear();
     
-    const text = "Hello!";
+    // Get name from URL parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    const name = urlParams.get('name') || urlParams.get('n');
+    
     const font = TINYBIT_FONT;
     
-    // Calculate text width
-    let textWidth = 0;
-    for (let char of text.toUpperCase()) {
-        const glyph = font.glyphs[char];
-        if (glyph) {
-            textWidth += glyph.width + 1; // +1 for character spacing
+    if (name && name.length <= 12) {
+        // Two-line greeting: "Hello!" and name
+        const line1 = "Hello!";
+        const line2 = name;
+        
+        // Calculate bottom-aligned positions
+        const positions = matrix.calculateBottomAlignedPositions(
+            font,
+            line1,
+            line2,
+            32
+        );
+        
+        // Draw both lines in mint color
+        const color = '#00FFAA';
+        
+        // Calculate center position for line 1
+        let line1Width = 0;
+        for (let char of line1.toUpperCase()) {
+            const glyph = font.glyphs[char];
+            if (glyph) {
+                line1Width += glyph.width + 1;
+            }
         }
+        line1Width -= 1;
+        const line1X = Math.floor((64 - line1Width) / 2);
+        
+        // Calculate center position for line 2
+        let line2Width = 0;
+        for (let char of line2.toUpperCase()) {
+            const glyph = font.glyphs[char];
+            if (glyph) {
+                line2Width += glyph.width + 1;
+            }
+        }
+        line2Width -= 1;
+        const line2X = Math.floor((64 - line2Width) / 2);
+        
+        matrix.drawTextWithFont(line1, line1X, positions.line1Y, color, font);
+        matrix.drawTextWithFont(line2, line2X, positions.line2Y, color, font);
+        
+    } else {
+        // Single line: just "Hello!"
+        const text = "Hello!";
+        
+        // Calculate text width
+        let textWidth = 0;
+        for (let char of text.toUpperCase()) {
+            const glyph = font.glyphs[char];
+            if (glyph) {
+                textWidth += glyph.width + 1;
+            }
+        }
+        textWidth -= 1;
+        
+        // Center horizontally
+        const x = Math.floor((64 - textWidth) / 2);
+        
+        // Center vertically (matrix height is 32)
+        const y = Math.floor((32 - 6) / 2);
+        
+        // Draw text in mint color
+        matrix.drawTextWithFont(text, x, y, '#00FFAA', font);
     }
-    textWidth -= 1; // Remove last spacing
-    
-    // Center horizontally
-    const x = Math.floor((64 - textWidth) / 2);
-    
-    // Center vertically (matrix height is 32)
-    const y = Math.floor((32 - 6) / 2); // 6 is approximate font height
-    
-    // Draw text in cyan/mint color
-    matrix.drawTextWithFont(text, x, y, '#00FFAA', font);
     
     matrix.render();
 }
