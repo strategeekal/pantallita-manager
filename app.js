@@ -439,6 +439,12 @@ async function loadBMPImage(imageName) {
         return imageCache[imageName];
     }
     
+    // Clear cache if it gets too large (memory management for mobile)
+    if (Object.keys(imageCache).length > 20) {
+        console.log('Clearing image cache to free memory');
+        imageCache = {};
+    }
+    
     // Find image info
     const imageInfo = availableImages.find(img => img.name === imageName);
     if (!imageInfo) {
@@ -817,7 +823,15 @@ function displayEvents() {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     
-    listContainer.innerHTML = sortedEvents.map(event => {
+    // Split into upcoming and past events
+    const upcomingEvents = sortedEvents.filter(event => new Date(event.date) >= today);
+    const pastEvents = sortedEvents.filter(event => new Date(event.date) < today);
+    
+    // Show upcoming + last 10 past events to reduce DOM size
+    const eventsToShow = [...upcomingEvents, ...pastEvents.slice(-10)];
+    
+    // Build HTML - simplified structure for better performance
+    const eventsHTML = eventsToShow.map(event => {
         const eventDate = new Date(event.date);
         const isPast = eventDate < today;
         
@@ -826,8 +840,8 @@ function displayEvents() {
         const year = eventDate.getFullYear();
         
         const timeInfo = event.startHour !== null && event.endHour !== null
-            ? `<span class="event-time">Time: ${event.startHour}:00 - ${event.endHour}:00</span>`
-            : '<span class="event-time">All Day</span>';
+            ? `${event.startHour}:00 - ${event.endHour}:00`
+            : 'All Day';
         
         return `
             <div class="event-card ${isPast ? 'past-event' : ''}">
@@ -840,7 +854,7 @@ function displayEvents() {
                     <h4>${event.topLine}</h4>
                     <p><strong>${event.bottomLine}</strong></p>
                     <p>🖼️ ${event.image} | 🎨 ${event.color}</p>
-                    <p>${timeInfo}</p>
+                    <p class="event-time">${timeInfo}</p>
                 </div>
                 <div class="event-actions">
                     <button class="btn-pixel btn-primary" onclick="editEvent(${event.index})">✏️ Edit</button>
@@ -849,9 +863,21 @@ function displayEvents() {
             </div>
         `;
     }).join('');
+    
+    // Clear and set in one operation
+    listContainer.innerHTML = eventsHTML;
+    
+    // Show message if there are hidden past events
+    if (pastEvents.length > 10) {
+        const hiddenCount = pastEvents.length - 10;
+        listContainer.insertAdjacentHTML('beforeend', `
+            <div class="info-message">
+                ${hiddenCount} older past event(s) hidden. 
+                <button class="btn-pixel btn-secondary" onclick="clearPastEvents()">Clear Past Events</button>
+            </div>
+        `);
+    }
 }
-
-// Remove the separate handler functions that are no longer needed
 
 // Add new event
 async function addEvent() {
