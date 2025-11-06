@@ -437,3 +437,304 @@ header p {
 		width: auto !important;
 	}
 }
+
+/* Events Management Styles */
+.event-editor {
+	background: #f0f0f0;
+	border: 3px solid #000;
+	padding: 25px;
+	margin-bottom: 30px;
+	box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.3);
+}
+
+.event-editor h3 {
+	margin-bottom: 20px;
+	text-transform: uppercase;
+	font-family: 'Courier New', monospace;
+}
+
+.event-form-container {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 30px;
+}
+
+.event-form {
+	display: flex;
+	flex-direction: column;
+	gap: 15px;
+}
+
+.event-preview-container {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+}
+
+.event-preview-container h4 {
+	margin-bottom: 15px;
+	text-transform: uppercase;
+	font-family: 'Courier New', monospace;
+}
+
+.event-emulator {
+	margin: 0;
+	padding: 20px;
+}
+
+.preview-hint {
+	margin-top: 10px;
+	font-size: 0.9em;
+	color: #666;
+	text-align: center;
+}
+
+.time-fields {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 15px;
+	padding: 15px;
+	background: #e0e0e0;
+	border: 2px solid #000;
+	margin-top: 10px;
+}
+
+.form-actions {
+	display: flex;
+	gap: 10px;
+	margin-top: 10px;
+}
+
+.form-actions .btn-pixel {
+	flex: 1;
+	margin: 0;
+}
+
+/* Event List Section */
+.event-list-section {
+	background: #f0f0f0;
+	border: 3px solid #000;
+	padding: 25px;
+	box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.3);
+}
+
+.event-list-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 20px;
+	flex-wrap: wrap;
+	gap: 15px;
+}
+
+.event-list-header h3 {
+	text-transform: uppercase;
+	font-family: 'Courier New', monospace;
+}
+
+.list-actions {
+	display: flex;
+	gap: 10px;
+}
+
+.loading-message, .error-message, .empty-message {
+	text-align: center;
+	padding: 40px 20px;
+	font-size: 1.1em;
+}
+
+.error-message {
+	color: #FF0088;
+	font-weight: bold;
+}
+
+.empty-message {
+	color: #666;
+}
+
+.events-list {
+	display: flex;
+	flex-direction: column;
+	gap: 15px;
+}
+
+.event-card {
+	background: white;
+	border: 3px solid #000;
+	padding: 20px;
+	display: grid;
+	grid-template-columns: auto 1fr auto;
+	gap: 20px;
+	align-items: center;
+	box-shadow: 2px 2px 0px rgba(0, 0, 0, 0.3);
+	transition: transform 0.1s;
+}
+
+.event-card:hover {
+	transform: translate(-2px, -2px);
+	box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.3);
+}
+
+.event-card.past-event {
+	opacity: 0.6;
+	background: #f5f5f5;
+}
+
+.event-date-badge {
+	background: #000;
+	color: white;
+	padding: 15px;
+	text-align: center;
+	min-width: 80px;
+	font-family: 'Courier New', monospace;
+	font-weight: bold;
+}
+
+.event-date-badge .month {
+	font-size: 0.8em;
+	display: block;
+}
+
+.event-date-badge .day {
+	font-size: 2em;
+	display: block;
+}
+
+.event-date-badge .year {
+	font-size: 0.8em;
+	display: block;
+}
+
+.event-info {
+	flex: 1;
+}
+
+.event-info h4 {
+	font-size: 1.2em;
+	margin-bottom: 5px;
+	font-family: 'Courier New', monospace;
+	text-transform: uppercase;
+}
+
+.event-info p {
+	color: #666;
+	margin: 3px 0;
+	font-size: 0.95em;
+}
+
+.event-info .event-time {
+	font-weight: bold;
+	color: #000;
+}
+
+.event-actions {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+
+.event-actions .btn-pixel {
+	margin: 0;
+	padding: 8px 16px;
+	font-size: 0.9em;
+	white-space: nowrap;
+}
+
+/* Modal Styles */
+.modal {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background: rgba(0, 0, 0, 0.8);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	z-index: 2000;
+	padding: 20px;
+}
+
+.modal.hidden {
+	display: none;
+}
+
+.modal-content {
+	background: white;
+	border: 4px solid #000;
+	box-shadow: 8px 8px 0px rgba(0, 0, 0, 0.5);
+	max-width: 900px;
+	width: 100%;
+	max-height: 90vh;
+	overflow-y: auto;
+}
+
+.modal-header {
+	background: #000;
+	color: white;
+	padding: 20px;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	border-bottom: 4px solid #000;
+}
+
+.modal-header h3 {
+	margin: 0;
+	text-transform: uppercase;
+	font-family: 'Courier New', monospace;
+}
+
+.modal-close {
+	background: none;
+	border: none;
+	color: white;
+	font-size: 2em;
+	cursor: pointer;
+	padding: 0;
+	width: 40px;
+	height: 40px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.modal-close:hover {
+	background: rgba(255, 255, 255, 0.1);
+}
+
+.modal-body {
+	padding: 30px;
+}
+
+/* Responsive Design for Events */
+@media (max-width: 768px) {
+	.event-form-container {
+		grid-template-columns: 1fr;
+	}
+
+	.time-fields {
+		grid-template-columns: 1fr;
+	}
+
+	.event-card {
+		grid-template-columns: 1fr;
+	}
+
+	.event-date-badge {
+		justify-self: start;
+	}
+
+	.event-actions {
+		flex-direction: row;
+	}
+
+	.list-actions {
+		width: 100%;
+		flex-direction: column;
+	}
+
+	.list-actions .btn-pixel {
+		width: 100%;
+	}
+}
