@@ -1,5 +1,5 @@
 // Configuration storage key
-const CONFIG_KEY = 'screeny_config';
+const CONFIG_KEY = 'screeny_config'
 
 // Global matrix emulator instance for landing page
 let landingMatrix = null;
