@@ -743,14 +743,38 @@ header p {
 
 	.event-card {
 		grid-template-columns: 1fr;
+		padding: 15px;
 	}
 
 	.event-date-badge {
 		justify-self: start;
+		min-width: 60px;
+		padding: 10px;
+	}
+	
+	.event-date-badge .month {
+		font-size: 0.7em;
+	}
+	
+	.event-date-badge .day {
+		font-size: 1.5em;
+	}
+	
+	.event-date-badge .year {
+		font-size: 0.7em;
 	}
 
 	.event-actions {
 		flex-direction: row;
+		gap: 10px;
+		width: 100%;
+	}
+	
+	.event-actions .btn-pixel {
+		flex: 1;
+		margin: 0;
+		padding: 10px;
+		font-size: 0.9em;
 	}
 
 	.list-actions {
