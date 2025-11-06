@@ -61,70 +61,12 @@
 			</header>
 
 			<nav class="tabs">
-				<button class="tab active" data-tab="preview">Preview</button>
-				<button class="tab" data-tab="events">Events</button>
+				<button class="tab active" data-tab="events">Events</button>
 				<button class="tab" data-tab="settings">Settings</button>
 			</nav>
 
-			<!-- Preview Tab -->
-			<section id="preview-tab" class="tab-content active">
-				<h2>RGB Matrix Preview</h2>
-				
-				<div class="emulator-wrapper">
-					<div id="matrix-container-preview" class="matrix-container"></div>
-				</div>
-
-				<div class="preview-form">
-					<h3>Test Event Display</h3>
-					
-					<div class="form-group">
-						<label for="preview-top">Top Line (max 12 chars)</label>
-						<input type="text" id="preview-top" maxlength="12" placeholder="Top line text">
-						<span class="char-count" id="top-count">0/12</span>
-					</div>
-
-					<div class="form-group">
-						<label for="preview-bottom">Bottom Line (max 12 chars)</label>
-						<input type="text" id="preview-bottom" maxlength="12" placeholder="Bottom line text">
-						<span class="char-count" id="bottom-count">0/12</span>
-					</div>
-
-					<div class="form-group">
-						<label for="preview-color">Color</label>
-						<select id="preview-color">
-							<option value="MINT" selected>Mint</option>
-							<option value="BUGAMBILIA">Bugambilia</option>
-							<option value="LILAC">Lilac</option>
-							<option value="RED">Red</option>
-							<option value="GREEN">Green</option>
-							<option value="BLUE">Blue</option>
-							<option value="ORANGE">Orange</option>
-							<option value="YELLOW">Yellow</option>
-							<option value="PURPLE">Purple</option>
-							<option value="PINK">Pink</option>
-							<option value="WHITE">White</option>
-						</select>
-						<div class="color-preview" id="color-preview"></div>
-					</div>
-
-					<div class="form-group">
-						<label for="preview-icon">Icon</label>
-						<select id="preview-icon">
-							<option value="halloween">Halloween 🎃</option>
-							<option value="heart">Heart ❤️</option>
-							<option value="star">Star ⭐</option>
-							<option value="sun">Sun ☀️</option>
-							<option value="cloud">Cloud ☁️</option>
-						</select>
-					</div>
-
-					<button class="btn-pixel btn-primary" onclick="updatePreview()">Update Preview</button>
-					<button class="btn-pixel btn-secondary" onclick="clearPreview()">Clear</button>
-				</div>
-			</section>
-
 			<!-- Events Tab -->
-			<section id="events-tab" class="tab-content">
+			<section id="events-tab" class="tab-content active">
 				<h2>Manage Events</h2>
 				
 				<!-- Add New Event Section -->
