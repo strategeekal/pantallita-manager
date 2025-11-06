@@ -147,6 +147,11 @@ function setupTabs() {
 
             tab.classList.add('active');
             document.getElementById(`${targetTab}-tab`).classList.add('active');
+            
+            // Initialize events tab if switching to it
+            if (targetTab === 'events') {
+                initializeEventsTab();
+            }
         });
     });
 }
@@ -504,3 +509,607 @@ async function loadBMPImage(imageName) {
         return null;
     }
 }
+
+// ==================== EVENTS CRUD FUNCTIONALITY ====================
+
+// Global variables for events management
+let currentEvents = [];
+let eventMatrix = null;
+let editMatrix = null;
+
+// Initialize events tab when shown
+function initializeEventsTab() {
+    if (!eventMatrix) {
+        eventMatrix = new MatrixEmulator('matrix-container-event', 64, 32, 6);
+        editMatrix = new MatrixEmulator('matrix-container-edit', 64, 32, 6);
+        
+        // Setup event form handlers
+        setupEventFormHandlers();
+        
+        // Populate image dropdowns
+        populateEventImageDropdowns();
+        
+        // Load events from GitHub
+        loadEvents();
+    }
+}
+
+// Setup event form handlers
+function setupEventFormHandlers() {
+    // Character counters for add form
+    document.getElementById('event-top').addEventListener('input', (e) => {
+        const count = e.target.value.length;
+        document.getElementById('event-top-count').textContent = `${count}/12`;
+        updateEventPreview();
+    });
+    
+    document.getElementById('event-bottom').addEventListener('input', (e) => {
+        const count = e.target.value.length;
+        document.getElementById('event-bottom-count').textContent = `${count}/12`;
+        updateEventPreview();
+    });
+    
+    // Character counters for edit form
+    document.getElementById('edit-event-top').addEventListener('input', (e) => {
+        const count = e.target.value.length;
+        document.getElementById('edit-event-top-count').textContent = `${count}/12`;
+        updateEditEventPreview();
+    });
+    
+    document.getElementById('edit-event-bottom').addEventListener('input', (e) => {
+        const count = e.target.value.length;
+        document.getElementById('edit-event-bottom-count').textContent = `${count}/12`;
+        updateEditEventPreview();
+    });
+    
+    // Update preview on changes
+    document.getElementById('event-image').addEventListener('change', updateEventPreview);
+    document.getElementById('event-color').addEventListener('change', (e) => {
+        const colorHex = COLOR_MAP[e.target.value];
+        document.getElementById('event-color-preview').style.background = colorHex;
+        updateEventPreview();
+    });
+    
+    document.getElementById('edit-event-image').addEventListener('change', updateEditEventPreview);
+    document.getElementById('edit-event-color').addEventListener('change', (e) => {
+        const colorHex = COLOR_MAP[e.target.value];
+        document.getElementById('edit-event-color-preview').style.background = colorHex;
+        updateEditEventPreview();
+    });
+    
+    // Toggle time fields
+    document.getElementById('event-has-time').addEventListener('change', (e) => {
+        document.getElementById('event-time-fields').classList.toggle('hidden', !e.target.checked);
+    });
+    
+    document.getElementById('edit-event-has-time').addEventListener('change', (e) => {
+        document.getElementById('edit-event-time-fields').classList.toggle('hidden', !e.target.checked);
+    });
+}
+
+// Populate image dropdowns with available images
+function populateEventImageDropdowns() {
+    const addSelect = document.getElementById('event-image');
+    const editSelect = document.getElementById('edit-event-image');
+    const editColorSelect = document.getElementById('edit-event-color');
+    
+    if (availableImages.length > 0) {
+        const options = availableImages.map(img => 
+            `<option value="${img.name}">${img.name}</option>`
+        ).join('');
+        
+        addSelect.innerHTML = '<option value="">Select an image...</option>' + options;
+        editSelect.innerHTML = '<option value="">Select an image...</option>' + options;
+    }
+    
+    // Populate edit color dropdown
+    editColorSelect.innerHTML = `
+        <option value="MINT">Mint</option>
+        <option value="BUGAMBILIA">Bugambilia</option>
+        <option value="LILAC">Lilac</option>
+        <option value="RED">Red</option>
+        <option value="GREEN">Green</option>
+        <option value="BLUE">Blue</option>
+        <option value="ORANGE">Orange</option>
+        <option value="YELLOW">Yellow</option>
+        <option value="PURPLE">Purple</option>
+        <option value="PINK">Pink</option>
+        <option value="AQUA">Aqua</option>
+        <option value="WHITE">White</option>
+    `;
+}
+
+// Update event preview
+async function updateEventPreview() {
+    if (!eventMatrix) return;
+    
+    const topLine = document.getElementById('event-top').value || '';
+    const bottomLine = document.getElementById('event-bottom').value || '';
+    const colorName = document.getElementById('event-color').value;
+    const iconName = document.getElementById('event-image').value;
+    
+    await renderEventOnMatrix(eventMatrix, topLine, bottomLine, colorName, iconName);
+}
+
+// Update edit event preview
+async function updateEditEventPreview() {
+    if (!editMatrix) return;
+    
+    const topLine = document.getElementById('edit-event-top').value || '';
+    const bottomLine = document.getElementById('edit-event-bottom').value || '';
+    const colorName = document.getElementById('edit-event-color').value;
+    const iconName = document.getElementById('edit-event-image').value;
+    
+    await renderEventOnMatrix(editMatrix, topLine, bottomLine, colorName, iconName);
+}
+
+// Render event on matrix (shared function)
+async function renderEventOnMatrix(matrix, topLine, bottomLine, colorName, iconName) {
+    const TEXT_MARGIN = 2;
+    const EVENT_IMAGE_X = 37;
+    const EVENT_IMAGE_Y = 2;
+    
+    const bottomColor = COLOR_MAP[colorName] || COLOR_MAP['MINT'];
+    const topColor = COLOR_MAP['WHITE'];
+    
+    matrix.clear();
+    
+    // Load and draw icon
+    let icon = null;
+    if (iconName && iconName.endsWith('.bmp')) {
+        icon = await loadBMPImage(iconName);
+    } else if (iconName && SIMPLE_ICONS[iconName]) {
+        icon = SIMPLE_ICONS[iconName];
+    }
+    
+    if (icon) {
+        matrix.drawImage(icon, EVENT_IMAGE_X, EVENT_IMAGE_Y);
+    }
+    
+    // Calculate bottom-aligned text positions
+    const positions = matrix.calculateBottomAlignedPositions(
+        TINYBIT_FONT,
+        topLine,
+        bottomLine,
+        32
+    );
+    
+    // Draw text
+    if (topLine) {
+        matrix.drawTextWithFont(topLine, TEXT_MARGIN, positions.line1Y, topColor, TINYBIT_FONT);
+    }
+    
+    if (bottomLine) {
+        matrix.drawTextWithFont(bottomLine, TEXT_MARGIN, positions.line2Y, bottomColor, TINYBIT_FONT);
+    }
+    
+    matrix.render();
+}
+
+// Load events from GitHub
+async function loadEvents() {
+    const config = loadConfig();
+    
+    if (!config.token || !config.owner || !config.repo) {
+        showEventsError('Please configure GitHub settings first');
+        return;
+    }
+    
+    showEventsLoading();
+    
+    try {
+        const response = await fetch(
+            `https://api.github.com/repos/${config.owner}/${config.repo}/contents/ephemeral_events.csv`,
+            {
+                headers: {
+                    'Authorization': `Bearer ${config.token}`,
+                    'Accept': 'application/vnd.github.v3+json'
+                }
+            }
+        );
+        
+        if (!response.ok) {
+            if (response.status === 404) {
+                showEventsEmpty();
+                currentEvents = [];
+                return;
+            }
+            throw new Error(`GitHub API error: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        const content = atob(data.content);
+        
+        // Parse CSV
+        currentEvents = parseEventsCSV(content);
+        displayEvents();
+        
+    } catch (error) {
+        console.error('Error loading events:', error);
+        showEventsError('Failed to load events: ' + error.message);
+    }
+}
+
+// Parse events CSV content
+function parseEventsCSV(content) {
+    const lines = content.split('\n').filter(line => {
+        const trimmed = line.trim();
+        return trimmed && !trimmed.startsWith('#');
+    });
+    
+    return lines.map((line, index) => {
+        const parts = line.split(',');
+        
+        if (parts.length < 4) return null;
+        
+        const event = {
+            date: parts[0].trim(),
+            topLine: parts[1].trim(),
+            bottomLine: parts[2].trim(),
+            image: parts[3].trim(),
+            color: parts[4] ? parts[4].trim() : 'MINT',
+            startHour: parts[5] ? parseInt(parts[5].trim()) : null,
+            endHour: parts[6] ? parseInt(parts[6].trim()) : null,
+            index: index
+        };
+        
+        return event;
+    }).filter(event => event !== null);
+}
+
+// Display events in the list
+function displayEvents() {
+    const listContainer = document.getElementById('events-list');
+    
+    hideEventsMessages();
+    
+    if (currentEvents.length === 0) {
+        showEventsEmpty();
+        return;
+    }
+    
+    // Sort events by date
+    const sortedEvents = [...currentEvents].sort((a, b) => {
+        return new Date(a.date) - new Date(b.date);
+    });
+    
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    listContainer.innerHTML = sortedEvents.map(event => {
+        const eventDate = new Date(event.date);
+        const isPast = eventDate < today;
+        
+        const month = eventDate.toLocaleString('default', { month: 'short' }).toUpperCase();
+        const day = eventDate.getDate();
+        const year = eventDate.getFullYear();
+        
+        const timeInfo = event.startHour !== null && event.endHour !== null
+            ? `<span class="event-time">Time: ${event.startHour}:00 - ${event.endHour}:00</span>`
+            : '<span class="event-time">All Day</span>';
+        
+        return `
+            <div class="event-card ${isPast ? 'past-event' : ''}">
+                <div class="event-date-badge">
+                    <span class="month">${month}</span>
+                    <span class="day">${day}</span>
+                    <span class="year">${year}</span>
+                </div>
+                <div class="event-info">
+                    <h4>${event.topLine}</h4>
+                    <p><strong>${event.bottomLine}</strong></p>
+                    <p>🖼️ ${event.image} | 🎨 ${event.color}</p>
+                    <p>${timeInfo}</p>
+                </div>
+                <div class="event-actions">
+                    <button class="btn-pixel btn-primary" onclick="editEvent(${event.index})">✏️ Edit</button>
+                    <button class="btn-pixel btn-secondary" onclick="deleteEvent(${event.index})">🗑️ Delete</button>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+// Add new event
+async function addEvent() {
+    const date = document.getElementById('event-date').value;
+    const topLine = document.getElementById('event-top').value;
+    const bottomLine = document.getElementById('event-bottom').value;
+    const image = document.getElementById('event-image').value;
+    const color = document.getElementById('event-color').value;
+    const hasTime = document.getElementById('event-has-time').checked;
+    const startHour = hasTime ? document.getElementById('event-start-hour').value : '';
+    const endHour = hasTime ? document.getElementById('event-end-hour').value : '';
+    
+    // Validation
+    if (!date || !topLine || !bottomLine || !image || !color) {
+        showStatus('Please fill in all required fields', 'error');
+        return;
+    }
+    
+    // Create event object
+    const newEvent = {
+        date,
+        topLine,
+        bottomLine,
+        image,
+        color,
+        startHour: hasTime && startHour ? parseInt(startHour) : null,
+        endHour: hasTime && endHour ? parseInt(endHour) : null
+    };
+    
+    // Add to current events
+    currentEvents.push(newEvent);
+    
+    // Save to GitHub
+    await saveEventsToGitHub();
+    
+    // Clear form
+    clearEventForm();
+    
+    showStatus('Event added successfully!', 'success');
+}
+
+// Clear event form
+function clearEventForm() {
+    document.getElementById('event-date').value = '';
+    document.getElementById('event-top').value = '';
+    document.getElementById('event-bottom').value = '';
+    document.getElementById('event-image').value = '';
+    document.getElementById('event-color').value = 'MINT';
+    document.getElementById('event-has-time').checked = false;
+    document.getElementById('event-time-fields').classList.add('hidden');
+    document.getElementById('event-start-hour').value = '';
+    document.getElementById('event-end-hour').value = '';
+    document.getElementById('event-top-count').textContent = '0/12';
+    document.getElementById('event-bottom-count').textContent = '0/12';
+    
+    if (eventMatrix) {
+        eventMatrix.clear();
+        eventMatrix.render();
+    }
+}
+
+// Edit event
+function editEvent(index) {
+    const event = currentEvents[index];
+    
+    document.getElementById('edit-event-index').value = index;
+    document.getElementById('edit-event-date').value = event.date;
+    document.getElementById('edit-event-top').value = event.topLine;
+    document.getElementById('edit-event-bottom').value = event.bottomLine;
+    document.getElementById('edit-event-image').value = event.image;
+    document.getElementById('edit-event-color').value = event.color;
+    
+    const hasTime = event.startHour !== null && event.endHour !== null;
+    document.getElementById('edit-event-has-time').checked = hasTime;
+    document.getElementById('edit-event-time-fields').classList.toggle('hidden', !hasTime);
+    
+    if (hasTime) {
+        document.getElementById('edit-event-start-hour').value = event.startHour;
+        document.getElementById('edit-event-end-hour').value = event.endHour;
+    }
+    
+    document.getElementById('edit-event-top-count').textContent = `${event.topLine.length}/12`;
+    document.getElementById('edit-event-bottom-count').textContent = `${event.bottomLine.length}/12`;
+    
+    const colorHex = COLOR_MAP[event.color];
+    document.getElementById('edit-event-color-preview').style.background = colorHex;
+    
+    // Show modal
+    document.getElementById('edit-event-modal').classList.remove('hidden');
+    
+    // Update preview
+    updateEditEventPreview();
+}
+
+// Save edited event
+async function saveEditedEvent() {
+    const index = parseInt(document.getElementById('edit-event-index').value);
+    const date = document.getElementById('edit-event-date').value;
+    const topLine = document.getElementById('edit-event-top').value;
+    const bottomLine = document.getElementById('edit-event-bottom').value;
+    const image = document.getElementById('edit-event-image').value;
+    const color = document.getElementById('edit-event-color').value;
+    const hasTime = document.getElementById('edit-event-has-time').checked;
+    const startHour = hasTime ? document.getElementById('edit-event-start-hour').value : '';
+    const endHour = hasTime ? document.getElementById('edit-event-end-hour').value : '';
+    
+    // Validation
+    if (!date || !topLine || !bottomLine || !image || !color) {
+        showStatus('Please fill in all required fields', 'error');
+        return;
+    }
+    
+    // Update event
+    currentEvents[index] = {
+        date,
+        topLine,
+        bottomLine,
+        image,
+        color,
+        startHour: hasTime && startHour ? parseInt(startHour) : null,
+        endHour: hasTime && endHour ? parseInt(endHour) : null,
+        index
+    };
+    
+    // Save to GitHub
+    await saveEventsToGitHub();
+    
+    // Close modal
+    closeEditModal();
+    
+    showStatus('Event updated successfully!', 'success');
+}
+
+// Close edit modal
+function closeEditModal() {
+    document.getElementById('edit-event-modal').classList.add('hidden');
+}
+
+// Delete event
+async function deleteEvent(index) {
+    if (!confirm('Are you sure you want to delete this event?')) {
+        return;
+    }
+    
+    currentEvents.splice(index, 1);
+    
+    // Reindex remaining events
+    currentEvents.forEach((event, i) => {
+        event.index = i;
+    });
+    
+    await saveEventsToGitHub();
+    
+    showStatus('Event deleted successfully!', 'success');
+}
+
+// Clear past events
+async function clearPastEvents() {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const futureEvents = currentEvents.filter(event => {
+        const eventDate = new Date(event.date);
+        return eventDate >= today;
+    });
+    
+    if (futureEvents.length === currentEvents.length) {
+        showStatus('No past events to clear', 'error');
+        return;
+    }
+    
+    if (!confirm(`This will delete ${currentEvents.length - futureEvents.length} past event(s). Continue?`)) {
+        return;
+    }
+    
+    currentEvents = futureEvents;
+    
+    // Reindex events
+    currentEvents.forEach((event, i) => {
+        event.index = i;
+    });
+    
+    await saveEventsToGitHub();
+    
+    showStatus('Past events cleared successfully!', 'success');
+}
+
+// Save events to GitHub
+async function saveEventsToGitHub() {
+    const config = loadConfig();
+    
+    if (!config.token || !config.owner || !config.repo) {
+        showStatus('Please configure GitHub settings first', 'error');
+        return;
+    }
+    
+    try {
+        // Get current file SHA (needed for update)
+        let sha = null;
+        try {
+            const getResponse = await fetch(
+                `https://api.github.com/repos/${config.owner}/${config.repo}/contents/ephemeral_events.csv`,
+                {
+                    headers: {
+                        'Authorization': `Bearer ${config.token}`,
+                        'Accept': 'application/vnd.github.v3+json'
+                    }
+                }
+            );
+            
+            if (getResponse.ok) {
+                const getData = await getResponse.json();
+                sha = getData.sha;
+            }
+        } catch (e) {
+            console.log('File does not exist yet, will create new');
+        }
+        
+        // Generate CSV content
+        const csvContent = generateEventsCSV();
+        const encodedContent = btoa(unescape(encodeURIComponent(csvContent)));
+        
+        // Save to GitHub
+        const response = await fetch(
+            `https://api.github.com/repos/${config.owner}/${config.repo}/contents/ephemeral_events.csv`,
+            {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${config.token}`,
+                    'Accept': 'application/vnd.github.v3+json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    message: 'Update ephemeral events',
+                    content: encodedContent,
+                    sha: sha
+                })
+            }
+        );
+        
+        if (!response.ok) {
+            throw new Error(`GitHub API error: ${response.status}`);
+        }
+        
+        // Reload events to refresh display
+        await loadEvents();
+        
+    } catch (error) {
+        console.error('Error saving events:', error);
+        showStatus('Failed to save events: ' + error.message, 'error');
+    }
+}
+
+// Generate CSV content from events
+function generateEventsCSV() {
+    const header = `# Ephemeral Events - Auto-generated
+# Format: YYYY-MM-DD,TopLine,BottomLine,Image,Color[,StartHour,EndHour]
+# TopLine = displays on TOP of screen
+# BottomLine = displays on BOTTOM (usually the name)
+# Times are optional (24-hour format, 0-23). If omitted, event shows all day.
+`;
+    
+    const lines = currentEvents.map(event => {
+        let line = `${event.date},${event.topLine},${event.bottomLine},${event.image},${event.color}`;
+        
+        if (event.startHour !== null && event.endHour !== null) {
+            line += `,${event.startHour},${event.endHour}`;
+        }
+        
+        return line;
+    });
+    
+    return header + lines.join('\n');
+}
+
+// Helper functions for showing/hiding messages
+function showEventsLoading() {
+    document.getElementById('events-loading').classList.remove('hidden');
+    document.getElementById('events-error').classList.add('hidden');
+    document.getElementById('events-empty').classList.add('hidden');
+    document.getElementById('events-list').innerHTML = '';
+}
+
+function showEventsError(message) {
+    document.getElementById('events-loading').classList.add('hidden');
+    document.getElementById('events-error').classList.remove('hidden');
+    document.getElementById('events-error').textContent = message;
+    document.getElementById('events-empty').classList.add('hidden');
+    document.getElementById('events-list').innerHTML = '';
+}
+
+function showEventsEmpty() {
+    document.getElementById('events-loading').classList.add('hidden');
+    document.getElementById('events-error').classList.add('hidden');
+    document.getElementById('events-empty').classList.remove('hidden');
+    document.getElementById('events-list').innerHTML = '';
+}
+
+function hideEventsMessages() {
+    document.getElementById('events-loading').classList.add('hidden');
+    document.getElementById('events-error').classList.add('hidden');
+    document.getElementById('events-empty').classList.add('hidden');
+}
+
