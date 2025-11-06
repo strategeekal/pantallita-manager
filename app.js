@@ -875,9 +875,6 @@ const sortedEvents = [...currentEvents].sort((a, b) => {
 const today = new Date();
 today.setHours(0, 0, 0, 0);
 
-// Clear container first
-listContainer.innerHTML = '';
-
 // Build HTML string
 const eventsHTML = sortedEvents.map(event => {
     const eventDate = new Date(event.date);
@@ -915,58 +912,30 @@ const eventsHTML = sortedEvents.map(event => {
 // Set all HTML at once
 listContainer.innerHTML = eventsHTML;
 
-// Use event delegation for better mobile performance
-listContainer.addEventListener('click', handleEventButtonClick, { once: false });
+// Add event listeners to individual buttons to avoid event delegation issues
+const editButtons = listContainer.querySelectorAll('button[data-action="edit"]');
+const deleteButtons = listContainer.querySelectorAll('button[data-action="delete"]');
 
-// For iOS Safari, also handle touchend
-if ('ontouchstart' in window) {
-    listContainer.addEventListener('touchend', handleEventButtonTouch, { passive: false, once: false });
-}
+editButtons.forEach(button => {
+    button.addEventListener('click', function(e) {
+        e.preventDefault();
+        const index = parseInt(this.getAttribute('data-index'));
+        editEvent(index);
+    });
+});
+
+deleteButtons.forEach(button => {
+    button.addEventListener('click', function(e) {
+        e.preventDefault();
+        const index = parseInt(this.getAttribute('data-index'));
+        deleteEvent(index);
+    });
+});
 ```
 
 }
 
-// Handle button clicks via event delegation
-function handleEventButtonClick(e) {
-const button = e.target.closest(‘button[data-action]’);
-if (!button || button.disabled) return;
-
-```
-e.preventDefault();
-e.stopPropagation();
-
-const action = button.getAttribute('data-action');
-const index = parseInt(button.getAttribute('data-index'));
-
-if (action === 'edit') {
-    editEvent(index);
-} else if (action === 'delete') {
-    deleteEvent(index);
-}
-```
-
-}
-
-// Handle touch events on mobile
-function handleEventButtonTouch(e) {
-const button = e.target.closest(‘button[data-action]’);
-if (!button || button.disabled) return;
-
-```
-e.preventDefault();
-e.stopPropagation();
-
-const action = button.getAttribute('data-action');
-const index = parseInt(button.getAttribute('data-index'));
-
-if (action === 'edit') {
-    editEvent(index);
-} else if (action === 'delete') {
-    deleteEvent(index);
-}
-```
-
-}
+// Remove the separate handler functions that are no longer needed
 
 // Add new event
 async function addEvent() {
