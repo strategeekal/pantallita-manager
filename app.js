@@ -191,19 +191,23 @@ function displayHello(matrix) {
     const name = urlParams.get('name') || urlParams.get('n');
     
     const font = TINYBIT_FONT;
+    const fontHeight = 6; // Typical height for tinybit font
+    const lineSpacing = 2; // Space between lines
     
     if (name && name.length <= 12) {
         // Two-line greeting: "Hello!" and name
         const line1 = "Hello!";
         const line2 = name;
         
-        // Calculate bottom-aligned positions
-        const positions = matrix.calculateBottomAlignedPositions(
-            font,
-            line1,
-            line2,
-            32
-        );
+        // Calculate total height needed
+        const totalHeight = (fontHeight * 2) + lineSpacing;
+        
+        // Center vertically - start position for first line
+        const startY = Math.floor((32 - totalHeight) / 2);
+        
+        // Line positions
+        const line1Y = startY;
+        const line2Y = startY + fontHeight + lineSpacing;
         
         // Draw both lines in mint color
         const color = '#00FFAA';
@@ -230,8 +234,8 @@ function displayHello(matrix) {
         line2Width -= 1;
         const line2X = Math.floor((64 - line2Width) / 2);
         
-        matrix.drawTextWithFont(line1, line1X, positions.line1Y, color, font);
-        matrix.drawTextWithFont(line2, line2X, positions.line2Y, color, font);
+        matrix.drawTextWithFont(line1, line1X, line1Y, color, font);
+        matrix.drawTextWithFont(line2, line2X, line2Y, color, font);
         
     } else {
         // Single line: just "Hello!"
@@ -251,7 +255,7 @@ function displayHello(matrix) {
         const x = Math.floor((64 - textWidth) / 2);
         
         // Center vertically (matrix height is 32)
-        const y = Math.floor((32 - 6) / 2);
+        const y = Math.floor((32 - fontHeight) / 2);
         
         // Draw text in mint color
         matrix.drawTextWithFont(text, x, y, '#00FFAA', font);
