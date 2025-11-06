@@ -126,8 +126,193 @@
 			<!-- Events Tab -->
 			<section id="events-tab" class="tab-content">
 				<h2>Manage Events</h2>
-				<p>Event management coming soon...</p>
-				<p>Next step: Add GitHub integration to read/write ephemeral_events.csv</p>
+				
+				<!-- Add New Event Section -->
+				<div class="event-editor">
+					<h3>Add New Event</h3>
+					
+					<div class="event-form-container">
+						<div class="event-form">
+							<div class="form-group">
+								<label for="event-date">Date *</label>
+								<input type="date" id="event-date" required>
+							</div>
+
+							<div class="form-group">
+								<label for="event-top">Top Line (max 12 chars) *</label>
+								<input type="text" id="event-top" maxlength="12" placeholder="Top line text" required>
+								<span class="char-count" id="event-top-count">0/12</span>
+							</div>
+
+							<div class="form-group">
+								<label for="event-bottom">Bottom Line (max 12 chars) *</label>
+								<input type="text" id="event-bottom" maxlength="12" placeholder="Bottom line text" required>
+								<span class="char-count" id="event-bottom-count">0/12</span>
+							</div>
+
+							<div class="form-group">
+								<label for="event-image">Image *</label>
+								<select id="event-image" required>
+									<option value="">Select an image...</option>
+								</select>
+							</div>
+
+							<div class="form-group">
+								<label for="event-color">Color *</label>
+								<select id="event-color" required>
+									<option value="MINT">Mint</option>
+									<option value="BUGAMBILIA">Bugambilia</option>
+									<option value="LILAC">Lilac</option>
+									<option value="RED">Red</option>
+									<option value="GREEN">Green</option>
+									<option value="BLUE">Blue</option>
+									<option value="ORANGE">Orange</option>
+									<option value="YELLOW">Yellow</option>
+									<option value="PURPLE">Purple</option>
+									<option value="PINK">Pink</option>
+									<option value="AQUA">Aqua</option>
+									<option value="WHITE">White</option>
+								</select>
+								<div class="color-preview" id="event-color-preview"></div>
+							</div>
+
+							<div class="form-group">
+								<label>
+									<input type="checkbox" id="event-has-time">
+									Specific Time Window (optional)
+								</label>
+							</div>
+
+							<div id="event-time-fields" class="time-fields hidden">
+								<div class="form-group">
+									<label for="event-start-hour">Start Hour (0-23)</label>
+									<input type="number" id="event-start-hour" min="0" max="23" placeholder="0">
+								</div>
+
+								<div class="form-group">
+									<label for="event-end-hour">End Hour (0-23)</label>
+									<input type="number" id="event-end-hour" min="0" max="23" placeholder="23">
+								</div>
+							</div>
+
+							<div class="form-actions">
+								<button type="button" class="btn-pixel btn-primary" onclick="addEvent()">Add Event</button>
+								<button type="button" class="btn-pixel btn-secondary" onclick="clearEventForm()">Clear</button>
+							</div>
+						</div>
+
+						<div class="event-preview-container">
+							<h4>Preview</h4>
+							<div class="emulator-wrapper event-emulator">
+								<div id="matrix-container-event" class="matrix-container"></div>
+							</div>
+							<p class="preview-hint">This is how your event will appear on the display</p>
+						</div>
+					</div>
+				</div>
+
+				<!-- Event List Section -->
+				<div class="event-list-section">
+					<div class="event-list-header">
+						<h3>Current Events</h3>
+						<div class="list-actions">
+							<button class="btn-pixel btn-secondary" onclick="loadEvents()">🔄 Refresh</button>
+							<button class="btn-pixel btn-secondary" onclick="clearPastEvents()">🗑️ Clear Past Events</button>
+						</div>
+					</div>
+
+					<div id="events-loading" class="loading-message hidden">
+						Loading events from GitHub...
+					</div>
+
+					<div id="events-error" class="error-message hidden"></div>
+
+					<div id="events-empty" class="empty-message hidden">
+						No events found. Add your first event above!
+					</div>
+
+					<div id="events-list" class="events-list"></div>
+				</div>
+
+				<!-- Edit Event Modal -->
+				<div id="edit-event-modal" class="modal hidden">
+					<div class="modal-content">
+						<div class="modal-header">
+							<h3>Edit Event</h3>
+							<button class="modal-close" onclick="closeEditModal()">✕</button>
+						</div>
+
+						<div class="modal-body">
+							<div class="event-form-container">
+								<div class="event-form">
+									<input type="hidden" id="edit-event-index">
+
+									<div class="form-group">
+										<label for="edit-event-date">Date *</label>
+										<input type="date" id="edit-event-date" required>
+									</div>
+
+									<div class="form-group">
+										<label for="edit-event-top">Top Line (max 12 chars) *</label>
+										<input type="text" id="edit-event-top" maxlength="12" required>
+										<span class="char-count" id="edit-event-top-count">0/12</span>
+									</div>
+
+									<div class="form-group">
+										<label for="edit-event-bottom">Bottom Line (max 12 chars) *</label>
+										<input type="text" id="edit-event-bottom" maxlength="12" required>
+										<span class="char-count" id="edit-event-bottom-count">0/12</span>
+									</div>
+
+									<div class="form-group">
+										<label for="edit-event-image">Image *</label>
+										<select id="edit-event-image" required>
+											<option value="">Select an image...</option>
+										</select>
+									</div>
+
+									<div class="form-group">
+										<label for="edit-event-color">Color *</label>
+										<select id="edit-event-color" required></select>
+										<div class="color-preview" id="edit-event-color-preview"></div>
+									</div>
+
+									<div class="form-group">
+										<label>
+											<input type="checkbox" id="edit-event-has-time">
+											Specific Time Window (optional)
+										</label>
+									</div>
+
+									<div id="edit-event-time-fields" class="time-fields hidden">
+										<div class="form-group">
+											<label for="edit-event-start-hour">Start Hour (0-23)</label>
+											<input type="number" id="edit-event-start-hour" min="0" max="23">
+										</div>
+
+										<div class="form-group">
+											<label for="edit-event-end-hour">End Hour (0-23)</label>
+											<input type="number" id="edit-event-end-hour" min="0" max="23">
+										</div>
+									</div>
+
+									<div class="form-actions">
+										<button type="button" class="btn-pixel btn-primary" onclick="saveEditedEvent()">Save Changes</button>
+										<button type="button" class="btn-pixel btn-secondary" onclick="closeEditModal()">Cancel</button>
+									</div>
+								</div>
+
+								<div class="event-preview-container">
+									<h4>Preview</h4>
+									<div class="emulator-wrapper event-emulator">
+										<div id="matrix-container-edit" class="matrix-container"></div>
+									</div>
+									<p class="preview-hint">This is how your event will appear on the display</p>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
 			</section>
 
 			<!-- Settings Tab -->
