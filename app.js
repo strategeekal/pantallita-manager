@@ -875,8 +875,7 @@ const sortedEvents = [...currentEvents].sort((a, b) => {
 const today = new Date();
 today.setHours(0, 0, 0, 0);
 
-// Build HTML string
-const eventsHTML = sortedEvents.map(event => {
+listContainer.innerHTML = sortedEvents.map(event => {
     const eventDate = new Date(event.date);
     const isPast = eventDate < today;
     
@@ -889,7 +888,7 @@ const eventsHTML = sortedEvents.map(event => {
         : '<span class="event-time">All Day</span>';
     
     return `
-        <div class="event-card ${isPast ? 'past-event' : ''}" data-index="${event.index}">
+        <div class="event-card ${isPast ? 'past-event' : ''}">
             <div class="event-date-badge">
                 <span class="month">${month}</span>
                 <span class="day">${day}</span>
@@ -902,35 +901,12 @@ const eventsHTML = sortedEvents.map(event => {
                 <p>${timeInfo}</p>
             </div>
             <div class="event-actions">
-                <button class="btn-pixel btn-primary" data-action="edit" data-index="${event.index}">✏️ Edit</button>
-                <button class="btn-pixel btn-secondary" data-action="delete" data-index="${event.index}">🗑️ Delete</button>
+                <button class="btn-pixel btn-primary" onclick="editEvent(${event.index})">✏️ Edit</button>
+                <button class="btn-pixel btn-secondary" onclick="deleteEvent(${event.index})">🗑️ Delete</button>
             </div>
         </div>
     `;
 }).join('');
-
-// Set all HTML at once
-listContainer.innerHTML = eventsHTML;
-
-// Add event listeners to individual buttons to avoid event delegation issues
-const editButtons = listContainer.querySelectorAll('button[data-action="edit"]');
-const deleteButtons = listContainer.querySelectorAll('button[data-action="delete"]');
-
-editButtons.forEach(button => {
-    button.addEventListener('click', function(e) {
-        e.preventDefault();
-        const index = parseInt(this.getAttribute('data-index'));
-        editEvent(index);
-    });
-});
-
-deleteButtons.forEach(button => {
-    button.addEventListener('click', function(e) {
-        e.preventDefault();
-        const index = parseInt(this.getAttribute('data-index'));
-        deleteEvent(index);
-    });
-});
 ```
 
 }
