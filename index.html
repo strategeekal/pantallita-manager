@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
 	<meta charset="UTF-8">
@@ -10,283 +11,210 @@
 	<!-- Pixelated background canvas -->
 	<canvas id="pixel-background"></canvas>
 
-	<div class="container">
-		<!-- Landing Page -->
-		<section id="landing-page" class="landing-page">
-			<div class="landing-content">
-				<h1 class="pixel-title">SCREENY Manager</h1>
-				<p class="landing-subtitle">Manage events and schedules for your RGB matrix displays</p>
-				
-				<div class="emulator-wrapper landing-emulator">
-					<div id="matrix-container" class="matrix-container"></div>
-				</div>
+```
+<div class="container">
+	<!-- Landing Page -->
+	<section id="landing-page" class="landing-page">
+		<div class="landing-content">
+			<h1 class="pixel-title">SCREENY Manager</h1>
+			<p class="landing-subtitle">Manage events and schedules for your RGB matrix displays</p>
+			
+			<div class="emulator-wrapper landing-emulator">
+				<div id="matrix-container" class="matrix-container"></div>
+			</div>
 
-				<div class="landing-buttons">
-					<button class="btn-pixel btn-primary" onclick="showApp()">Get Started</button>
-					<button class="btn-pixel btn-secondary" onclick="scrollToAbout()">Learn More</button>
+			<div class="landing-buttons">
+				<button class="btn-pixel btn-primary" onclick="showApp()">Get Started</button>
+				<button class="btn-pixel btn-secondary" onclick="scrollToAbout()">Learn More</button>
+			</div>
+		</div>
+
+		<div class="about-section" id="about-section">
+			<h2 class="pixel-subtitle">What is SCREENY?</h2>
+			<p>A web-based manager for your RGB matrix displays. Create events, manage schedules, and see real-time previews of how they'll look on your 64×32 LED matrix.</p>
+			
+			<div class="features">
+				<div class="feature-card">
+					<canvas class="feature-icon-canvas" id="calendar-icon" width="48" height="48"></canvas>
+					<h3>Events</h3>
+					<p>Add and manage ephemeral events with custom text, colors, and icons</p>
+				</div>
+				<div class="feature-card">
+					<canvas class="feature-icon-canvas" id="clock-icon" width="48" height="48"></canvas>
+					<h3>Schedules</h3>
+					<p>Create daily schedules with time-based activities and progress bars</p>
+				</div>
+				<div class="feature-card">
+					<canvas class="feature-icon-canvas" id="eye-icon" width="48" height="48"></canvas>
+					<h3>Live Preview</h3>
+					<p>See exactly how your content will appear on the RGB matrix display</p>
 				</div>
 			</div>
 
-			<div class="about-section" id="about-section">
-				<h2 class="pixel-subtitle">What is SCREENY?</h2>
-				<p>A web-based manager for your RGB matrix displays. Create events, manage schedules, and see real-time previews of how they'll look on your 64×32 LED matrix.</p>
-				
-				<div class="features">
-					<div class="feature-card">
-						<canvas class="feature-icon-canvas" id="calendar-icon" width="48" height="48"></canvas>
-						<h3>Events</h3>
-						<p>Add and manage ephemeral events with custom text, colors, and icons</p>
-					</div>
-					<div class="feature-card">
-						<canvas class="feature-icon-canvas" id="clock-icon" width="48" height="48"></canvas>
-						<h3>Schedules</h3>
-						<p>Create daily schedules with time-based activities and progress bars</p>
-					</div>
-					<div class="feature-card">
-						<canvas class="feature-icon-canvas" id="eye-icon" width="48" height="48"></canvas>
-						<h3>Live Preview</h3>
-						<p>See exactly how your content will appear on the RGB matrix display</p>
+			<button class="btn-pixel btn-primary" onclick="showApp()">Start Managing</button>
+		</div>
+	</section>
+
+	<!-- Main App (hidden initially) -->
+	<div id="main-app" class="main-app hidden">
+		<header>
+			<h1 class="pixel-title">🎨 SCREENY Manager</h1>
+			<p>Manage events and schedules for your RGB matrix displays</p>
+		</header>
+
+		<nav class="tabs">
+			<button class="tab active" data-tab="view-events">View Events</button>
+			<button class="tab" data-tab="add-event">Add Event</button>
+			<button class="tab" data-tab="settings">Settings</button>
+		</nav>
+
+		<!-- View Events Tab -->
+		<section id="view-events-tab" class="tab-content active">
+			<h2>Your Events</h2>
+			
+			<!-- Event List Section -->
+			<div class="event-list-section">
+				<div class="event-list-header">
+					<h3>Current Events</h3>
+					<div class="list-actions">
+						<button class="btn-pixel btn-secondary" onclick="loadEvents()">🔄 Refresh</button>
+						<button class="btn-pixel btn-secondary" onclick="clearPastEvents()">🗑️ Clear Past Events</button>
 					</div>
 				</div>
 
-				<button class="btn-pixel btn-primary" onclick="showApp()">Start Managing</button>
+				<div id="events-loading" class="loading-message hidden">
+					Loading events from GitHub...
+				</div>
+
+				<div id="events-error" class="error-message hidden"></div>
+
+				<div id="events-empty" class="empty-message hidden">
+					No events found. Switch to the "Add Event" tab to create your first event!
+				</div>
+
+				<div id="events-list" class="events-list"></div>
 			</div>
 		</section>
 
-		<!-- Main App (hidden initially) -->
-		<div id="main-app" class="main-app hidden">
-			<header>
-				<h1 class="pixel-title">🎨 SCREENY Manager</h1>
-				<p>Manage events and schedules for your RGB matrix displays</p>
-			</header>
+		<!-- Add Event Tab -->
+		<section id="add-event-tab" class="tab-content">
+			<h2 id="editor-form-title">Add New Event</h2>
+			
+			<!-- Event Editor -->
+			<div class="event-editor">
+				<div class="event-form-container">
+					<div class="event-form">
+						<div class="form-group">
+							<label for="editor-event-date">Date *</label>
+							<input type="date" id="editor-event-date" required>
+						</div>
 
-			<nav class="tabs">
-				<button class="tab active" data-tab="events">Events</button>
-				<button class="tab" data-tab="settings">Settings</button>
-			</nav>
+						<div class="form-group">
+							<label for="editor-event-top">Top Line (max 12 chars) *</label>
+							<input type="text" id="editor-event-top" maxlength="12" placeholder="Top line text" required>
+							<span class="char-count" id="editor-event-top-count">0/12</span>
+						</div>
 
-			<!-- Events Tab -->
-			<section id="events-tab" class="tab-content active">
-				<h2>Manage Events</h2>
-				
-				<!-- Add New Event Section -->
-				<div class="event-editor">
-					<h3>Add New Event</h3>
-					
-					<div class="event-form-container">
-						<div class="event-form">
+						<div class="form-group">
+							<label for="editor-event-bottom">Bottom Line (max 12 chars) *</label>
+							<input type="text" id="editor-event-bottom" maxlength="12" placeholder="Bottom line text" required>
+							<span class="char-count" id="editor-event-bottom-count">0/12</span>
+						</div>
+
+						<div class="form-group">
+							<label for="editor-event-image">Image *</label>
+							<select id="editor-event-image" required>
+								<option value="">Select an image...</option>
+							</select>
+						</div>
+
+						<div class="form-group">
+							<label for="editor-event-color">Color *</label>
+							<select id="editor-event-color" required>
+								<option value="MINT">Mint</option>
+								<option value="BUGAMBILIA">Bugambilia</option>
+								<option value="LILAC">Lilac</option>
+								<option value="RED">Red</option>
+								<option value="GREEN">Green</option>
+								<option value="BLUE">Blue</option>
+								<option value="ORANGE">Orange</option>
+								<option value="YELLOW">Yellow</option>
+								<option value="PURPLE">Purple</option>
+								<option value="PINK">Pink</option>
+								<option value="AQUA">Aqua</option>
+								<option value="WHITE">White</option>
+							</select>
+							<div class="color-preview" id="editor-event-color-preview"></div>
+						</div>
+
+						<div class="form-group">
+							<label>
+								<input type="checkbox" id="editor-event-has-time">
+								Specific Time Window (optional)
+							</label>
+						</div>
+
+						<div id="editor-event-time-fields" class="time-fields hidden">
 							<div class="form-group">
-								<label for="event-date">Date *</label>
-								<input type="date" id="event-date" required>
+								<label for="editor-event-start-hour">Start Hour (0-23)</label>
+								<input type="number" id="editor-event-start-hour" min="0" max="23" placeholder="0">
 							</div>
 
 							<div class="form-group">
-								<label for="event-top">Top Line (max 12 chars) *</label>
-								<input type="text" id="event-top" maxlength="12" placeholder="Top line text" required>
-								<span class="char-count" id="event-top-count">0/12</span>
-							</div>
-
-							<div class="form-group">
-								<label for="event-bottom">Bottom Line (max 12 chars) *</label>
-								<input type="text" id="event-bottom" maxlength="12" placeholder="Bottom line text" required>
-								<span class="char-count" id="event-bottom-count">0/12</span>
-							</div>
-
-							<div class="form-group">
-								<label for="event-image">Image *</label>
-								<select id="event-image" required>
-									<option value="">Select an image...</option>
-								</select>
-							</div>
-
-							<div class="form-group">
-								<label for="event-color">Color *</label>
-								<select id="event-color" required>
-									<option value="MINT">Mint</option>
-									<option value="BUGAMBILIA">Bugambilia</option>
-									<option value="LILAC">Lilac</option>
-									<option value="RED">Red</option>
-									<option value="GREEN">Green</option>
-									<option value="BLUE">Blue</option>
-									<option value="ORANGE">Orange</option>
-									<option value="YELLOW">Yellow</option>
-									<option value="PURPLE">Purple</option>
-									<option value="PINK">Pink</option>
-									<option value="AQUA">Aqua</option>
-									<option value="WHITE">White</option>
-								</select>
-								<div class="color-preview" id="event-color-preview"></div>
-							</div>
-
-							<div class="form-group">
-								<label>
-									<input type="checkbox" id="event-has-time">
-									Specific Time Window (optional)
-								</label>
-							</div>
-
-							<div id="event-time-fields" class="time-fields hidden">
-								<div class="form-group">
-									<label for="event-start-hour">Start Hour (0-23)</label>
-									<input type="number" id="event-start-hour" min="0" max="23" placeholder="0">
-								</div>
-
-								<div class="form-group">
-									<label for="event-end-hour">End Hour (0-23)</label>
-									<input type="number" id="event-end-hour" min="0" max="23" placeholder="23">
-								</div>
-							</div>
-
-							<div class="form-actions">
-								<button type="button" class="btn-pixel btn-primary" onclick="addEvent()">Add Event</button>
-								<button type="button" class="btn-pixel btn-secondary" onclick="clearEventForm()">Clear</button>
+								<label for="editor-event-end-hour">End Hour (0-23)</label>
+								<input type="number" id="editor-event-end-hour" min="0" max="23" placeholder="23">
 							</div>
 						</div>
 
-						<div class="event-preview-container">
-							<h4>Preview</h4>
-							<div class="emulator-wrapper event-emulator">
-								<div id="matrix-container-event" class="matrix-container"></div>
-							</div>
-							<p class="preview-hint">This is how your event will appear on the display</p>
+						<div class="form-actions">
+							<button type="button" class="btn-pixel btn-primary" onclick="saveEvent()">Save Event</button>
+							<button type="button" class="btn-pixel btn-secondary" onclick="clearEventForm()">Clear</button>
 						</div>
+					</div>
+
+					<div class="event-preview-container">
+						<h4>Preview</h4>
+						<div class="emulator-wrapper event-emulator">
+							<div id="matrix-container-editor" class="matrix-container"></div>
+						</div>
+						<p class="preview-hint">This is how your event will appear on the display</p>
 					</div>
 				</div>
+			</div>
+		</section>
 
-				<!-- Event List Section -->
-				<div class="event-list-section">
-					<div class="event-list-header">
-						<h3>Current Events</h3>
-						<div class="list-actions">
-							<button class="btn-pixel btn-secondary" onclick="loadEvents()">🔄 Refresh</button>
-							<button class="btn-pixel btn-secondary" onclick="clearPastEvents()">🗑️ Clear Past Events</button>
-						</div>
-					</div>
-
-					<div id="events-loading" class="loading-message hidden">
-						Loading events from GitHub...
-					</div>
-
-					<div id="events-error" class="error-message hidden"></div>
-
-					<div id="events-empty" class="empty-message hidden">
-						No events found. Add your first event above!
-					</div>
-
-					<div id="events-list" class="events-list"></div>
+		<!-- Settings Tab -->
+		<section id="settings-tab" class="tab-content">
+			<h2>Settings</h2>
+			<form id="settings-form" onsubmit="handleSettingsSubmit(event)">
+				<div class="form-group">
+					<label for="github-token">GitHub Personal Access Token</label>
+					<input type="password" id="github-token" placeholder="ghp_...">
+					<small>Create at: GitHub → Settings → Developer settings → Personal access tokens → Fine-grained tokens</small>
 				</div>
 
-				<!-- Edit Event Modal -->
-				<div id="edit-event-modal" class="modal hidden">
-					<div class="modal-content">
-						<div class="modal-header">
-							<h3>Edit Event</h3>
-							<button class="modal-close" onclick="closeEditModal()">✕</button>
-						</div>
-
-						<div class="modal-body">
-							<div class="event-form-container">
-								<div class="event-form">
-									<input type="hidden" id="edit-event-index">
-
-									<div class="form-group">
-										<label for="edit-event-date">Date *</label>
-										<input type="date" id="edit-event-date" required>
-									</div>
-
-									<div class="form-group">
-										<label for="edit-event-top">Top Line (max 12 chars) *</label>
-										<input type="text" id="edit-event-top" maxlength="12" required>
-										<span class="char-count" id="edit-event-top-count">0/12</span>
-									</div>
-
-									<div class="form-group">
-										<label for="edit-event-bottom">Bottom Line (max 12 chars) *</label>
-										<input type="text" id="edit-event-bottom" maxlength="12" required>
-										<span class="char-count" id="edit-event-bottom-count">0/12</span>
-									</div>
-
-									<div class="form-group">
-										<label for="edit-event-image">Image *</label>
-										<select id="edit-event-image" required>
-											<option value="">Select an image...</option>
-										</select>
-									</div>
-
-									<div class="form-group">
-										<label for="edit-event-color">Color *</label>
-										<select id="edit-event-color" required></select>
-										<div class="color-preview" id="edit-event-color-preview"></div>
-									</div>
-
-									<div class="form-group">
-										<label>
-											<input type="checkbox" id="edit-event-has-time">
-											Specific Time Window (optional)
-										</label>
-									</div>
-
-									<div id="edit-event-time-fields" class="time-fields hidden">
-										<div class="form-group">
-											<label for="edit-event-start-hour">Start Hour (0-23)</label>
-											<input type="number" id="edit-event-start-hour" min="0" max="23">
-										</div>
-
-										<div class="form-group">
-											<label for="edit-event-end-hour">End Hour (0-23)</label>
-											<input type="number" id="edit-event-end-hour" min="0" max="23">
-										</div>
-									</div>
-
-									<div class="form-actions">
-										<button type="button" class="btn-pixel btn-primary" onclick="saveEditedEvent()">Save Changes</button>
-										<button type="button" class="btn-pixel btn-secondary" onclick="closeEditModal()">Cancel</button>
-									</div>
-								</div>
-
-								<div class="event-preview-container">
-									<h4>Preview</h4>
-									<div class="emulator-wrapper event-emulator">
-										<div id="matrix-container-edit" class="matrix-container"></div>
-									</div>
-									<p class="preview-hint">This is how your event will appear on the display</p>
-								</div>
-							</div>
-						</div>
-					</div>
+				<div class="form-group">
+					<label for="github-owner">Repository Owner</label>
+					<input type="text" id="github-owner" placeholder="your-username">
 				</div>
-			</section>
 
-			<!-- Settings Tab -->
-			<section id="settings-tab" class="tab-content">
-				<h2>Settings</h2>
-				<form id="settings-form">
-					<div class="form-group">
-						<label for="github-token">GitHub Personal Access Token</label>
-						<input type="password" id="github-token" placeholder="ghp_...">
-						<small>Create at: GitHub → Settings → Developer settings → Personal access tokens → Fine-grained tokens</small>
-					</div>
+				<div class="form-group">
+					<label for="github-repo">Repository Name</label>
+					<input type="text" id="github-repo" placeholder="screeny-data">
+				</div>
 
-					<div class="form-group">
-						<label for="github-owner">Repository Owner</label>
-						<input type="text" id="github-owner" placeholder="your-username">
-					</div>
-
-					<div class="form-group">
-						<label for="github-repo">Repository Name</label>
-						<input type="text" id="github-repo" placeholder="screeny-data">
-					</div>
-
-					<button type="submit" class="btn-pixel btn-primary">Save Settings</button>
-				</form>
-			</section>
-		</div>
-
-		<div id="status" class="status hidden"></div>
+				<button type="submit" class="btn-pixel btn-primary">Save Settings</button>
+			</form>
+		</section>
 	</div>
 
-	<script src="matrix-emulator.js"></script>
-	<script src="fonts.js"></script>
-	<script src="app.js"></script>
+	<div id="status" class="status hidden"></div>
+</div>
+
+<script src="matrix-emulator.js"></script>
+<script src="fonts.js"></script>
+<script src="app.js"></script>
+```
+
 </body>
 </html>
