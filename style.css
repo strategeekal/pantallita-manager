@@ -786,3 +786,85 @@ header p {
 		width: 100%;
 	}
 }
+
+/* ============================================
+   MOBILE PREVIEW BUTTON STYLES
+   Add these styles to your existing style.css
+   ============================================ */
+
+/* Mobile preview button */
+.mobile-preview-btn {
+	width: 100%;
+	margin-bottom: 15px;
+	padding: 15px 20px;
+	font-size: 1.1em;
+	transition: all 0.3s ease;
+}
+
+.mobile-preview-btn.needs-update {
+	background: #FFaa00 !important;
+	animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+	0%, 100% {
+		box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.3);
+	}
+	50% {
+		box-shadow: 4px 4px 0px rgba(255, 170, 0, 0.6), 0 0 10px rgba(255, 170, 0, 0.4);
+	}
+}
+
+/* Hide preview button on desktop */
+@media (min-width: 769px) {
+	.mobile-preview-btn {
+		display: none !important;
+	}
+}
+
+/* Mobile optimizations for event list scrolling */
+@media (max-width: 768px) {
+	.events-list {
+		/* Enable GPU acceleration for smoother scrolling */
+		transform: translateZ(0);
+		-webkit-transform: translateZ(0);
+		will-change: scroll-position;
+	}
+	
+	.event-card {
+		/* Reduce repaints during scroll */
+		contain: layout style paint;
+		content-visibility: auto;
+	}
+	
+	/* Simplify event cards on mobile for better performance */
+	.event-info p {
+		font-size: 0.85em;
+	}
+	
+	.event-actions .btn-pixel {
+		font-size: 0.85em;
+		padding: 8px 12px;
+	}
+}
+
+/* Additional performance hints for mobile */
+@media (max-width: 768px) {
+	/* Reduce animation complexity on mobile */
+	.btn-pixel:hover {
+		transform: none;
+		box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.3);
+	}
+	
+	.btn-pixel:active {
+		transform: translate(2px, 2px);
+		box-shadow: 2px 2px 0px rgba(0, 0, 0, 0.3);
+	}
+	
+	/* Optimize emulator rendering on mobile */
+	.emulator-wrapper canvas {
+		/* Hardware acceleration */
+		transform: translateZ(0);
+		-webkit-transform: translateZ(0);
+	}
+}
