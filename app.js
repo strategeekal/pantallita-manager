@@ -358,6 +358,8 @@ function handleTabSwitch(targetTab) {
         if (currentEvents.length === 0) {
             loadEvents();
         }
+    } else if (targetTab === 'schedules') {
+        initializeSchedulesTab();
     }
 }
 
@@ -1353,4 +1355,658 @@ function hideEventsMessages() {
     document.getElementById('events-loading').classList.add('hidden');
     document.getElementById('events-error').classList.add('hidden');
     document.getElementById('events-empty').classList.add('hidden');
+}
+
+// ==================== SCHEDULE MANAGEMENT FUNCTIONALITY ====================
+
+// Global variables for schedule management
+let currentSchedules = []; // List of all schedule files
+let currentScheduleData = null; // Currently loaded/editing schedule
+let scheduleImages = []; // Available schedule images
+let scheduleMatrix = null; // Matrix emulator for schedule preview
+
+// Initialize schedules tab when shown
+function initializeSchedulesTab() {
+    console.log('Initializing schedules tab');
+    loadSchedules();
+    loadScheduleImages();
+}
+
+// Load all schedule files from GitHub
+async function loadSchedules() {
+    const config = loadConfig();
+    
+    if (!config.token || !config.owner || !config.repo) {
+        showSchedulesError('Please configure GitHub settings first');
+        return;
+    }
+    
+    showSchedulesLoading();
+    
+    try {
+        const response = await fetch(
+            `https://api.github.com/repos/${config.owner}/${config.repo}/contents/schedules`,
+            {
+                headers: {
+                    'Authorization': `Bearer ${config.token}`,
+                    'Accept': 'application/vnd.github.v3+json'
+                }
+            }
+        );
+        
+        if (!response.ok) {
+            if (response.status === 404) {
+                showSchedulesEmpty();
+                currentSchedules = [];
+                return;
+            }
+            throw new Error(`GitHub API error: ${response.status}`);
+        }
+        
+        const files = await response.json();
+        currentSchedules = files
+            .filter(f => f.name.endsWith('.csv'))
+            .map(f => ({
+                name: f.name,
+                url: f.download_url,
+                sha: f.sha,
+                isDefault: f.name === 'default.csv',
+                date: f.name === 'default.csv' ? null : f.name.replace('.csv', '')
+            }))
+            .sort((a, b) => {
+                if (a.isDefault) return -1;
+                if (b.isDefault) return 1;
+                return new Date(a.date) - new Date(b.date);
+            });
+        
+        displaySchedules();
+        
+    } catch (error) {
+        console.error('Error loading schedules:', error);
+        showSchedulesError('Failed to load schedules: ' + error.message);
+    }
+}
+
+// Display schedules list
+function displaySchedules() {
+    const listContainer = document.getElementById('schedules-list');
+    
+    hideSchedulesMessages();
+    
+    if (currentSchedules.length === 0) {
+        showSchedulesEmpty();
+        return;
+    }
+    
+    const schedulesHTML = currentSchedules.map(schedule => {
+        const displayName = schedule.isDefault ? 'Default Schedule' : `Schedule for ${schedule.date}`;
+        const isPast = schedule.date && new Date(schedule.date) < new Date();
+        
+        return `
+            <div class="schedule-card ${isPast ? 'past-schedule' : ''}">
+                <div class="schedule-info">
+                    <h4>${displayName}</h4>
+                    <p>${schedule.name}</p>
+                </div>
+                <div class="schedule-actions">
+                    <button class="btn-pixel btn-primary btn-sm" onclick="editSchedule('${schedule.name}')">✏️ Edit</button>
+                    <button class="btn-pixel btn-secondary btn-sm" onclick="duplicateSchedule('${schedule.name}')">📋 Copy</button>
+                    ${!schedule.isDefault ? `<button class="btn-pixel btn-secondary btn-sm" onclick="deleteSchedule('${schedule.name}')">🗑️</button>` : ''}
+                </div>
+            </div>
+        `;
+    }).join('');
+    
+    listContainer.innerHTML = schedulesHTML;
+}
+
+// Load schedule images from GitHub
+async function loadScheduleImages() {
+    const config = loadConfig();
+    
+    if (!config.token || !config.owner || !config.repo) {
+        console.log('GitHub not configured - no schedule images');
+        return;
+    }
+    
+    try {
+        const response = await fetch(
+            `https://api.github.com/repos/${config.owner}/${config.repo}/contents/img/schedules`,
+            {
+                headers: {
+                    'Authorization': `Bearer ${config.token}`,
+                    'Accept': 'application/vnd.github.v3+json'
+                }
+            }
+        );
+        
+        if (!response.ok) {
+            console.error('Failed to load schedule images:', response.status);
+            return;
+        }
+        
+        const files = await response.json();
+        scheduleImages = files
+            .filter(f => f.name.endsWith('.bmp'))
+            .map(f => ({
+                name: f.name,
+                url: f.download_url,
+                sha: f.sha
+            }));
+        
+        console.log(`Loaded ${scheduleImages.length} schedule images`);
+        
+    } catch (error) {
+        console.error('Error loading schedule images:', error);
+    }
+}
+
+// Create new schedule
+function createNewSchedule() {
+    currentScheduleData = {
+        type: 'default',
+        date: null,
+        items: []
+    };
+    
+    showScheduleEditor();
+    document.getElementById('schedule-editor-title').textContent = 'Create New Schedule';
+}
+
+// Edit existing schedule
+async function editSchedule(filename) {
+    const config = loadConfig();
+    const schedule = currentSchedules.find(s => s.name === filename);
+    
+    if (!schedule) return;
+    
+    try {
+        const response = await fetch(schedule.url);
+        const content = await response.text();
+        
+        currentScheduleData = {
+            type: schedule.isDefault ? 'default' : 'date',
+            date: schedule.date,
+            filename: filename,
+            sha: schedule.sha,
+            items: parseScheduleCSV(content)
+        };
+        
+        showScheduleEditor();
+        populateScheduleEditor();
+        
+    } catch (error) {
+        console.error('Error loading schedule:', error);
+        showStatus('Failed to load schedule: ' + error.message, 'error');
+    }
+}
+
+// Parse schedule CSV
+function parseScheduleCSV(content) {
+    const lines = content.split('\n').filter(line => {
+        const trimmed = line.trim();
+        return trimmed && !trimmed.startsWith('#');
+    });
+    
+    return lines.map((line, index) => {
+        const parts = line.split(',');
+        
+        if (parts.length < 9) return null;
+        
+        return {
+            name: parts[0].trim(),
+            enabled: parts[1].trim() === '1',
+            days: parts[2].trim(),
+            startHour: parseInt(parts[3].trim()),
+            startMin: parseInt(parts[4].trim()),
+            endHour: parseInt(parts[5].trim()),
+            endMin: parseInt(parts[6].trim()),
+            image: parts[7].trim(),
+            progressBar: parts[8].trim() === '1',
+            index: index
+        };
+    }).filter(item => item !== null);
+}
+
+// Show schedule editor
+function showScheduleEditor() {
+    document.getElementById('schedule-editor').classList.remove('hidden');
+    document.querySelector('.schedule-list-section').classList.add('hidden');
+}
+
+// Close schedule editor
+function closeScheduleEditor() {
+    document.getElementById('schedule-editor').classList.add('hidden');
+    document.querySelector('.schedule-list-section').classList.remove('hidden');
+    currentScheduleData = null;
+}
+
+// Populate schedule editor with current data
+function populateScheduleEditor() {
+    if (!currentScheduleData) return;
+    
+    document.getElementById('schedule-type').value = currentScheduleData.type;
+    
+    if (currentScheduleData.type === 'date') {
+        document.getElementById('schedule-date-group').classList.remove('hidden');
+        document.getElementById('schedule-date').value = currentScheduleData.date || '';
+    }
+    
+    renderScheduleItems();
+    updateTimelineView();
+}
+
+// Handle schedule type change
+function handleScheduleTypeChange() {
+    const type = document.getElementById('schedule-type').value;
+    const dateGroup = document.getElementById('schedule-date-group');
+    
+    if (type === 'date') {
+        dateGroup.classList.remove('hidden');
+    } else {
+        dateGroup.classList.add('hidden');
+    }
+    
+    if (currentScheduleData) {
+        currentScheduleData.type = type;
+    }
+}
+
+// Load schedule template
+async function loadScheduleTemplate() {
+    const template = document.getElementById('schedule-template').value;
+    
+    if (!template) return;
+    
+    if (template === 'blank') {
+        currentScheduleData.items = [];
+        renderScheduleItems();
+        return;
+    }
+    
+    if (template === 'default') {
+        const defaultSchedule = currentSchedules.find(s => s.isDefault);
+        if (defaultSchedule) {
+            try {
+                const response = await fetch(defaultSchedule.url);
+                const content = await response.text();
+                currentScheduleData.items = parseScheduleCSV(content);
+                renderScheduleItems();
+                showStatus('Template loaded', 'success');
+            } catch (error) {
+                showStatus('Failed to load template', 'error');
+            }
+        }
+    }
+}
+
+// Add new schedule item
+function addScheduleItem() {
+    if (!currentScheduleData) {
+        currentScheduleData = {
+            type: 'default',
+            items: []
+        };
+    }
+    
+    const newItem = {
+        name: 'New Item',
+        enabled: true,
+        days: '0123456',
+        startHour: 8,
+        startMin: 0,
+        endHour: 9,
+        endMin: 0,
+        image: scheduleImages.length > 0 ? scheduleImages[0].name : '',
+        progressBar: true,
+        index: currentScheduleData.items.length
+    };
+    
+    currentScheduleData.items.push(newItem);
+    renderScheduleItems();
+}
+
+// Render schedule items list
+function renderScheduleItems() {
+    const container = document.getElementById('schedule-items-list');
+    
+    if (!currentScheduleData || currentScheduleData.items.length === 0) {
+        container.innerHTML = '<p class="empty-message">No items. Click "➕" to add one.</p>';
+        return;
+    }
+    
+    const itemsHTML = currentScheduleData.items.map((item, index) => `
+        <div class="schedule-item">
+            <input type="text" value="${item.name}" onchange="updateScheduleItem(${index}, 'name', this.value)" placeholder="Item name">
+            <label><input type="checkbox" ${item.enabled ? 'checked' : ''} onchange="updateScheduleItem(${index}, 'enabled', this.checked)"> Enabled</label>
+            <input type="text" value="${item.days}" onchange="updateScheduleItem(${index}, 'days', this.value)" placeholder="0123456" maxlength="7">
+            <input type="number" value="${item.startHour}" onchange="updateScheduleItem(${index}, 'startHour', this.value)" min="0" max="23" style="width:50px">:
+            <input type="number" value="${item.startMin}" onchange="updateScheduleItem(${index}, 'startMin', this.value)" min="0" max="59" style="width:50px">
+            to
+            <input type="number" value="${item.endHour}" onchange="updateScheduleItem(${index}, 'endHour', this.value)" min="0" max="23" style="width:50px">:
+            <input type="number" value="${item.endMin}" onchange="updateScheduleItem(${index}, 'endMin', this.value)" min="0" max="59" style="width:50px">
+            <select onchange="updateScheduleItem(${index}, 'image', this.value)">
+                ${scheduleImages.map(img => `<option value="${img.name}" ${img.name === item.image ? 'selected' : ''}>${img.name}</option>`).join('')}
+            </select>
+            <label><input type="checkbox" ${item.progressBar ? 'checked' : ''} onchange="updateScheduleItem(${index}, 'progressBar', this.checked)"> Progress</label>
+            <button class="btn-pixel btn-secondary btn-sm" onclick="deleteScheduleItem(${index})">🗑️</button>
+        </div>
+    `).join('');
+    
+    container.innerHTML = itemsHTML;
+}
+
+// Update schedule item
+function updateScheduleItem(index, field, value) {
+    if (!currentScheduleData || !currentScheduleData.items[index]) return;
+    
+    if (field === 'enabled' || field === 'progressBar') {
+        currentScheduleData.items[index][field] = value;
+    } else if (field === 'startHour' || field === 'startMin' || field === 'endHour' || field === 'endMin') {
+        currentScheduleData.items[index][field] = parseInt(value);
+    } else {
+        currentScheduleData.items[index][field] = value;
+    }
+    
+    updateTimelineView();
+}
+
+// Delete schedule item
+function deleteScheduleItem(index) {
+    if (!currentScheduleData) return;
+    
+    if (confirm('Delete this schedule item?')) {
+        currentScheduleData.items.splice(index, 1);
+        currentScheduleData.items.forEach((item, i) => item.index = i);
+        renderScheduleItems();
+        updateTimelineView();
+    }
+}
+
+// Update timeline view
+function updateTimelineView() {
+    const container = document.getElementById('timeline-view');
+    const dayFilter = parseInt(document.getElementById('timeline-day-filter').value);
+    
+    if (!currentScheduleData || currentScheduleData.items.length === 0) {
+        container.innerHTML = '<p class="empty-message">No items to display</p>';
+        return;
+    }
+    
+    // Filter items for selected day
+    const dayItems = currentScheduleData.items.filter(item => 
+        item.enabled && item.days.includes(dayFilter.toString())
+    );
+    
+    if (dayItems.length === 0) {
+        container.innerHTML = '<p class="empty-message">No items for this day</p>';
+        return;
+    }
+    
+    // Sort by start time
+    dayItems.sort((a, b) => {
+        const aStart = a.startHour * 60 + a.startMin;
+        const bStart = b.startHour * 60 + b.startMin;
+        return aStart - bStart;
+    });
+    
+    // Check for overlaps
+    const overlaps = [];
+    for (let i = 0; i < dayItems.length - 1; i++) {
+        const current = dayItems[i];
+        const next = dayItems[i + 1];
+        
+        const currentEnd = current.endHour * 60 + current.endMin;
+        const nextStart = next.startHour * 60 + next.startMin;
+        
+        if (currentEnd > nextStart) {
+            overlaps.push(current.index);
+            overlaps.push(next.index);
+        }
+    }
+    
+    // Render timeline
+    const timelineHTML = dayItems.map(item => {
+        const hasOverlap = overlaps.includes(item.index);
+        return `
+            <div class="timeline-item ${hasOverlap ? 'overlap' : ''}" onclick="selectScheduleItem(${item.index})">
+                <span class="time">${String(item.startHour).padStart(2,'0')}:${String(item.startMin).padStart(2,'0')} - ${String(item.endHour).padStart(2,'0')}:${String(item.endMin).padStart(2,'0')}</span>
+                <span class="name">${item.name}</span>
+                ${hasOverlap ? '<span class="overlap-warning">⚠️ Overlap</span>' : ''}
+            </div>
+        `;
+    }).join('');
+    
+    container.innerHTML = timelineHTML;
+}
+
+// Select schedule item for preview
+function selectScheduleItem(index) {
+    document.getElementById('preview-item-select').value = index;
+    updateSchedulePreview();
+}
+
+// Update schedule preview
+function updateSchedulePreview() {
+    // For now, just log - we'll implement the matrix rendering next
+    const itemIndex = document.getElementById('preview-item-select').value;
+    const progress = document.getElementById('preview-progress').value;
+    
+    document.getElementById('preview-progress-value').textContent = progress + '%';
+    
+    console.log('Preview update:', itemIndex, progress);
+    // TODO: Render on schedule matrix
+}
+
+// Save schedule to GitHub
+async function saveSchedule() {
+    if (!currentScheduleData) return;
+    
+    const type = document.getElementById('schedule-type').value;
+    let filename;
+    
+    if (type === 'default') {
+        filename = 'default.csv';
+    } else {
+        const date = document.getElementById('schedule-date').value;
+        if (!date) {
+            showStatus('Please select a date', 'error');
+            return;
+        }
+        filename = `${date}.csv`;
+    }
+    
+    const config = loadConfig();
+    
+    try {
+        // Generate CSV content
+        const csvContent = generateScheduleCSV();
+        const encodedContent = btoa(unescape(encodeURIComponent(csvContent)));
+        
+        // Get current SHA if updating existing file
+        let sha = currentScheduleData.sha;
+        if (!sha) {
+            try {
+                const getResponse = await fetch(
+                    `https://api.github.com/repos/${config.owner}/${config.repo}/contents/schedules/${filename}`,
+                    {
+                        headers: {
+                            'Authorization': `Bearer ${config.token}`,
+                            'Accept': 'application/vnd.github.v3+json'
+                        }
+                    }
+                );
+                
+                if (getResponse.ok) {
+                    const getData = await getResponse.json();
+                    sha = getData.sha;
+                }
+            } catch (e) {
+                console.log('File does not exist yet, will create new');
+            }
+        }
+        
+        // Save to GitHub
+        const response = await fetch(
+            `https://api.github.com/repos/${config.owner}/${config.repo}/contents/schedules/${filename}`,
+            {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${config.token}`,
+                    'Accept': 'application/vnd.github.v3+json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    message: `Update schedule: ${filename}`,
+                    content: encodedContent,
+                    sha: sha
+                })
+            }
+        );
+        
+        if (!response.ok) {
+            throw new Error(`GitHub API error: ${response.status}`);
+        }
+        
+        showStatus('Schedule saved successfully!', 'success');
+        closeScheduleEditor();
+        loadSchedules();
+        
+    } catch (error) {
+        console.error('Error saving schedule:', error);
+        showStatus('Failed to save schedule: ' + error.message, 'error');
+    }
+}
+
+// Generate CSV content
+function generateScheduleCSV() {
+    const header = `# Format: name,enabled,days,start_hour,start_min,end_hour,end_min,image,progressbar
+# enabled: 1=true, 0=false
+# days: 0-6 for Mon-Sun (e.g., "01234" = Mon-Fri)
+# progressbar: 1=true, 0=false
+`;
+    
+    const lines = currentScheduleData.items.map(item => 
+        `${item.name},${item.enabled ? 1 : 0},${item.days},${item.startHour},${item.startMin},${item.endHour},${item.endMin},${item.image},${item.progressBar ? 1 : 0}`
+    );
+    
+    return header + lines.join('\n');
+}
+
+// Duplicate schedule
+async function duplicateSchedule(filename) {
+    const date = prompt('Enter date for new schedule (YYYY-MM-DD):');
+    if (!date) return;
+    
+    const schedule = currentSchedules.find(s => s.name === filename);
+    if (!schedule) return;
+    
+    try {
+        const response = await fetch(schedule.url);
+        const content = await response.text();
+        
+        currentScheduleData = {
+            type: 'date',
+            date: date,
+            items: parseScheduleCSV(content)
+        };
+        
+        await saveSchedule();
+        
+    } catch (error) {
+        showStatus('Failed to duplicate schedule', 'error');
+    }
+}
+
+// Delete schedule
+async function deleteSchedule(filename) {
+    if (!confirm(`Delete ${filename}?`)) return;
+    
+    const config = loadConfig();
+    const schedule = currentSchedules.find(s => s.name === filename);
+    
+    if (!schedule) return;
+    
+    try {
+        const response = await fetch(
+            `https://api.github.com/repos/${config.owner}/${config.repo}/contents/schedules/${filename}`,
+            {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${config.token}`,
+                    'Accept': 'application/vnd.github.v3+json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    message: `Delete schedule: ${filename}`,
+                    sha: schedule.sha
+                })
+            }
+        );
+        
+        if (!response.ok) {
+            throw new Error(`GitHub API error: ${response.status}`);
+        }
+        
+        showStatus('Schedule deleted', 'success');
+        loadSchedules();
+        
+    } catch (error) {
+        showStatus('Failed to delete schedule', 'error');
+    }
+}
+
+// Clear old schedules
+async function clearOldSchedules() {
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - 30);
+    
+    const oldSchedules = currentSchedules.filter(s => 
+        s.date && new Date(s.date) < cutoffDate
+    );
+    
+    if (oldSchedules.length === 0) {
+        showStatus('No old schedules to clear', 'error');
+        return;
+    }
+    
+    if (!confirm(`Delete ${oldSchedules.length} schedule(s) older than 30 days?`)) {
+        return;
+    }
+    
+    for (const schedule of oldSchedules) {
+        try {
+            await deleteSchedule(schedule.name);
+        } catch (error) {
+            console.error('Error deleting:', schedule.name);
+        }
+    }
+    
+    loadSchedules();
+}
+
+// Helper functions
+function showSchedulesLoading() {
+    document.getElementById('schedules-loading').classList.remove('hidden');
+    document.getElementById('schedules-error').classList.add('hidden');
+    document.getElementById('schedules-empty').classList.add('hidden');
+}
+
+function showSchedulesError(message) {
+    document.getElementById('schedules-loading').classList.add('hidden');
+    document.getElementById('schedules-error').classList.remove('hidden');
+    document.getElementById('schedules-error').textContent = message;
+    document.getElementById('schedules-empty').classList.add('hidden');
+}
+
+function showSchedulesEmpty() {
+    document.getElementById('schedules-loading').classList.add('hidden');
+    document.getElementById('schedules-error').classList.add('hidden');
+    document.getElementById('schedules-empty').classList.remove('hidden');
+}
+
+function hideSchedulesMessages() {
+    document.getElementById('schedules-loading').classList.add('hidden');
+    document.getElementById('schedules-error').classList.add('hidden');
+    document.getElementById('schedules-empty').classList.add('hidden');
 }
