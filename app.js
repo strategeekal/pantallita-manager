@@ -48,6 +48,12 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Load available images from GitHub (silently, don't show errors on landing)
     loadAvailableImages();
+    
+    // Add listener for date changes in date-specific schedules
+    const dateInput = document.getElementById('schedule-date');
+    if (dateInput) {
+        dateInput.addEventListener('change', updateDateSpecificDays);
+    }
 });
 
 // Create pixelated background similar to the reference image
@@ -1596,23 +1602,45 @@ function populateScheduleEditor() {
     updateTimelineView();
 }
 
-// Handle schedule type change
+// Handle schedule type change - FIXED: auto-populate days for date-specific schedules
 function handleScheduleTypeChange() {
     const type = document.getElementById('schedule-type').value;
     const dateGroup = document.getElementById('schedule-date-group');
     
     if (type === 'date') {
         dateGroup.classList.remove('hidden');
+        // If changing to date-specific, auto-set days based on date
+        const dateInput = document.getElementById('schedule-date');
+        if (dateInput.value && currentScheduleData) {
+            updateDateSpecificDays();
+        }
     } else {
         dateGroup.classList.add('hidden');
     }
     
     if (currentScheduleData) {
         currentScheduleData.type = type;
+        renderScheduleItems(); // Re-render to show/hide day selectors
     }
 }
 
-// Load schedule template
+// Update days for date-specific schedule based on selected date - NEW FUNCTION
+function updateDateSpecificDays() {
+    const dateInput = document.getElementById('schedule-date');
+    if (!dateInput.value || !currentScheduleData) return;
+    
+    const scheduleDate = new Date(dateInput.value + 'T00:00:00');
+    const dayOfWeek = (scheduleDate.getDay() + 6) % 7; // Convert Sunday=0 to Monday=0
+    
+    // Update all items to use only this day
+    currentScheduleData.items.forEach(item => {
+        item.days = dayOfWeek.toString();
+    });
+    
+    renderScheduleItems();
+}
+
+// Load schedule template - FIXED: to fetch fresh data
 async function loadScheduleTemplate() {
     const template = document.getElementById('schedule-template').value;
     
@@ -1621,21 +1649,47 @@ async function loadScheduleTemplate() {
     if (template === 'blank') {
         currentScheduleData.items = [];
         renderScheduleItems();
+        showStatus('Cleared all items', 'success');
         return;
     }
     
     if (template === 'default') {
-        const defaultSchedule = currentSchedules.find(s => s.isDefault);
-        if (defaultSchedule) {
-            try {
-                const response = await fetch(defaultSchedule.url);
-                const content = await response.text();
-                currentScheduleData.items = parseScheduleCSV(content);
-                renderScheduleItems();
-                showStatus('Template loaded', 'success');
-            } catch (error) {
-                showStatus('Failed to load template', 'error');
+        // FIXED: Fetch fresh default schedule from GitHub, not from cached currentSchedules
+        const config = loadConfig();
+        
+        try {
+            const response = await fetch(
+                `https://api.github.com/repos/${config.owner}/${config.repo}/contents/schedules/default.csv`,
+                {
+                    headers: {
+                        'Authorization': `Bearer ${config.token}`,
+                        'Accept': 'application/vnd.github.v3+json'
+                    }
+                }
+            );
+            
+            if (!response.ok) {
+                throw new Error('Default schedule not found');
             }
+            
+            const data = await response.json();
+            const content = atob(data.content);
+            const templateItems = parseScheduleCSV(content);
+            
+            // Copy items to current schedule
+            currentScheduleData.items = JSON.parse(JSON.stringify(templateItems)); // Deep copy
+            
+            // If this is a date-specific schedule, update the days
+            if (currentScheduleData.type === 'date') {
+                updateDateSpecificDays();
+            }
+            
+            renderScheduleItems();
+            showStatus('Template loaded successfully', 'success');
+            
+        } catch (error) {
+            console.error('Error loading template:', error);
+            showStatus('Failed to load template: ' + error.message, 'error');
         }
     }
 }
@@ -1666,7 +1720,7 @@ function addScheduleItem() {
     renderScheduleItems();
 }
 
-// Render schedule items list
+// Render schedule items list - UPDATED with day checkboxes and better UI
 function renderScheduleItems() {
     const container = document.getElementById('schedule-items-list');
     
@@ -1675,25 +1729,129 @@ function renderScheduleItems() {
         return;
     }
     
-    const itemsHTML = currentScheduleData.items.map((item, index) => `
-        <div class="schedule-item">
-            <input type="text" value="${item.name}" onchange="updateScheduleItem(${index}, 'name', this.value)" placeholder="Item name">
-            <label><input type="checkbox" ${item.enabled ? 'checked' : ''} onchange="updateScheduleItem(${index}, 'enabled', this.checked)"> Enabled</label>
-            <input type="text" value="${item.days}" onchange="updateScheduleItem(${index}, 'days', this.value)" placeholder="0123456" maxlength="7">
-            <input type="number" value="${item.startHour}" onchange="updateScheduleItem(${index}, 'startHour', this.value)" min="0" max="23" style="width:50px">:
-            <input type="number" value="${item.startMin}" onchange="updateScheduleItem(${index}, 'startMin', this.value)" min="0" max="59" style="width:50px">
-            to
-            <input type="number" value="${item.endHour}" onchange="updateScheduleItem(${index}, 'endHour', this.value)" min="0" max="23" style="width:50px">:
-            <input type="number" value="${item.endMin}" onchange="updateScheduleItem(${index}, 'endMin', this.value)" min="0" max="59" style="width:50px">
-            <select onchange="updateScheduleItem(${index}, 'image', this.value)">
-                ${scheduleImages.map(img => `<option value="${img.name}" ${img.name === item.image ? 'selected' : ''}>${img.name}</option>`).join('')}
-            </select>
-            <label><input type="checkbox" ${item.progressBar ? 'checked' : ''} onchange="updateScheduleItem(${index}, 'progressBar', this.checked)"> Progress</label>
-            <button class="btn-pixel btn-secondary btn-sm" onclick="deleteScheduleItem(${index})">🗑️</button>
-        </div>
-    `).join('');
+    // Update preview dropdown
+    const previewSelect = document.getElementById('preview-item-select');
+    if (previewSelect) {
+        const options = currentScheduleData.items.map((item, index) => 
+            `<option value="${index}">${item.name}</option>`
+        ).join('');
+        previewSelect.innerHTML = '<option value="">Select item...</option>' + options;
+    }
+    
+    const isDateSpecific = currentScheduleData.type === 'date';
+    const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    
+    const itemsHTML = currentScheduleData.items.map((item, index) => {
+        const imageOptions = scheduleImages.length > 0 
+            ? scheduleImages.map(img => `<option value="${img.name}" ${img.name === item.image ? 'selected' : ''}>${img.name}</option>`).join('')
+            : '<option value="">No images available</option>';
+        
+        // For date-specific schedules, show which day it is (read-only)
+        let daysHTML = '';
+        if (isDateSpecific) {
+            // Show the day of the week based on the date
+            const scheduleDate = currentScheduleData.date ? new Date(currentScheduleData.date + 'T00:00:00') : new Date();
+            const dayOfWeek = (scheduleDate.getDay() + 6) % 7; // Convert Sunday=0 to Monday=0
+            daysHTML = `<span class="day-badge">${dayNames[dayOfWeek]}</span>`;
+        } else {
+            // For default schedule, show day checkboxes
+            daysHTML = `
+                <div class="day-checkboxes" id="days-${index}">
+                    ${dayNames.map((day, dayIndex) => `
+                        <label class="day-checkbox ${item.days.includes(dayIndex.toString()) ? 'checked' : ''}">
+                            <input type="checkbox" 
+                                   value="${dayIndex}" 
+                                   ${item.days.includes(dayIndex.toString()) ? 'checked' : ''}
+                                   onchange="updateScheduleDays(${index}, this)">
+                            ${day}
+                        </label>
+                    `).join('')}
+                </div>
+            `;
+        }
+        
+        return `
+            <div class="schedule-item">
+                <div class="schedule-item-header">
+                    <input type="text" 
+                           class="item-name-input" 
+                           value="${item.name}" 
+                           onchange="updateScheduleItem(${index}, 'name', this.value)" 
+                           placeholder="Item name">
+                    <label class="item-enabled">
+                        <input type="checkbox" 
+                               ${item.enabled ? 'checked' : ''} 
+                               onchange="updateScheduleItem(${index}, 'enabled', this.checked)">
+                        Enabled
+                    </label>
+                    <button class="btn-pixel btn-secondary btn-sm" onclick="deleteScheduleItem(${index})">🗑️</button>
+                </div>
+                
+                <div class="schedule-item-body">
+                    <div class="schedule-item-row">
+                        <label class="item-label">Days:</label>
+                        ${daysHTML}
+                    </div>
+                    
+                    <div class="schedule-item-row">
+                        <label class="item-label">Time:</label>
+                        <div class="time-inputs">
+                            <input type="number" value="${item.startHour}" onchange="updateScheduleItem(${index}, 'startHour', this.value)" min="0" max="23" class="time-input">
+                            :
+                            <input type="number" value="${String(item.startMin).padStart(2,'0')}" onchange="updateScheduleItem(${index}, 'startMin', this.value)" min="0" max="59" class="time-input">
+                            <span class="time-separator">to</span>
+                            <input type="number" value="${item.endHour}" onchange="updateScheduleItem(${index}, 'endHour', this.value)" min="0" max="23" class="time-input">
+                            :
+                            <input type="number" value="${String(item.endMin).padStart(2,'0')}" onchange="updateScheduleItem(${index}, 'endMin', this.value)" min="0" max="59" class="time-input">
+                        </div>
+                    </div>
+                    
+                    <div class="schedule-item-row">
+                        <label class="item-label">Image:</label>
+                        <select class="image-select" onchange="updateScheduleItem(${index}, 'image', this.value)">
+                            ${imageOptions}
+                        </select>
+                        <label class="progress-label">
+                            <input type="checkbox" 
+                                   ${item.progressBar ? 'checked' : ''} 
+                                   onchange="updateScheduleItem(${index}, 'progressBar', this.checked)">
+                            Progress Bar
+                        </label>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
     
     container.innerHTML = itemsHTML;
+    updateTimelineView();
+}
+
+// Update schedule days (for checkbox toggles) - NEW FUNCTION
+function updateScheduleDays(index, checkbox) {
+    if (!currentScheduleData || !currentScheduleData.items[index]) return;
+    
+    const dayValue = checkbox.value;
+    let currentDays = currentScheduleData.items[index].days;
+    
+    if (checkbox.checked) {
+        // Add day if not present
+        if (!currentDays.includes(dayValue)) {
+            // Keep days sorted
+            const daysArray = currentDays.split('').concat([dayValue]).sort();
+            currentDays = daysArray.join('');
+        }
+    } else {
+        // Remove day
+        currentDays = currentDays.replace(dayValue, '');
+    }
+    
+    currentScheduleData.items[index].days = currentDays;
+    
+    // Update the visual state of the checkbox label
+    checkbox.parentElement.classList.toggle('checked', checkbox.checked);
+    
+    updateTimelineView();
 }
 
 // Update schedule item
@@ -1723,7 +1881,7 @@ function deleteScheduleItem(index) {
     }
 }
 
-// Update timeline view
+// Update timeline view - ENHANCED with graphical representation
 function updateTimelineView() {
     const container = document.getElementById('timeline-view');
     const dayFilter = parseInt(document.getElementById('timeline-day-filter').value);
@@ -1765,37 +1923,245 @@ function updateTimelineView() {
         }
     }
     
-    // Render timeline
+    // Calculate the pixel-per-minute ratio for visual representation
+    // Day spans from earliest start to latest end
+    let earliestStart = 24 * 60;
+    let latestEnd = 0;
+    
+    dayItems.forEach(item => {
+        const start = item.startHour * 60 + item.startMin;
+        const end = item.endHour * 60 + item.endMin;
+        earliestStart = Math.min(earliestStart, start);
+        latestEnd = Math.max(latestEnd, end);
+    });
+    
+    const totalMinutes = latestEnd - earliestStart;
+    const containerHeight = 400; // pixels
+    const pixelsPerMinute = containerHeight / totalMinutes;
+    
+    // Render timeline with graphical heights
     const timelineHTML = dayItems.map(item => {
         const hasOverlap = overlaps.includes(item.index);
+        const startMinutes = item.startHour * 60 + item.startMin;
+        const endMinutes = item.endHour * 60 + item.endMin;
+        const duration = endMinutes - startMinutes;
+        
+        // Calculate position and height
+        const topOffset = (startMinutes - earliestStart) * pixelsPerMinute;
+        const itemHeight = duration * pixelsPerMinute;
+        
         return `
-            <div class="timeline-item ${hasOverlap ? 'overlap' : ''}" onclick="selectScheduleItem(${item.index})">
-                <span class="time">${String(item.startHour).padStart(2,'0')}:${String(item.startMin).padStart(2,'0')} - ${String(item.endHour).padStart(2,'0')}:${String(item.endMin).padStart(2,'0')}</span>
-                <span class="name">${item.name}</span>
-                ${hasOverlap ? '<span class="overlap-warning">⚠️ Overlap</span>' : ''}
+            <div class="timeline-item ${hasOverlap ? 'overlap' : ''}" 
+                 style="position: absolute; top: ${topOffset}px; height: ${itemHeight}px; left: 0; right: 0;"
+                 onclick="selectScheduleItem(${item.index})">
+                <div class="timeline-item-content">
+                    <span class="time">${String(item.startHour).padStart(2,'0')}:${String(item.startMin).padStart(2,'0')} - ${String(item.endHour).padStart(2,'0')}:${String(item.endMin).padStart(2,'0')}</span>
+                    <span class="name">${item.name}</span>
+                    ${hasOverlap ? '<span class="overlap-warning">⚠️ Overlap</span>' : ''}
+                </div>
             </div>
         `;
     }).join('');
     
-    container.innerHTML = timelineHTML;
+    container.innerHTML = `
+        <div class="timeline-container" style="position: relative; height: ${containerHeight}px; border: 2px solid #000; background: #f0f0f0;">
+            ${timelineHTML}
+        </div>
+    `;
 }
 
-// Select schedule item for preview
-function selectScheduleItem(index) {
+// Select schedule item for preview - UPDATED
+async function selectScheduleItem(index) {
     document.getElementById('preview-item-select').value = index;
-    updateSchedulePreview();
+    await updateSchedulePreview();
 }
 
-// Update schedule preview
-function updateSchedulePreview() {
-    // For now, just log - we'll implement the matrix rendering next
+// Update schedule preview - ENHANCED with actual image rendering
+async function updateSchedulePreview() {
     const itemIndex = document.getElementById('preview-item-select').value;
     const progress = document.getElementById('preview-progress').value;
     
     document.getElementById('preview-progress-value').textContent = progress + '%';
     
-    console.log('Preview update:', itemIndex, progress);
-    // TODO: Render on schedule matrix
+    if (!currentScheduleData || itemIndex === '' || !currentScheduleData.items[itemIndex]) {
+        return;
+    }
+    
+    const item = currentScheduleData.items[itemIndex];
+    
+    // Create or get schedule matrix emulator
+    if (!scheduleMatrix) {
+        const container = document.getElementById('matrix-container-schedule');
+        if (container) {
+            scheduleMatrix = new MatrixEmulator('matrix-container-schedule', 64, 32, 6);
+        }
+    }
+    
+    if (!scheduleMatrix) return;
+    
+    // Clear matrix
+    scheduleMatrix.clear();
+    
+    // Load and draw the schedule image (40x28 at position 0,2)
+    if (item.image && item.image.endsWith('.bmp')) {
+        const imageData = await loadScheduleBMPImage(item.image);
+        if (imageData) {
+            scheduleMatrix.drawImage(imageData, 0, 2);
+        }
+    }
+    
+    // Draw progress bar if enabled
+    if (item.progressBar) {
+        drawProgressBar(scheduleMatrix, parseInt(progress));
+    }
+    
+    scheduleMatrix.render();
+}
+
+// Load schedule BMP image (40x28) - NEW FUNCTION
+async function loadScheduleBMPImage(imageName) {
+    const config = loadConfig();
+    
+    console.log('Loading schedule image:', imageName);
+    
+    // Check cache first
+    if (imageCache[imageName]) {
+        console.log('Using cached image:', imageName);
+        return imageCache[imageName];
+    }
+    
+    // Find image info
+    const imageInfo = scheduleImages.find(img => img.name === imageName);
+    if (!imageInfo) {
+        console.error('Image not found in scheduleImages:', imageName);
+        return null;
+    }
+    
+    console.log('Fetching from URL:', imageInfo.url);
+    
+    try {
+        const response = await fetch(imageInfo.url);
+        
+        if (!response.ok) {
+            console.error('Fetch failed:', response.status, response.statusText);
+            return null;
+        }
+        
+        const arrayBuffer = await response.arrayBuffer();
+        console.log('Downloaded', arrayBuffer.byteLength, 'bytes');
+        
+        const dataView = new DataView(arrayBuffer);
+        
+        // Parse BMP header
+        const signature = String.fromCharCode(dataView.getUint8(0)) + String.fromCharCode(dataView.getUint8(1));
+        
+        if (signature !== 'BM') {
+            console.error('Not a valid BMP file! Signature:', signature);
+            return null;
+        }
+        
+        const dataOffset = dataView.getUint32(10, true);
+        const width = dataView.getInt32(18, true);
+        const height = Math.abs(dataView.getInt32(22, true));
+        const bitsPerPixel = dataView.getUint16(28, true);
+        
+        console.log('BMP Info:', { 
+            imageName, 
+            width, 
+            height, 
+            bitsPerPixel,
+            dataOffset
+        });
+        
+        // Only handle 8-bit BMPs
+        if (bitsPerPixel !== 8) {
+            console.error('Only 8-bit BMPs supported! Got:', bitsPerPixel);
+            return null;
+        }
+        
+        // Parse color palette
+        const paletteSize = dataView.getUint32(46, true) || 256;
+        console.log('Reading', paletteSize, 'color palette entries');
+        
+        let palette = [];
+        for (let i = 0; i < paletteSize; i++) {
+            const paletteIndex = 54 + (i * 4);
+            const b = dataView.getUint8(paletteIndex);
+            const g = dataView.getUint8(paletteIndex + 1);
+            const r = dataView.getUint8(paletteIndex + 2);
+            palette.push({ r, g, b });
+        }
+        
+        // Create 2D array for pixels
+        const pixels = Array(height).fill(null).map(() => Array(width).fill('transparent'));
+        
+        for (let row = 0; row < height; row++) {
+            for (let col = 0; col < width; col++) {
+                // BMPs are stored bottom-to-top
+                const bmpRow = (height - 1 - row);
+                
+                // 8-bit indexed color
+                const rowSize = Math.floor((width * 8 + 31) / 32) * 4;
+                const pixelIndex = dataOffset + (bmpRow * rowSize) + col;
+                
+                const colorIndex = dataView.getUint8(pixelIndex);
+                
+                let r, g, b;
+                if (colorIndex < palette.length) {
+                    r = palette[colorIndex].r;
+                    g = palette[colorIndex].g;
+                    b = palette[colorIndex].b;
+                } else {
+                    console.warn('Color index out of range:', colorIndex);
+                    r = g = b = 0;
+                }
+                
+                // Check if pixel is black (treat as transparent)
+                if (r < 10 && g < 10 && b < 10) {
+                    pixels[row][col] = 'transparent';
+                } else {
+                    pixels[row][col] = `rgb(${r},${g},${b})`;
+                }
+            }
+        }
+        
+        // Cache the result
+        imageCache[imageName] = pixels;
+        
+        return pixels;
+        
+    } catch (error) {
+        console.error('Error loading schedule BMP:', error);
+        return null;
+    }
+}
+
+// Draw progress bar on schedule matrix - NEW FUNCTION
+function drawProgressBar(matrix, progressPercent) {
+    const PROGRESS_BAR_X = 40;
+    const PROGRESS_BAR_Y = 30;
+    const PROGRESS_BAR_WIDTH = 40;
+    const PROGRESS_BAR_HEIGHT = 2;
+    
+    const MINT = '#00FFAA';
+    const LILAC = '#AA00FF';
+    const WHITE = '#FFFFFF';
+    
+    // Draw background (MINT)
+    matrix.fillRect(PROGRESS_BAR_X, PROGRESS_BAR_Y, PROGRESS_BAR_WIDTH, PROGRESS_BAR_HEIGHT, MINT);
+    
+    // Draw filled portion (LILAC)
+    const filledWidth = Math.floor((progressPercent / 100) * PROGRESS_BAR_WIDTH);
+    if (filledWidth > 0) {
+        matrix.fillRect(PROGRESS_BAR_X, PROGRESS_BAR_Y, filledWidth, PROGRESS_BAR_HEIGHT, LILAC);
+    }
+    
+    // Draw dividers at 0%, 25%, 50%, 75%, 100%
+    const dividerPositions = [0, 10, 20, 30, 40]; // 25% = 10px, 50% = 20px, etc.
+    dividerPositions.forEach(pos => {
+        matrix.setPixel(PROGRESS_BAR_X + pos, PROGRESS_BAR_Y, WHITE);
+        matrix.setPixel(PROGRESS_BAR_X + pos, PROGRESS_BAR_Y + 1, WHITE);
+    });
 }
 
 // Save schedule to GitHub
