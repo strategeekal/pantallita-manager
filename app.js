@@ -321,21 +321,33 @@ function setupTabs() {
 
 // Handle tab switching with proper cleanup
 function handleTabSwitch(targetTab) {
-    // Clean up editor matrix when leaving add-event tab
-    if (targetTab !== 'add-event' && editorMatrix) {
-        console.log('Cleaning up editor matrix');
-        editorMatrix.clear();
-        
-        // Remove canvas from DOM
-        const container = document.getElementById('matrix-container-editor');
-        if (container) {
-            container.innerHTML = ''; // Clear all canvas elements
+    // Clean up editor when leaving add-event tab
+    if (targetTab !== 'add-event') {
+        // Clear the form to avoid confusion
+        if (editorTabInitialized) {
+            clearEventForm();
         }
         
-        editorMatrix = null;
+        // Reset edit mode
+        isEditMode = false;
+        editingEventIndex = null;
         
-        // Force garbage collection hint
-        if (window.gc) window.gc();
+        // Clean up matrix on desktop
+        if (editorMatrix) {
+            console.log('Cleaning up editor matrix');
+            editorMatrix.clear();
+            
+            // Remove canvas from DOM
+            const container = document.getElementById('matrix-container-editor');
+            if (container) {
+                container.innerHTML = ''; // Clear all canvas elements
+            }
+            
+            editorMatrix = null;
+            
+            // Force garbage collection hint
+            if (window.gc) window.gc();
+        }
     }
     
     // Initialize tab-specific content
