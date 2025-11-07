@@ -1363,7 +1363,8 @@ function hideEventsMessages() {
     document.getElementById('events-empty').classList.add('hidden');
 }
 
-// ==================== SCHEDULE MANAGEMENT FUNCTIONALITY ====================
+// ==================== SCHEDULE MANAGEMENT - FIXED VERSION ====================
+// Replace the schedule management section in app.js with these updated functions
 
 // Global variables for schedule management
 let currentSchedules = []; // List of all schedule files
@@ -1507,19 +1508,21 @@ async function loadScheduleImages() {
     }
 }
 
-// Create new schedule
+// Create new schedule - FIXED: Shows template option
 function createNewSchedule() {
     currentScheduleData = {
-        type: 'default',
+        type: 'new-date', // Special type for new schedule creation
         date: null,
-        items: []
+        items: [],
+        isNew: true
     };
     
     showScheduleEditor();
+    populateScheduleEditor();
     document.getElementById('schedule-editor-title').textContent = 'Create New Schedule';
 }
 
-// Edit existing schedule
+// Edit existing schedule - FIXED: Determines correct edit mode
 async function editSchedule(filename) {
     const config = loadConfig();
     const schedule = currentSchedules.find(s => s.name === filename);
@@ -1531,15 +1534,19 @@ async function editSchedule(filename) {
         const content = await response.text();
         
         currentScheduleData = {
-            type: schedule.isDefault ? 'default' : 'date',
+            type: schedule.isDefault ? 'default' : 'edit-date',
             date: schedule.date,
             filename: filename,
             sha: schedule.sha,
-            items: parseScheduleCSV(content)
+            items: parseScheduleCSV(content),
+            isNew: false
         };
         
         showScheduleEditor();
         populateScheduleEditor();
+        
+        const title = schedule.isDefault ? 'Edit Default Schedule' : `Edit Schedule for ${schedule.date}`;
+        document.getElementById('schedule-editor-title').textContent = title;
         
     } catch (error) {
         console.error('Error loading schedule:', error);
@@ -1587,47 +1594,63 @@ function closeScheduleEditor() {
     currentScheduleData = null;
 }
 
-// Populate schedule editor with current data
+// Populate schedule editor - FIXED: Shows correct controls based on mode
 function populateScheduleEditor() {
     if (!currentScheduleData) return;
     
-    document.getElementById('schedule-type').value = currentScheduleData.type;
+    const scheduleInfoForm = document.getElementById('schedule-info-form');
     
-    if (currentScheduleData.type === 'date') {
-        document.getElementById('schedule-date-group').classList.remove('hidden');
-        document.getElementById('schedule-date').value = currentScheduleData.date || '';
+    if (currentScheduleData.type === 'default') {
+        // EDITING DEFAULT: No controls, just show info
+        scheduleInfoForm.innerHTML = `
+            <div class="form-group">
+                <p class="schedule-mode-info">Editing default schedule template</p>
+            </div>
+        `;
+    } else if (currentScheduleData.type === 'edit-date') {
+        // EDITING SPECIFIC DATE: Just show date picker + make default button
+        const scheduleDate = new Date(currentScheduleData.date + 'T00:00:00');
+        const dayOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][scheduleDate.getDay()];
+        
+        scheduleInfoForm.innerHTML = `
+            <div class="form-group">
+                <label>Schedule Date</label>
+                <input type="date" id="schedule-date" value="${currentScheduleData.date}" onchange="handleDateChange()">
+                <small>This schedule is for ${dayOfWeek}</small>
+            </div>
+            <div class="form-group">
+                <button type="button" class="btn-pixel btn-secondary" onclick="makeThisDefault()">
+                    💾 Make This the Default Schedule
+                </button>
+            </div>
+        `;
+    } else if (currentScheduleData.type === 'new-date') {
+        // CREATING NEW: Show date picker + template selector
+        scheduleInfoForm.innerHTML = `
+            <div class="form-group">
+                <label>Schedule Date *</label>
+                <input type="date" id="schedule-date" value="" onchange="handleDateChange()">
+            </div>
+            <div class="form-group">
+                <label>Start From Template</label>
+                <select id="schedule-template" onchange="loadScheduleTemplate()">
+                    <option value="">-- Blank Schedule --</option>
+                    <option value="default">Default Schedule</option>
+                </select>
+            </div>
+        `;
     }
     
     renderScheduleItems();
     updateTimelineView();
 }
 
-// Handle schedule type change - FIXED: auto-populate days for date-specific schedules
-function handleScheduleTypeChange() {
-    const type = document.getElementById('schedule-type').value;
-    const dateGroup = document.getElementById('schedule-date-group');
-    
-    if (type === 'date') {
-        dateGroup.classList.remove('hidden');
-        // If changing to date-specific, auto-set days based on date
-        const dateInput = document.getElementById('schedule-date');
-        if (dateInput.value && currentScheduleData) {
-            updateDateSpecificDays();
-        }
-    } else {
-        dateGroup.classList.add('hidden');
-    }
-    
-    if (currentScheduleData) {
-        currentScheduleData.type = type;
-        renderScheduleItems(); // Re-render to show/hide day selectors
-    }
-}
-
-// Update days for date-specific schedule based on selected date - NEW FUNCTION
-function updateDateSpecificDays() {
+// Handle date change - FIXED: Updates day-of-week properly
+function handleDateChange() {
     const dateInput = document.getElementById('schedule-date');
-    if (!dateInput.value || !currentScheduleData) return;
+    if (!dateInput || !dateInput.value || !currentScheduleData) return;
+    
+    currentScheduleData.date = dateInput.value;
     
     const scheduleDate = new Date(dateInput.value + 'T00:00:00');
     const dayOfWeek = (scheduleDate.getDay() + 6) % 7; // Convert Sunday=0 to Monday=0
@@ -1637,24 +1660,29 @@ function updateDateSpecificDays() {
         item.days = dayOfWeek.toString();
     });
     
+    // Update the info text if editing
+    if (currentScheduleData.type === 'edit-date') {
+        const dayName = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][scheduleDate.getDay()];
+        const small = document.querySelector('#schedule-info-form small');
+        if (small) {
+            small.textContent = `This schedule is for ${dayName}`;
+        }
+    }
+    
     renderScheduleItems();
 }
 
-// Load schedule template - FIXED: to fetch fresh data
+// Load schedule template - FIXED: Only for new schedules
 async function loadScheduleTemplate() {
     const template = document.getElementById('schedule-template').value;
     
-    if (!template) return;
-    
-    if (template === 'blank') {
+    if (!template) {
         currentScheduleData.items = [];
         renderScheduleItems();
-        showStatus('Cleared all items', 'success');
         return;
     }
     
     if (template === 'default') {
-        // FIXED: Fetch fresh default schedule from GitHub, not from cached currentSchedules
         const config = loadConfig();
         
         try {
@@ -1676,12 +1704,11 @@ async function loadScheduleTemplate() {
             const content = atob(data.content);
             const templateItems = parseScheduleCSV(content);
             
-            // Copy items to current schedule
-            currentScheduleData.items = JSON.parse(JSON.stringify(templateItems)); // Deep copy
+            currentScheduleData.items = JSON.parse(JSON.stringify(templateItems));
             
-            // If this is a date-specific schedule, update the days
-            if (currentScheduleData.type === 'date') {
-                updateDateSpecificDays();
+            // Update days if date is set
+            if (currentScheduleData.date) {
+                handleDateChange();
             }
             
             renderScheduleItems();
@@ -1694,6 +1721,73 @@ async function loadScheduleTemplate() {
     }
 }
 
+// Make this schedule the default - NEW FUNCTION
+async function makeThisDefault() {
+    if (!currentScheduleData || currentScheduleData.type !== 'edit-date') return;
+    
+    if (!confirm('Replace the default schedule with this one? This cannot be undone.')) {
+        return;
+    }
+    
+    const config = loadConfig();
+    
+    try {
+        // Get current default.csv SHA
+        let sha = null;
+        try {
+            const getResponse = await fetch(
+                `https://api.github.com/repos/${config.owner}/${config.repo}/contents/schedules/default.csv`,
+                {
+                    headers: {
+                        'Authorization': `Bearer ${config.token}`,
+                        'Accept': 'application/vnd.github.v3+json'
+                    }
+                }
+            );
+            
+            if (getResponse.ok) {
+                const getData = await getResponse.json();
+                sha = getData.sha;
+            }
+        } catch (e) {
+            console.log('Default schedule does not exist, will create');
+        }
+        
+        // Generate CSV content from current schedule items
+        const csvContent = generateScheduleCSV();
+        const encodedContent = btoa(unescape(encodeURIComponent(csvContent)));
+        
+        // Save as default.csv
+        const response = await fetch(
+            `https://api.github.com/repos/${config.owner}/${config.repo}/contents/schedules/default.csv`,
+            {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${config.token}`,
+                    'Accept': 'application/vnd.github.v3+json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    message: `Update default schedule from ${currentScheduleData.date}`,
+                    content: encodedContent,
+                    sha: sha
+                })
+            }
+        );
+        
+        if (!response.ok) {
+            throw new Error(`GitHub API error: ${response.status}`);
+        }
+        
+        showStatus('Default schedule updated successfully!', 'success');
+        loadSchedules(); // Refresh list
+        
+    } catch (error) {
+        console.error('Error updating default:', error);
+        showStatus('Failed to update default: ' + error.message, 'error');
+    }
+}
+
 // Add new schedule item
 function addScheduleItem() {
     if (!currentScheduleData) {
@@ -1703,10 +1797,18 @@ function addScheduleItem() {
         };
     }
     
+    // Determine default days based on schedule type
+    let defaultDays = '0123456'; // All days for default
+    if (currentScheduleData.type !== 'default' && currentScheduleData.date) {
+        const scheduleDate = new Date(currentScheduleData.date + 'T00:00:00');
+        const dayOfWeek = (scheduleDate.getDay() + 6) % 7;
+        defaultDays = dayOfWeek.toString();
+    }
+    
     const newItem = {
         name: 'New Item',
         enabled: true,
-        days: '0123456',
+        days: defaultDays,
         startHour: 8,
         startMin: 0,
         endHour: 9,
@@ -1720,7 +1822,7 @@ function addScheduleItem() {
     renderScheduleItems();
 }
 
-// Render schedule items list - UPDATED with day checkboxes and better UI
+// Render schedule items list
 function renderScheduleItems() {
     const container = document.getElementById('schedule-items-list');
     
@@ -1738,7 +1840,7 @@ function renderScheduleItems() {
         previewSelect.innerHTML = '<option value="">Select item...</option>' + options;
     }
     
-    const isDateSpecific = currentScheduleData.type === 'date';
+    const isDateSpecific = currentScheduleData.type !== 'default';
     const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
     
     const itemsHTML = currentScheduleData.items.map((item, index) => {
@@ -1748,11 +1850,12 @@ function renderScheduleItems() {
         
         // For date-specific schedules, show which day it is (read-only)
         let daysHTML = '';
-        if (isDateSpecific) {
-            // Show the day of the week based on the date
-            const scheduleDate = currentScheduleData.date ? new Date(currentScheduleData.date + 'T00:00:00') : new Date();
-            const dayOfWeek = (scheduleDate.getDay() + 6) % 7; // Convert Sunday=0 to Monday=0
+        if (isDateSpecific && currentScheduleData.date) {
+            const scheduleDate = new Date(currentScheduleData.date + 'T00:00:00');
+            const dayOfWeek = (scheduleDate.getDay() + 6) % 7;
             daysHTML = `<span class="day-badge">${dayNames[dayOfWeek]}</span>`;
+        } else if (isDateSpecific) {
+            daysHTML = `<span class="day-badge-placeholder">Select date above</span>`;
         } else {
             // For default schedule, show day checkboxes
             daysHTML = `
@@ -1827,7 +1930,7 @@ function renderScheduleItems() {
     updateTimelineView();
 }
 
-// Update schedule days (for checkbox toggles) - NEW FUNCTION
+// Update schedule days (for checkbox toggles)
 function updateScheduleDays(index, checkbox) {
     if (!currentScheduleData || !currentScheduleData.items[index]) return;
     
@@ -1835,22 +1938,16 @@ function updateScheduleDays(index, checkbox) {
     let currentDays = currentScheduleData.items[index].days;
     
     if (checkbox.checked) {
-        // Add day if not present
         if (!currentDays.includes(dayValue)) {
-            // Keep days sorted
             const daysArray = currentDays.split('').concat([dayValue]).sort();
             currentDays = daysArray.join('');
         }
     } else {
-        // Remove day
         currentDays = currentDays.replace(dayValue, '');
     }
     
     currentScheduleData.items[index].days = currentDays;
-    
-    // Update the visual state of the checkbox label
     checkbox.parentElement.classList.toggle('checked', checkbox.checked);
-    
     updateTimelineView();
 }
 
@@ -1881,7 +1978,7 @@ function deleteScheduleItem(index) {
     }
 }
 
-// Update timeline view - ENHANCED with graphical representation
+// Update timeline view - FIXED: Shows gaps and proportional spacing
 function updateTimelineView() {
     const container = document.getElementById('timeline-view');
     const dayFilter = parseInt(document.getElementById('timeline-day-filter').value);
@@ -1923,34 +2020,59 @@ function updateTimelineView() {
         }
     }
     
-    // Calculate the pixel-per-minute ratio for visual representation
-    // Day spans from earliest start to latest end
-    let earliestStart = 24 * 60;
-    let latestEnd = 0;
-    
-    dayItems.forEach(item => {
-        const start = item.startHour * 60 + item.startMin;
-        const end = item.endHour * 60 + item.endMin;
-        earliestStart = Math.min(earliestStart, start);
-        latestEnd = Math.max(latestEnd, end);
-    });
-    
-    const totalMinutes = latestEnd - earliestStart;
-    const containerHeight = 400; // pixels
+    // FIXED: Render full day from 00:00 to 24:00 (1440 minutes)
+    const dayStart = 0;
+    const dayEnd = 1440; // 24 hours * 60 minutes
+    const totalMinutes = dayEnd - dayStart;
+    const containerHeight = 600; // Increased for better visibility
     const pixelsPerMinute = containerHeight / totalMinutes;
     
-    // Render timeline with graphical heights
-    const timelineHTML = dayItems.map(item => {
-        const hasOverlap = overlaps.includes(item.index);
+    let timelineHTML = '';
+    let currentMinute = 0;
+    
+    dayItems.forEach((item, idx) => {
         const startMinutes = item.startHour * 60 + item.startMin;
         const endMinutes = item.endHour * 60 + item.endMin;
-        const duration = endMinutes - startMinutes;
         
-        // Calculate position and height
-        const topOffset = (startMinutes - earliestStart) * pixelsPerMinute;
+        // Render gap before this item (if any)
+        if (startMinutes > currentMinute) {
+            const gapDuration = startMinutes - currentMinute;
+            const gapHeight = gapDuration * pixelsPerMinute;
+            const topOffset = currentMinute * pixelsPerMinute;
+            
+            const gapHours = Math.floor(gapDuration / 60);
+            const gapMins = gapDuration % 60;
+            const startHour = Math.floor(currentMinute / 60);
+            const startMin = currentMinute % 60;
+            const endHour = Math.floor(startMinutes / 60);
+            const endMin = startMinutes % 60;
+            
+            let timeText = '';
+            if (gapHours > 0 && gapMins > 0) {
+                timeText = `${gapHours} hr ${gapMins} min`;
+            } else if (gapHours > 0) {
+                timeText = `${gapHours} hr`;
+            } else {
+                timeText = `${gapMins} min`;
+            }
+            
+            timelineHTML += `
+                <div class="timeline-gap" 
+                     style="position: absolute; top: ${topOffset}px; height: ${gapHeight}px; left: 0; right: 0;">
+                    <div class="gap-content">
+                        <span class="gap-text">NO SCHEDULE ${String(startHour).padStart(2,'0')}:${String(startMin).padStart(2,'0')} - ${String(endHour).padStart(2,'0')}:${String(endMin).padStart(2,'0')} (${timeText})</span>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Render the schedule item
+        const hasOverlap = overlaps.includes(item.index);
+        const duration = endMinutes - startMinutes;
+        const topOffset = startMinutes * pixelsPerMinute;
         const itemHeight = duration * pixelsPerMinute;
         
-        return `
+        timelineHTML += `
             <div class="timeline-item ${hasOverlap ? 'overlap' : ''}" 
                  style="position: absolute; top: ${topOffset}px; height: ${itemHeight}px; left: 0; right: 0;"
                  onclick="selectScheduleItem(${item.index})">
@@ -1961,7 +2083,39 @@ function updateTimelineView() {
                 </div>
             </div>
         `;
-    }).join('');
+        
+        currentMinute = endMinutes;
+    });
+    
+    // Render final gap (if any)
+    if (currentMinute < dayEnd) {
+        const gapDuration = dayEnd - currentMinute;
+        const gapHeight = gapDuration * pixelsPerMinute;
+        const topOffset = currentMinute * pixelsPerMinute;
+        
+        const gapHours = Math.floor(gapDuration / 60);
+        const gapMins = gapDuration % 60;
+        const startHour = Math.floor(currentMinute / 60);
+        const startMin = currentMinute % 60;
+        
+        let timeText = '';
+        if (gapHours > 0 && gapMins > 0) {
+            timeText = `${gapHours} hr ${gapMins} min`;
+        } else if (gapHours > 0) {
+            timeText = `${gapHours} hr`;
+        } else {
+            timeText = `${gapMins} min`;
+        }
+        
+        timelineHTML += `
+            <div class="timeline-gap" 
+                 style="position: absolute; top: ${topOffset}px; height: ${gapHeight}px; left: 0; right: 0;">
+                <div class="gap-content">
+                    <span class="gap-text">NO SCHEDULE ${String(startHour).padStart(2,'0')}:${String(startMin).padStart(2,'0')} - 24:00 (${timeText})</span>
+                </div>
+            </div>
+        `;
+    }
     
     container.innerHTML = `
         <div class="timeline-container" style="position: relative; height: ${containerHeight}px; border: 2px solid #000; background: #f0f0f0;">
@@ -1970,18 +2124,15 @@ function updateTimelineView() {
     `;
 }
 
-// Select schedule item for preview - UPDATED
+// Select schedule item for preview
 async function selectScheduleItem(index) {
     document.getElementById('preview-item-select').value = index;
     await updateSchedulePreview();
 }
 
-// Update schedule preview - ENHANCED with actual image rendering
+// Update schedule preview - FIXED: 74% progress, no slider
 async function updateSchedulePreview() {
     const itemIndex = document.getElementById('preview-item-select').value;
-    const progress = document.getElementById('preview-progress').value;
-    
-    document.getElementById('preview-progress-value').textContent = progress + '%';
     
     if (!currentScheduleData || itemIndex === '' || !currentScheduleData.items[itemIndex]) {
         return;
@@ -2002,144 +2153,31 @@ async function updateSchedulePreview() {
     // Clear matrix
     scheduleMatrix.clear();
     
-    // Load and draw the schedule image (40x28 at position 0,2)
+    // FIXED: Image and progress bar positioned on the right (x=23, 1px margin from right edge)
+    // Right edge is at x=64, so x=23 gives us 64-23=41 pixels, leaving 40px for image/bar + 1px margin
+    const IMAGE_X = 23;
+    const IMAGE_Y = 2;
+    const PROGRESS_X = 23;
+    const PROGRESS_Y = 30;
+    
+    // Load and draw the schedule image (40x28)
     if (item.image && item.image.endsWith('.bmp')) {
         const imageData = await loadScheduleBMPImage(item.image);
         if (imageData) {
-            scheduleMatrix.drawImage(imageData, 0, 2);
+            scheduleMatrix.drawImage(imageData, IMAGE_X, IMAGE_Y);
         }
     }
     
-    // Draw progress bar if enabled
+    // Draw progress bar if enabled - FIXED: Always at 74%
     if (item.progressBar) {
-        drawProgressBar(scheduleMatrix, parseInt(progress));
+        drawProgressBar(scheduleMatrix, 74, PROGRESS_X, PROGRESS_Y);
     }
     
     scheduleMatrix.render();
 }
 
-// Load schedule BMP image (40x28) - NEW FUNCTION
-async function loadScheduleBMPImage(imageName) {
-    const config = loadConfig();
-    
-    console.log('Loading schedule image:', imageName);
-    
-    // Check cache first
-    if (imageCache[imageName]) {
-        console.log('Using cached image:', imageName);
-        return imageCache[imageName];
-    }
-    
-    // Find image info
-    const imageInfo = scheduleImages.find(img => img.name === imageName);
-    if (!imageInfo) {
-        console.error('Image not found in scheduleImages:', imageName);
-        return null;
-    }
-    
-    console.log('Fetching from URL:', imageInfo.url);
-    
-    try {
-        const response = await fetch(imageInfo.url);
-        
-        if (!response.ok) {
-            console.error('Fetch failed:', response.status, response.statusText);
-            return null;
-        }
-        
-        const arrayBuffer = await response.arrayBuffer();
-        console.log('Downloaded', arrayBuffer.byteLength, 'bytes');
-        
-        const dataView = new DataView(arrayBuffer);
-        
-        // Parse BMP header
-        const signature = String.fromCharCode(dataView.getUint8(0)) + String.fromCharCode(dataView.getUint8(1));
-        
-        if (signature !== 'BM') {
-            console.error('Not a valid BMP file! Signature:', signature);
-            return null;
-        }
-        
-        const dataOffset = dataView.getUint32(10, true);
-        const width = dataView.getInt32(18, true);
-        const height = Math.abs(dataView.getInt32(22, true));
-        const bitsPerPixel = dataView.getUint16(28, true);
-        
-        console.log('BMP Info:', { 
-            imageName, 
-            width, 
-            height, 
-            bitsPerPixel,
-            dataOffset
-        });
-        
-        // Only handle 8-bit BMPs
-        if (bitsPerPixel !== 8) {
-            console.error('Only 8-bit BMPs supported! Got:', bitsPerPixel);
-            return null;
-        }
-        
-        // Parse color palette
-        const paletteSize = dataView.getUint32(46, true) || 256;
-        console.log('Reading', paletteSize, 'color palette entries');
-        
-        let palette = [];
-        for (let i = 0; i < paletteSize; i++) {
-            const paletteIndex = 54 + (i * 4);
-            const b = dataView.getUint8(paletteIndex);
-            const g = dataView.getUint8(paletteIndex + 1);
-            const r = dataView.getUint8(paletteIndex + 2);
-            palette.push({ r, g, b });
-        }
-        
-        // Create 2D array for pixels
-        const pixels = Array(height).fill(null).map(() => Array(width).fill('transparent'));
-        
-        for (let row = 0; row < height; row++) {
-            for (let col = 0; col < width; col++) {
-                // BMPs are stored bottom-to-top
-                const bmpRow = (height - 1 - row);
-                
-                // 8-bit indexed color
-                const rowSize = Math.floor((width * 8 + 31) / 32) * 4;
-                const pixelIndex = dataOffset + (bmpRow * rowSize) + col;
-                
-                const colorIndex = dataView.getUint8(pixelIndex);
-                
-                let r, g, b;
-                if (colorIndex < palette.length) {
-                    r = palette[colorIndex].r;
-                    g = palette[colorIndex].g;
-                    b = palette[colorIndex].b;
-                } else {
-                    console.warn('Color index out of range:', colorIndex);
-                    r = g = b = 0;
-                }
-                
-                // Check if pixel is black (treat as transparent)
-                if (r < 10 && g < 10 && b < 10) {
-                    pixels[row][col] = 'transparent';
-                } else {
-                    pixels[row][col] = `rgb(${r},${g},${b})`;
-                }
-            }
-        }
-        
-        // Cache the result
-        imageCache[imageName] = pixels;
-        
-        return pixels;
-        
-    } catch (error) {
-        console.error('Error loading schedule BMP:', error);
-        return null;
-    }
-}
-
-// Draw progress bar on schedule matrix - NEW FUNCTION
-function drawProgressBar(matrix, progressPercent) {
-    const PROGRESS_BAR_X = 40;
-    const PROGRESS_BAR_Y = 30;
+// Draw progress bar on schedule matrix - FIXED: Position parameters added
+function drawProgressBar(matrix, progressPercent, x, y) {
     const PROGRESS_BAR_WIDTH = 40;
     const PROGRESS_BAR_HEIGHT = 2;
     
@@ -2148,38 +2186,39 @@ function drawProgressBar(matrix, progressPercent) {
     const WHITE = '#FFFFFF';
     
     // Draw background (MINT)
-    matrix.fillRect(PROGRESS_BAR_X, PROGRESS_BAR_Y, PROGRESS_BAR_WIDTH, PROGRESS_BAR_HEIGHT, MINT);
+    matrix.fillRect(x, y, PROGRESS_BAR_WIDTH, PROGRESS_BAR_HEIGHT, MINT);
     
     // Draw filled portion (LILAC)
     const filledWidth = Math.floor((progressPercent / 100) * PROGRESS_BAR_WIDTH);
     if (filledWidth > 0) {
-        matrix.fillRect(PROGRESS_BAR_X, PROGRESS_BAR_Y, filledWidth, PROGRESS_BAR_HEIGHT, LILAC);
+        matrix.fillRect(x, y, filledWidth, PROGRESS_BAR_HEIGHT, LILAC);
     }
     
     // Draw dividers at 0%, 25%, 50%, 75%, 100%
-    const dividerPositions = [0, 10, 20, 30, 40]; // 25% = 10px, 50% = 20px, etc.
+    const dividerPositions = [0, 10, 20, 30, 40];
     dividerPositions.forEach(pos => {
-        matrix.setPixel(PROGRESS_BAR_X + pos, PROGRESS_BAR_Y, WHITE);
-        matrix.setPixel(PROGRESS_BAR_X + pos, PROGRESS_BAR_Y + 1, WHITE);
+        matrix.setPixel(x + pos, y, WHITE);
+        matrix.setPixel(x + pos, y + 1, WHITE);
     });
 }
 
-// Save schedule to GitHub
+// Save schedule to GitHub - FIXED: Handles all modes correctly
 async function saveSchedule() {
     if (!currentScheduleData) return;
     
-    const type = document.getElementById('schedule-type').value;
     let filename;
     
-    if (type === 'default') {
+    if (currentScheduleData.type === 'default') {
         filename = 'default.csv';
     } else {
-        const date = document.getElementById('schedule-date').value;
+        // For date-specific schedules (both new and edit)
+        const date = document.getElementById('schedule-date')?.value || currentScheduleData.date;
         if (!date) {
             showStatus('Please select a date', 'error');
             return;
         }
         filename = `${date}.csv`;
+        currentScheduleData.date = date;
     }
     
     const config = loadConfig();
@@ -2272,9 +2311,10 @@ async function duplicateSchedule(filename) {
         const content = await response.text();
         
         currentScheduleData = {
-            type: 'date',
+            type: 'new-date',
             date: date,
-            items: parseScheduleCSV(content)
+            items: parseScheduleCSV(content),
+            isNew: true
         };
         
         await saveSchedule();
