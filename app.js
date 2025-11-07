@@ -337,27 +337,36 @@ function handleTabSwitch(targetTab) {
 
 // Initialize editor tab (for add/edit)
 function initializeEditorTab() {
-    if (!editorMatrix) {
-        console.log('Creating editor matrix');
-        editorMatrix = new MatrixEmulator('matrix-container-editor', 64, 32, 6);
-        
-        // Setup event form handlers
-        setupEventFormHandlers();
-        
-        // Populate image dropdown
-        populateImageDropdown();
-        
-        // If in edit mode, populate the form
-        if (isEditMode && editingEventIndex !== null) {
-            populateEditForm();
-        } else {
-            // Clear form for new event
-            clearEventForm();
+    console.log('Initializing editor tab, isMobile:', isMobile);
+    
+    // Setup event form handlers (always needed)
+    setupEventFormHandlers();
+    
+    // Populate image dropdown
+    populateImageDropdown();
+    
+    // On mobile, skip the heavy emulator entirely
+    if (isMobile) {
+        console.log('Mobile detected - using lightweight text preview');
+        setupMobileTextPreview();
+    } else {
+        // Desktop: Create emulator if it doesn't exist
+        if (!editorMatrix) {
+            console.log('Creating editor matrix for desktop');
+            editorMatrix = new MatrixEmulator('matrix-container-editor', 64, 32, 6);
         }
-        
-        // Update preview
-        updateEditorPreview();
     }
+    
+    // If in edit mode, populate the form
+    if (isEditMode && editingEventIndex !== null) {
+        populateEditForm();
+    } else {
+        // Clear form for new event
+        clearEventForm();
+    }
+    
+    // Update preview (mobile will show text, desktop will show matrix)
+    updateEditorPreview();
 }
 
 // Setup event form handlers
@@ -371,13 +380,7 @@ function setupEventFormHandlers() {
         topInput.addEventListener('input', (e) => {
             const count = e.target.value.length;
             document.getElementById('editor-event-top-count').textContent = `${count}/12`;
-            
-            if (isMobile) {
-                mobilePreviewNeedsUpdate = true;
-                showMobilePreviewHint();
-            } else {
-                updateEditorPreview();
-            }
+            updateEditorPreview(); // Instant on mobile (text), live on desktop (matrix)
         });
     }
     
@@ -386,13 +389,7 @@ function setupEventFormHandlers() {
         bottomInput.addEventListener('input', (e) => {
             const count = e.target.value.length;
             document.getElementById('editor-event-bottom-count').textContent = `${count}/12`;
-            
-            if (isMobile) {
-                mobilePreviewNeedsUpdate = true;
-                showMobilePreviewHint();
-            } else {
-                updateEditorPreview();
-            }
+            updateEditorPreview(); // Instant on mobile (text), live on desktop (matrix)
         });
     }
     
@@ -400,14 +397,7 @@ function setupEventFormHandlers() {
     const imageSelect = document.getElementById('editor-event-image');
     if (imageSelect && !imageSelect.hasAttribute('data-listener')) {
         imageSelect.setAttribute('data-listener', 'true');
-        imageSelect.addEventListener('change', () => {
-            if (isMobile) {
-                mobilePreviewNeedsUpdate = true;
-                showMobilePreviewHint();
-            } else {
-                updateEditorPreview();
-            }
-        });
+        imageSelect.addEventListener('change', updateEditorPreview);
     }
     
     const colorSelect = document.getElementById('editor-event-color');
@@ -416,13 +406,7 @@ function setupEventFormHandlers() {
         colorSelect.addEventListener('change', (e) => {
             const colorHex = COLOR_MAP[e.target.value];
             document.getElementById('editor-event-color-preview').style.background = colorHex;
-            
-            if (isMobile) {
-                mobilePreviewNeedsUpdate = true;
-                showMobilePreviewHint();
-            } else {
-                updateEditorPreview();
-            }
+            updateEditorPreview();
         });
     }
     
@@ -435,8 +419,10 @@ function setupEventFormHandlers() {
         });
     }
     
-    // Setup mobile preview button
-    setupMobilePreviewButton();
+    // On mobile, no need for preview button since text preview is instant
+    if (!isMobile) {
+        // Desktop might want to manually update preview in future
+    }
 }
 
 // Setup mobile preview button
@@ -478,6 +464,27 @@ function showMobilePreviewHint() {
     }
 }
 
+// Setup lightweight text preview for mobile (no emulator)
+function setupMobileTextPreview() {
+    const container = document.getElementById('matrix-container-editor');
+    if (!container) return;
+    
+    // Replace emulator with simple text preview
+    container.innerHTML = `
+        <div class="mobile-text-preview">
+            <div class="preview-hint">📱 Mobile Preview (No Matrix)</div>
+            <div class="preview-content">
+                <div class="preview-top-line" id="mobile-preview-top">Top Line</div>
+                <div class="preview-bottom-line" id="mobile-preview-bottom">Bottom Line</div>
+                <div class="preview-meta">
+                    <span id="mobile-preview-image">📷 Image: None</span>
+                    <span id="mobile-preview-color">🎨 Color: MINT</span>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
 // Populate image dropdown with available images
 function populateImageDropdown() {
     const select = document.getElementById('editor-event-image');
@@ -505,14 +512,37 @@ function populateImageDropdown() {
 
 // Update editor preview
 async function updateEditorPreview() {
-    if (!editorMatrix) return;
-    
     const topLine = document.getElementById('editor-event-top').value || '';
     const bottomLine = document.getElementById('editor-event-bottom').value || '';
     const colorName = document.getElementById('editor-event-color').value;
     const iconName = document.getElementById('editor-event-image').value;
     
-    await renderEventOnMatrix(editorMatrix, topLine, bottomLine, colorName, iconName);
+    if (isMobile) {
+        // Update mobile text preview (lightweight, no rendering)
+        updateMobileTextPreview(topLine, bottomLine, colorName, iconName);
+    } else {
+        // Update desktop matrix emulator
+        if (editorMatrix) {
+            await renderEventOnMatrix(editorMatrix, topLine, bottomLine, colorName, iconName);
+        }
+    }
+}
+
+// Update mobile text preview (no canvas rendering)
+function updateMobileTextPreview(topLine, bottomLine, colorName, iconName) {
+    const topEl = document.getElementById('mobile-preview-top');
+    const bottomEl = document.getElementById('mobile-preview-bottom');
+    const imageEl = document.getElementById('mobile-preview-image');
+    const colorEl = document.getElementById('mobile-preview-color');
+    
+    if (topEl) topEl.textContent = topLine || 'Top Line';
+    if (bottomEl) {
+        bottomEl.textContent = bottomLine || 'Bottom Line';
+        const colorHex = COLOR_MAP[colorName] || COLOR_MAP['MINT'];
+        bottomEl.style.color = colorHex;
+    }
+    if (imageEl) imageEl.textContent = `📷 Image: ${iconName || 'None'}`;
+    if (colorEl) colorEl.textContent = `🎨 Color: ${colorName || 'MINT'}`;
 }
 
 // Render event on matrix (shared function)
