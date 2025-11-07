@@ -257,15 +257,17 @@
 					</div>
 
 					<div class="schedule-preview-section">
-						<h4>Preview</h4>
-						<select id="preview-item-select" onchange="updateSchedulePreview()">
-							<option value="">Select item...</option>
-						</select>
-						<input type="range" id="preview-progress" min="0" max="100" value="0" oninput="updateSchedulePreview()">
-						<span id="preview-progress-value">0%</span>
-						<div class="emulator-wrapper schedule-emulator">
-							<div id="matrix-container-schedule"></div>
-						</div>
+					    <h4>Preview</h4>
+					    <div class="schedule-preview-controls">
+					        <select id="preview-item-select" onchange="updateSchedulePreview()">
+					            <option value="">Select item...</option>
+					        </select>
+					        <input type="range" id="preview-progress" min="0" max="100" value="0" oninput="updateSchedulePreview()">
+					        <span id="preview-progress-value">0%</span>
+					    </div>
+					    <div class="emulator-wrapper schedule-emulator">
+					        <div id="matrix-container-schedule"></div>
+					    </div>
 					</div>
 
 					<div class="schedule-actions">
