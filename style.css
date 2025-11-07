@@ -1496,183 +1496,220 @@ header p {
 
 /* Timeline Gap Styling */
 .timeline-gap {
-    position: absolute;
-    background: rgba(200, 200, 200, 0.3);
-    border-top: 1px solid #ddd;
-    border-bottom: 1px solid #ddd;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+	position: absolute;
+	background: rgba(200, 200, 200, 0.3);
+	border-top: 1px solid #ddd;
+	border-bottom: 1px solid #ddd;
+	display: flex;
+	align-items: center;
+	justify-content: center;
 }
 
 .gap-content {
-    width: 100%;
-    text-align: center;
-    padding: 4px;
+	width: 100%;
+	text-align: center;
+	padding: 4px;
 }
 
 .gap-text {
-    font-size: 0.7em;
-    color: #999;
-    font-family: 'Courier New', monospace;
-    font-weight: normal;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+	font-size: 0.7em;
+	color: #999;
+	font-family: 'Courier New', monospace;
+	font-weight: normal;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
 }
 
 /* Schedule Mode Info */
 .schedule-mode-info {
-    background: #e0e0e0;
-    padding: 12px;
-    border: 2px solid #000;
-    font-weight: bold;
-    text-align: center;
-    margin: 0;
+	background: #e0e0e0;
+	padding: 12px;
+	border: 2px solid #000;
+	font-weight: bold;
+	text-align: center;
+	margin: 0;
 }
 
 /* Day Badge Placeholder */
 .day-badge-placeholder {
-    background: #ccc;
-    color: #666;
-    padding: 6px 12px;
-    font-style: italic;
-    font-family: 'Courier New', monospace;
-    font-size: 0.9em;
+	background: #ccc;
+	color: #666;
+	padding: 6px 12px;
+	font-style: italic;
+	font-family: 'Courier New', monospace;
+	font-size: 0.9em;
 }
 
 /* Schedule Info Form - Updated */
 #schedule-info-form {
-    background: #f0f0f0;
-    padding: 20px;
-    border: 3px solid #000;
-    margin-bottom: 20px;
+	background: #f0f0f0;
+	padding: 20px;
+	border: 3px solid #000;
+	margin-bottom: 20px;
 }
 
 #schedule-info-form .form-group {
-    margin-bottom: 15px;
+	margin-bottom: 15px;
 }
 
 #schedule-info-form .form-group:last-child {
-    margin-bottom: 0;
+	margin-bottom: 0;
 }
 
 #schedule-info-form label {
-    display: block;
-    margin-bottom: 8px;
-    font-weight: bold;
-    text-transform: uppercase;
-    font-size: 0.9em;
+	display: block;
+	margin-bottom: 8px;
+	font-weight: bold;
+	text-transform: uppercase;
+	font-size: 0.9em;
 }
 
 #schedule-info-form input[type="date"] {
-    width: 100%;
-    padding: 10px;
-    border: 3px solid #000;
-    font-family: 'Courier New', monospace;
-    font-size: 1em;
+	width: 100%;
+	padding: 10px;
+	border: 3px solid #000;
+	font-family: 'Courier New', monospace;
+	font-size: 1em;
 }
 
 #schedule-info-form select {
-    width: 100%;
-    padding: 10px;
-    border: 3px solid #000;
-    font-family: 'Courier New', monospace;
-    font-size: 1em;
+	width: 100%;
+	padding: 10px;
+	border: 3px solid #000;
+	font-family: 'Courier New', monospace;
+	font-size: 1em;
 }
 
 #schedule-info-form small {
-    display: block;
-    margin-top: 5px;
-    color: #666;
-    font-size: 0.85em;
+	display: block;
+	margin-top: 5px;
+	color: #666;
+	font-size: 0.85em;
 }
 
 #schedule-info-form .btn-pixel {
-    width: 100%;
-    margin: 0;
+	width: 100%;
+	margin: 0;
 }
 
 /* Preview Section - Simplified (no slider) */
 .schedule-preview-section {
-    background: white;
-    border: 3px solid #000;
-    padding: 20px;
+	background: white;
+	border: 3px solid #000;
+	padding: 20px;
 }
 
 .schedule-preview-section h4 {
-    margin-bottom: 15px;
-    text-transform: uppercase;
-    font-family: 'Courier New', monospace;
+	margin-bottom: 15px;
+	text-transform: uppercase;
+	font-family: 'Courier New', monospace;
 }
 
 .schedule-preview-controls {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-    margin-bottom: 15px;
+	display: flex;
+	gap: 10px;
+	align-items: center;
+	margin-bottom: 15px;
 }
 
 .schedule-preview-controls select {
-    flex: 1;
-    padding: 10px;
-    border: 3px solid #000;
-    font-family: 'Courier New', monospace;
-    font-size: 1em;
+	flex: 1;
+	padding: 10px;
+	border: 3px solid #000;
+	font-family: 'Courier New', monospace;
+	font-size: 1em;
 }
 
 .preview-note {
-    font-size: 0.85em;
-    color: #666;
-    text-align: center;
-    margin-bottom: 10px;
-    font-style: italic;
+	font-size: 0.85em;
+	color: #666;
+	text-align: center;
+	margin-bottom: 10px;
+	font-style: italic;
 }
 
 /* Timeline Container - Increased Height */
 .timeline-container {
-    position: relative;
-    background: #f0f0f0;
-    overflow-y: auto;
+	position: relative;
+	background: #f0f0f0;
+	overflow-y: auto;
 }
 
 /* Timeline Item - Improved Content Display */
 .timeline-item-content {
-    padding: 8px;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    overflow: hidden;
+	padding: 8px;
+	height: 100%;
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	overflow: hidden;
 }
 
 /* Ensure text doesn't overflow on short items */
 .timeline-item-content .time {
-    font-size: 0.7em;
-    white-space: nowrap;
+	font-size: 0.7em;
+	white-space: nowrap;
 }
 
 .timeline-item-content .name {
-    font-size: 0.85em;
-    overflow: hidden;
-    text-overflow: ellipsis;
+	font-size: 0.85em;
+	overflow: hidden;
+	text-overflow: ellipsis;
 }
 
 /* Mobile Responsiveness */
 @media (max-width: 768px) {
-    .timeline-gap {
-        min-height: 20px;
-    }
-    
-    .gap-text {
-        font-size: 0.6em;
-    }
-    
-    .schedule-preview-section {
-        display: block; /* Show on mobile now that preview is simpler */
-    }
-    
-    #schedule-info-form {
-        padding: 15px;
-    }
+	.timeline-gap {
+		min-height: 20px;
+	}
+	
+	.gap-text {
+		font-size: 0.6em;
+	}
+	
+	.schedule-preview-section {
+		display: block; /* Show on mobile now that preview is simpler */
+	}
+	
+	#schedule-info-form {
+		padding: 15px;
+	}
 }
 
+/* Larger time inputs for better visibility */
+.time-input-large {
+	width: 60px !important;
+	border: 2px solid #000;
+	padding: 6px 8px;
+	font-family: 'Courier New', monospace;
+	text-align: center;
+	font-size: 1em;
+}
+
+/* Fixed-height timeline gaps */
+.timeline-gap {
+	position: absolute;
+	left: 0;
+	right: 0;
+	background: rgba(200, 200, 200, 0.3);
+	border-top: 1px solid #ddd;
+	border-bottom: 1px solid #ddd;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.gap-content {
+	width: 100%;
+	text-align: center;
+	padding: 4px;
+}
+
+.gap-text {
+	font-size: 0.7em;
+	color: #999;
+	font-family: 'Courier New', monospace;
+	font-weight: normal;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+}
