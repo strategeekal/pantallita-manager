@@ -1,6 +1,9 @@
 // Configuration storage key
 const CONFIG_KEY = 'screeny_config';
 
+// Mobile detection
+const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || window.innerWidth <= 768;
+
 // Global matrix emulator instance for landing page
 let landingMatrix = null;
 
@@ -17,6 +20,9 @@ let currentEvents = [];
 // Track current editing state
 let isEditMode = false;
 let editingEventIndex = null;
+
+// Mobile preview control
+let mobilePreviewNeedsUpdate = false;
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
@@ -365,7 +371,13 @@ function setupEventFormHandlers() {
         topInput.addEventListener('input', (e) => {
             const count = e.target.value.length;
             document.getElementById('editor-event-top-count').textContent = `${count}/12`;
-            updateEditorPreview();
+            
+            if (isMobile) {
+                mobilePreviewNeedsUpdate = true;
+                showMobilePreviewHint();
+            } else {
+                updateEditorPreview();
+            }
         });
     }
     
@@ -374,7 +386,13 @@ function setupEventFormHandlers() {
         bottomInput.addEventListener('input', (e) => {
             const count = e.target.value.length;
             document.getElementById('editor-event-bottom-count').textContent = `${count}/12`;
-            updateEditorPreview();
+            
+            if (isMobile) {
+                mobilePreviewNeedsUpdate = true;
+                showMobilePreviewHint();
+            } else {
+                updateEditorPreview();
+            }
         });
     }
     
@@ -382,7 +400,14 @@ function setupEventFormHandlers() {
     const imageSelect = document.getElementById('editor-event-image');
     if (imageSelect && !imageSelect.hasAttribute('data-listener')) {
         imageSelect.setAttribute('data-listener', 'true');
-        imageSelect.addEventListener('change', updateEditorPreview);
+        imageSelect.addEventListener('change', () => {
+            if (isMobile) {
+                mobilePreviewNeedsUpdate = true;
+                showMobilePreviewHint();
+            } else {
+                updateEditorPreview();
+            }
+        });
     }
     
     const colorSelect = document.getElementById('editor-event-color');
@@ -391,7 +416,13 @@ function setupEventFormHandlers() {
         colorSelect.addEventListener('change', (e) => {
             const colorHex = COLOR_MAP[e.target.value];
             document.getElementById('editor-event-color-preview').style.background = colorHex;
-            updateEditorPreview();
+            
+            if (isMobile) {
+                mobilePreviewNeedsUpdate = true;
+                showMobilePreviewHint();
+            } else {
+                updateEditorPreview();
+            }
         });
     }
     
@@ -402,6 +433,48 @@ function setupEventFormHandlers() {
         hasTimeCheckbox.addEventListener('change', (e) => {
             document.getElementById('editor-event-time-fields').classList.toggle('hidden', !e.target.checked);
         });
+    }
+    
+    // Setup mobile preview button
+    setupMobilePreviewButton();
+}
+
+// Setup mobile preview button
+function setupMobilePreviewButton() {
+    if (!isMobile) return;
+    
+    const previewContainer = document.querySelector('.event-preview-container');
+    if (!previewContainer) return;
+    
+    // Check if button already exists
+    let previewButton = document.getElementById('mobile-preview-btn');
+    if (!previewButton) {
+        // Create preview button
+        previewButton = document.createElement('button');
+        previewButton.id = 'mobile-preview-btn';
+        previewButton.className = 'btn-pixel btn-primary mobile-preview-btn';
+        previewButton.textContent = '👁️ Update Preview';
+        previewButton.onclick = () => {
+            updateEditorPreview();
+            mobilePreviewNeedsUpdate = false;
+            previewButton.classList.remove('needs-update');
+        };
+        
+        // Insert before the emulator wrapper
+        const emulatorWrapper = previewContainer.querySelector('.emulator-wrapper');
+        if (emulatorWrapper) {
+            previewContainer.insertBefore(previewButton, emulatorWrapper);
+        }
+    }
+}
+
+// Show hint that preview needs update on mobile
+function showMobilePreviewHint() {
+    if (!isMobile) return;
+    
+    const previewButton = document.getElementById('mobile-preview-btn');
+    if (previewButton) {
+        previewButton.classList.add('needs-update');
     }
 }
 
