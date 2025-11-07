@@ -365,12 +365,6 @@ function handleTabSwitch(targetTab) {
 function initializeEditorTab() {
     console.log('Initializing editor tab, isMobile:', isMobile, 'already initialized:', editorTabInitialized);
     
-    // Only initialize once
-    if (editorTabInitialized && !isEditMode) {
-        console.log('Editor tab already initialized, skipping');
-        return;
-    }
-    
     // Setup event form handlers only once
     if (!editorTabInitialized) {
         setupEventFormHandlers();
@@ -378,7 +372,7 @@ function initializeEditorTab() {
         editorTabInitialized = true;
     }
     
-    // On mobile, skip the heavy emulator entirely
+    // Always recreate preview (it gets cleared when leaving tab)
     if (isMobile) {
         console.log('Mobile detected - using lightweight text preview');
         setupMobileTextPreview();
@@ -393,14 +387,9 @@ function initializeEditorTab() {
     // If in edit mode, populate the form
     if (isEditMode && editingEventIndex !== null) {
         populateEditForm();
-    } else {
-        // Clear form for new event (but only if already initialized)
-        if (editorTabInitialized) {
-            clearEventForm();
-        }
     }
     
-    // Update preview (mobile will show text, desktop will show matrix)
+    // Update preview
     updateEditorPreview();
 }
 
