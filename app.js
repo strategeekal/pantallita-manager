@@ -2309,6 +2309,7 @@ function drawProgressBar(matrix, progressPercent, x, y) {
 }
 
 // Save schedule to GitHub - FIXED: Handles all modes correctly
+async function saveSchedule() {
 	if (!currentScheduleData) return;
 
 	if (!validateUniqueNames()) {
