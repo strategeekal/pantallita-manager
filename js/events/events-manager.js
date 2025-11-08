@@ -41,17 +41,19 @@ function parseEventsCSV(content) {
 	return lines.map((line, index) => {
 		const parts = line.split(',');
 
-		if (parts.length < 6) return null;
+		// Format: YYYY-MM-DD,TopLine,BottomLine,Image,Color[,StartHour,EndHour]
+		if (parts.length < 5) return null;
 
 		return {
 			index,
 			date: parts[0].trim(),
-			startHour: parseInt(parts[1].trim()),
-			startMin: parseInt(parts[2].trim()),
-			topLine: parts[3].trim(),
-			bottomLine: parts[4].trim(),
-			colorName: parts[5].trim(),
-			iconName: parts.length > 6 ? parts[6].trim() : ''
+			topLine: parts[1].trim(),
+			bottomLine: parts[2].trim(),
+			iconName: parts[3].trim(),
+			colorName: parts[4].trim(),
+			startHour: parts.length > 5 ? parseInt(parts[5].trim()) : 0,
+			endHour: parts.length > 6 ? parseInt(parts[6].trim()) : 23,
+			startMin: 0 // Not used in this format
 		};
 	}).filter(e => e !== null);
 }
@@ -79,8 +81,8 @@ function displayEvents() {
 					<span class="year">${eventDate.getFullYear()}</span>
 				</div>
 				<div class="event-info">
-					<h4>${event.topLine} ${event.bottomLine}</h4>
-					<p class="event-time">${String(event.startHour).padStart(2,'0')}:${String(event.startMin).padStart(2,'0')}</p>
+					<h4>${event.topLine} - ${event.bottomLine}</h4>
+					<p class="event-time">${event.startHour !== 0 || event.endHour !== 23 ? `${String(event.startHour).padStart(2,'0')}:00 - ${String(event.endHour).padStart(2,'0')}:00` : 'All Day'}</p>
 					<p>${formattedDate}</p>
 					<p>Color: ${event.colorName} | Icon: ${event.iconName || 'None'}</p>
 				</div>
@@ -102,10 +104,11 @@ export async function saveEvent() {
 	const colorName = document.getElementById('editor-event-color').value;
 	const iconName = document.getElementById('editor-event-image').value;
 
-	// Get time fields - default to 9:00 if not specified
+	// Get time fields - default to all day (0-23) if not specified
 	const hasTime = document.getElementById('editor-event-has-time')?.checked || false;
-	const startHour = parseInt(document.getElementById('editor-event-start-hour')?.value || '9');
-	const startMin = 0; // Simplified - no minutes in current HTML
+	const startHour = hasTime ? parseInt(document.getElementById('editor-event-start-hour')?.value || '0') : 0;
+	const endHour = hasTime ? parseInt(document.getElementById('editor-event-end-hour')?.value || '23') : 23;
+	const startMin = 0; // Not used in this format
 
 	if (!date || !topLine || !bottomLine) {
 		showStatus('Please fill in all required fields', 'error');
@@ -114,12 +117,13 @@ export async function saveEvent() {
 
 	const event = {
 		date,
-		startHour,
-		startMin,
 		topLine,
 		bottomLine,
+		iconName,
 		colorName,
-		iconName
+		startHour,
+		endHour,
+		startMin: 0
 	};
 
 	if (editingEventIndex !== null) {
@@ -162,15 +166,18 @@ function populateEditForm() {
 	document.getElementById('editor-event-color').value = event.colorName;
 	document.getElementById('editor-event-image').value = event.iconName;
 
-	// Set time fields if applicable
+	// Set time fields if applicable (if not all-day event)
 	const hasTimeCheckbox = document.getElementById('editor-event-has-time');
-	if (hasTimeCheckbox && event.startHour !== undefined && event.startHour !== 0) {
+	if (hasTimeCheckbox && event.startHour !== 0 && event.endHour !== 23) {
 		hasTimeCheckbox.checked = true;
 		const timeFields = document.getElementById('editor-event-time-fields');
 		if (timeFields) timeFields.classList.remove('hidden');
 
 		const startHourField = document.getElementById('editor-event-start-hour');
 		if (startHourField) startHourField.value = event.startHour;
+
+		const endHourField = document.getElementById('editor-event-end-hour');
+		if (endHourField) endHourField.value = event.endHour;
 	}
 
 	// Update form title
@@ -272,10 +279,19 @@ async function saveEventsToGitHub() {
 }
 
 function generateEventsCSV() {
-	const header = `# Format: date,start_hour,start_min,top_line,bottom_line,color,icon_name\n`;
-	const lines = currentEvents.map(e =>
-		`${e.date},${e.startHour},${e.startMin},${e.topLine},${e.bottomLine},${e.colorName},${e.iconName}`
-	);
+	const header = `# Format: YYYY-MM-DD,TopLine,BottomLine,Image,Color[,StartHour,EndHour]
+# TopLine = displays on TOP of screen
+# BottomLine = displays on BOTTOM (usually the name)
+# Times are optional (24-hour format, 0-23). If omitted, event shows all day.
+`;
+	const lines = currentEvents.map(e => {
+		// Include start/end hour only if they're not default values (0 and 23)
+		if (e.startHour !== 0 || e.endHour !== 23) {
+			return `${e.date},${e.topLine},${e.bottomLine},${e.iconName},${e.colorName},${e.startHour},${e.endHour}`;
+		} else {
+			return `${e.date},${e.topLine},${e.bottomLine},${e.iconName},${e.colorName}`;
+		}
+	});
 	return header + lines.join('\n');
 }
 
