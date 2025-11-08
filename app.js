@@ -1759,18 +1759,13 @@ function closeScheduleEditor() {
 
 // Populate schedule editor - FIXED: Shows correct controls based on mode
 function populateScheduleEditor() {
-	console.log('populateScheduleEditor called');
-	console.log('currentScheduleData:', currentScheduleData);
-	
 	if (!currentScheduleData) {
-		console.error('No currentScheduleData!');
 		return;
 	}
 	
 	const scheduleInfoForm = document.getElementById('schedule-info-form');
-	
+
 	if (!scheduleInfoForm) {
-		console.error('schedule-info-form element not found!');
 		return;
 	}
 	
@@ -1785,7 +1780,6 @@ function populateScheduleEditor() {
 		} else if (currentScheduleData.type === 'edit-date') {
 			// EDITING SPECIFIC DATE: Check if date exists
 			if (!currentScheduleData.date) {
-				console.error('Date is missing for edit-date type!');
 				scheduleInfoForm.innerHTML = `
 					<div class="form-group">
 						<p class="schedule-mode-info error">Error: Date is missing</p>
@@ -1810,7 +1804,6 @@ function populateScheduleEditor() {
 						</div>
 					`;
 				} catch (dateError) {
-					console.error('Error parsing date:', dateError);
 					scheduleInfoForm.innerHTML = `
 						<div class="form-group">
 							<p class="schedule-mode-info error">Error: Invalid date format</p>
@@ -1835,22 +1828,17 @@ function populateScheduleEditor() {
 			`;
 		} else {
 			// Unknown type
-			console.error('Unknown schedule type:', currentScheduleData.type);
 			scheduleInfoForm.innerHTML = `
 				<div class="form-group">
 					<p class="schedule-mode-info error">Error: Unknown schedule type</p>
 				</div>
 			`;
 		}
-		
-		console.log('About to call renderScheduleItems...');
+
 		renderScheduleItems();
-		console.log('About to call updateTimelineView...');
 		updateTimelineView();
-		console.log('populateScheduleEditor complete');
-		
+
 	} catch (error) {
-		console.error('Error in populateScheduleEditor:', error);
 		scheduleInfoForm.innerHTML = `
 			<div class="form-group">
 				<p class="schedule-mode-info error">Error loading schedule: ${error.message}</p>
