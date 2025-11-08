@@ -58,6 +58,7 @@ export async function handleTabSwitch(targetTab) {
 		}
 
 		editorMatrix = null;
+		window.editorMatrix = null;
 	}
 }
 
@@ -86,38 +87,4 @@ export async function initializeEditorTab() {
 	}
 }
 
-function setupEventFormHandlers() {
-	// Input handlers for live preview
-	const inputs = [
-		'editor-event-top',
-		'editor-event-bottom',
-		'editor-event-color',
-		'editor-event-image'
-	];
-
-	inputs.forEach(id => {
-		const element = document.getElementById(id);
-		if (element) {
-			element.addEventListener('input', updateEditorPreview);
-		}
-	});
-}
-
-async function updateEditorPreview() {
-	const topLine = document.getElementById('editor-event-top').value || '';
-	const bottomLine = document.getElementById('editor-event-bottom').value || '';
-	const colorName = document.getElementById('editor-event-color').value;
-	const iconName = document.getElementById('editor-event-image').value;
-
-	if (isMobileDevice()) {
-		// Update mobile text preview
-		if (window.updateMobileTextPreview) {
-			await window.updateMobileTextPreview(topLine, bottomLine, colorName, iconName);
-		}
-	} else {
-		// Update desktop matrix emulator
-		if (editorMatrix && window.renderEventOnMatrix) {
-			await window.renderEventOnMatrix(editorMatrix, topLine, bottomLine, colorName, iconName);
-		}
-	}
-}
+// Event form handlers are now managed in events-manager.js
