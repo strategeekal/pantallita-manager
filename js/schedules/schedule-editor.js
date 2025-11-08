@@ -108,13 +108,14 @@ export function closeScheduleEditor() {
 
 	currentScheduleData = null;
 
-	if (scheduleMatrix) {
-		scheduleMatrix.clear();
+	// Clean up schedule matrix
+	if (window.scheduleMatrix) {
+		window.scheduleMatrix.clear();
 		const container = document.getElementById('matrix-container-schedule');
 		if (container) {
 			container.innerHTML = '';
 		}
-		scheduleMatrix = null;
+		window.scheduleMatrix = null;
 	}
 }
 
@@ -187,6 +188,11 @@ function populateScheduleEditor() {
 
 		renderScheduleItems();
 		updateTimelineView();
+
+		// Expose currentScheduleData globally for preview module
+		if (window.schedulesModule) {
+			window.schedulesModule.currentScheduleData = currentScheduleData;
+		}
 
 	} catch (error) {
 		scheduleInfoForm.innerHTML = `

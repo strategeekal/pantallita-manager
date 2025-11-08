@@ -58,6 +58,9 @@ window.loadSettings = loadSettings;
 
 // Expose schedule functions globally (additional to window.schedulesModule)
 window.createNewSchedule = scheduleEditor.createNewSchedule;
+window.closeScheduleEditor = scheduleEditor.closeScheduleEditor;
+window.saveSchedule = scheduleEditor.saveSchedule;
+window.addScheduleItem = scheduleEditor.addScheduleItem;
 window.loadSchedules = scheduleManager.loadSchedules;
 window.clearOldSchedules = scheduleManager.clearOldSchedules;
 window.updateTimelineView = timeline.updateTimelineView;
