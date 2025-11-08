@@ -5,12 +5,14 @@ import { loadConfig } from '../core/config.js';
 
 let currentSchedules = [];
 let scheduleImages = [];
+let scheduleTemplates = [];
 
-export { currentSchedules, scheduleImages };
+export { currentSchedules, scheduleImages, scheduleTemplates };
 
 export async function initializeSchedules() {
 	await loadSchedules();
 	await loadScheduleImages();
+	await loadScheduleTemplates();
 }
 
 export async function loadSchedules() {
@@ -104,6 +106,34 @@ export async function loadScheduleImages() {
 	} catch (error) {
 		// Silently fail if no schedule images directory
 		scheduleImages = [];
+	}
+}
+
+export async function loadScheduleTemplates() {
+	const config = loadConfig();
+
+	if (!config.token || !config.owner || !config.repo) {
+		return;
+	}
+
+	try {
+		const files = await listGitHubDirectory('schedules/templates');
+		scheduleTemplates = files
+			.filter(f => f.name.endsWith('.csv'))
+			.map(f => ({
+				name: f.name,
+				displayName: f.name.replace('.csv', '').replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+				url: f.download_url,
+				sha: f.sha
+			}))
+			.sort((a, b) => a.displayName.localeCompare(b.displayName));
+
+		console.log(`Loaded ${scheduleTemplates.length} schedule templates`);
+
+	} catch (error) {
+		// Silently fail if no templates directory
+		console.log('No templates directory found or error loading templates:', error.message);
+		scheduleTemplates = [];
 	}
 }
 

@@ -32,6 +32,7 @@ window.schedulesModule = {
 	saveSchedule: scheduleEditor.saveSchedule,
 	handleDateChange: scheduleEditor.handleDateChange,
 	loadScheduleTemplate: scheduleEditor.loadScheduleTemplate,
+	saveAsTemplate: scheduleEditor.saveAsTemplate,
 	makeThisDefault: scheduleEditor.makeThisDefault,
 	addScheduleItem: scheduleEditor.addScheduleItem,
 	updateScheduleDays: scheduleEditor.updateScheduleDays,
