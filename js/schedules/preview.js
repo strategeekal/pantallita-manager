@@ -1,6 +1,18 @@
 // Schedule Preview Module - Preview schedule items on matrix (desktop only)
-import { currentScheduleData, scheduleMatrix } from './schedule-editor.js';
 import { isMobileDevice } from '../core/utils.js';
+
+// Get schedule data and matrix from editor module
+function getScheduleData() {
+	return window.schedulesModule?.currentScheduleData || null;
+}
+
+function getScheduleMatrix() {
+	return window.scheduleMatrix || null;
+}
+
+function setScheduleMatrix(matrix) {
+	window.scheduleMatrix = matrix;
+}
 
 export async function selectScheduleItem(index) {
 	document.getElementById('preview-item-select').value = index;
@@ -13,7 +25,8 @@ export async function updateSchedulePreview() {
 		return;
 	}
 
-	const itemIndex = document.getElementById('preview-item-select').value;
+	const currentScheduleData = getScheduleData();
+	const itemIndex = document.getElementById('preview-item-select')?.value;
 
 	if (!currentScheduleData || itemIndex === '' || !currentScheduleData.items[itemIndex]) {
 		return;
@@ -22,10 +35,12 @@ export async function updateSchedulePreview() {
 	const item = currentScheduleData.items[itemIndex];
 
 	// Create or get schedule matrix emulator (desktop only)
+	let scheduleMatrix = getScheduleMatrix();
 	if (!scheduleMatrix) {
 		const container = document.getElementById('matrix-container-schedule');
 		if (container && window.MatrixEmulator) {
 			scheduleMatrix = new window.MatrixEmulator('matrix-container-schedule', 64, 32, 6);
+			setScheduleMatrix(scheduleMatrix);
 		}
 	}
 
@@ -35,15 +50,23 @@ export async function updateSchedulePreview() {
 	scheduleMatrix.clear();
 
 	// Load and render image if specified
-	if (item.image) {
+	if (item.image && window.loadScheduleBMPImage) {
 		try {
 			const imageData = await window.loadScheduleBMPImage(item.image);
-			if (imageData) {
-				// Render image (placeholder - actual rendering would be in app.js)
-				// This would call scheduleMatrix.setPixel for each pixel
+			if (imageData && imageData.pixels) {
+				// Draw the image pixels on the matrix
+				const pixels = imageData.pixels;
+				for (let y = 0; y < pixels.length && y < 32; y++) {
+					for (let x = 0; x < pixels[y].length && x < 64; x++) {
+						const color = pixels[y][x];
+						if (color && color !== 'transparent') {
+							scheduleMatrix.setPixel(x, y, color);
+						}
+					}
+				}
 			}
 		} catch (error) {
-			console.error('Error loading image:', error);
+			console.error('Error loading schedule image:', error);
 		}
 	}
 
@@ -69,6 +92,9 @@ export async function updateSchedulePreview() {
 
 		drawProgressBar(scheduleMatrix, progressPercent, 0, 29);
 	}
+
+	// Render the matrix
+	scheduleMatrix.render();
 }
 
 function drawProgressBar(matrix, progressPercent, x, y) {
