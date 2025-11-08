@@ -48,7 +48,7 @@ export async function handleTabSwitch(targetTab) {
 		}
 	}
 
-	// Clean up matrix on desktop when leaving editor tab
+	// Clean up when leaving editor tab
 	if (targetTab !== 'add-event' && editorMatrix) {
 		editorMatrix.clear();
 
@@ -59,6 +59,11 @@ export async function handleTabSwitch(targetTab) {
 
 		editorMatrix = null;
 		window.editorMatrix = null;
+
+		// Clear form and reset editing state when leaving without saving
+		if (window.eventsModule && window.eventsModule.clearEventForm) {
+			window.eventsModule.clearEventForm();
+		}
 	}
 }
 
