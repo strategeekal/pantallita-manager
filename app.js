@@ -1626,49 +1626,35 @@ function createNewSchedule() {
 
 // Edit existing schedule - FIXED: Determines correct edit mode
 async function editSchedule(filename) {
-	alert('START: editSchedule called with: ' + filename);
-	
 	const config = loadConfig();
 	currentScheduleData = null;
-	
+
 	try {
-		alert('STEP 1: Starting fetch');
-		
 		const timestamp = new Date().getTime();
 		const apiUrl = `https://api.github.com/repos/${config.owner}/${config.repo}/contents/schedules/${filename}?nocache=${timestamp}`;
-		
+
 		const response = await fetch(apiUrl, {
 			headers: {
 				'Authorization': `Bearer ${config.token}`,
 				'Accept': 'application/vnd.github.v3+json'
 			}
 		});
-		
-		alert('STEP 2: Got response status: ' + response.status);
-		
+
 		if (!response.ok) {
 			throw new Error(`GitHub API error: ${response.status}`);
 		}
-		
+
 		const data = await response.json();
-		
-		alert('STEP 3: Fetching content from download_url');
-		
+
 		const contentTimestamp = new Date().getTime();
 		const contentResponse = await fetch(`${data.download_url}?nocache=${contentTimestamp}`);
 		const content = await contentResponse.text();
-		
-		alert('STEP 4: Got content, length: ' + content.length);
-		
+
 		const isDefault = filename === 'default.csv';
 		const date = isDefault ? null : filename.replace('.csv', '');
-		
-		alert('STEP 5: About to parse CSV');
-		
+
 		const parsedItems = parseScheduleCSV(content);
-		
-		alert('STEP 6: Parsed ' + parsedItems.length + ' items');
-		
+
 		currentScheduleData = {
 			type: isDefault ? 'default' : 'edit-date',
 			date: date,
@@ -1677,30 +1663,18 @@ async function editSchedule(filename) {
 			items: parsedItems,
 			isNew: false
 		};
-		
-		alert('STEP 7: About to call showScheduleEditor');
-		
+
 		showScheduleEditor();
-		
-		alert('STEP 8: About to call populateScheduleEditor');
-		
 		populateScheduleEditor();
-		
-		alert('STEP 9: About to set title');
-		
+
 		const title = isDefault ? 'Edit Default Schedule' : `Edit Schedule for ${date}`;
 		const titleElement = document.getElementById('schedule-editor-title');
-		
+
 		if (titleElement) {
 			titleElement.textContent = title;
-			alert('STEP 10: SUCCESS - All done!');
-		} else {
-			alert('STEP 10: Title element not found but continuing');
 		}
-		
+
 	} catch (error) {
-		alert('ERROR: ' + error.message);
-		console.error('Full error:', error);
 		showStatus('Failed to load schedule: ' + error.message, 'error');
 	}
 }
@@ -2376,7 +2350,7 @@ function updateTimelineView() {
 		const gapMins = gapDuration % 60;
 		const startHour = Math.floor(currentMinute / 60);
 		const startMin = currentMinute % 60;
-		
+
 		let timeText = '';
 		if (gapHours > 0 && gapMins > 0) {
 			timeText = `${gapHours}h ${gapMins}m`;
@@ -2385,12 +2359,13 @@ function updateTimelineView() {
 		} else {
 			timeText = `${gapMins}m`;
 		}
-		
+
 		timelineHTML += `
-			<div class="timeline-gap" 
+			<div class="timeline-gap"
 				 style="top: ${currentTopOffset}px; height: ${GAP_HEIGHT}px;">
-				<div class="gap-content">
-					<span class="gap-text">FREE ${String(startHour).padStart(2,'0')}:${String(startMin).padStart(2,'0')} - 24:00 (${timeText})</span>
+				<div class="timeline-gap-content">
+					<span class="gap-time">${String(startHour).padStart(2,'0')}:${String(startMin).padStart(2,'0')} - 24:00</span>
+					<span class="gap-duration">${timeText} free</span>
 				</div>
 			</div>
 		`;
