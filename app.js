@@ -2323,7 +2323,14 @@ function updateTimelineView() {
 	dayItems.forEach((item, idx) => {
 		const startMinutes = item.startHour * 60 + item.startMin;
 		const endMinutes = item.endHour * 60 + item.endMin;
-		
+
+		// Declare variables needed for rendering
+		const hasOverlap = overlaps.includes(item.index);
+		const duration = endMinutes - startMinutes;
+		const MIN_ITEM_HEIGHT = 40; // Minimum 40px for readability
+		const calculatedHeight = duration * pixelsPerScheduleMinute;
+		const itemHeight = Math.max(MIN_ITEM_HEIGHT, calculatedHeight);
+
 		// Render gap - FIXED HEIGHT
 		if (startMinutes > currentMinute) {
 			const gapDuration = startMinutes - currentMinute;
@@ -2333,7 +2340,7 @@ function updateTimelineView() {
 			const startMin = currentMinute % 60;
 			const endHour = Math.floor(startMinutes / 60);
 			const endMin = startMinutes % 60;
-			
+
 			let timeText = '';
 			if (gapHours > 0 && gapMins > 0) {
 				timeText = `${gapHours}h ${gapMins}m`;
@@ -2342,27 +2349,21 @@ function updateTimelineView() {
 			} else {
 				timeText = `${gapMins}m`;
 			}
-			
+
 			timelineHTML += `
-				<div class="timeline-item ${hasOverlap ? 'overlap' : ''}" 
-					 style="top: ${currentTopOffset}px; height: ${itemHeight}px;"
-					 onclick="selectScheduleItem(${item.index})">
-					<div class="timeline-item-content">
-						<span class="timeline-text">${String(item.startHour).padStart(2,'0')}:${String(item.startMin).padStart(2,'0')} - ${String(item.endHour).padStart(2,'0')}:${String(item.endMin).padStart(2,'0')} ${item.name}</span>
-						${hasOverlap ? '<span class="overlap-warning">⚠️ Overlap</span>' : ''}
+				<div class="timeline-gap"
+					 style="top: ${currentTopOffset}px; height: ${GAP_HEIGHT}px;">
+					<div class="timeline-gap-content">
+						<span class="gap-time">${String(startHour).padStart(2,'0')}:${String(startMin).padStart(2,'0')} - ${String(endHour).padStart(2,'0')}:${String(endMin).padStart(2,'0')}</span>
+						<span class="gap-duration">${timeText} free</span>
 					</div>
 				</div>
 			`;
-			
+
 			currentTopOffset += GAP_HEIGHT;
 		}
-		
+
 		// Render schedule item - PROPORTIONAL TO SCHEDULE TIME
-		const hasOverlap = overlaps.includes(item.index);
-		const duration = endMinutes - startMinutes;
-		const MIN_ITEM_HEIGHT = 40; // Minimum 40px for readability
-		const calculatedHeight = duration * pixelsPerScheduleMinute;
-		const itemHeight = Math.max(MIN_ITEM_HEIGHT, calculatedHeight);
 		
 		timelineHTML += `
 			<div class="timeline-item ${hasOverlap ? 'overlap' : ''}" 
