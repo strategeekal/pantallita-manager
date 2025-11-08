@@ -32,20 +32,20 @@ export async function handleTabSwitch(targetTab) {
 	document.getElementById(`${targetTab}-tab`).classList.add('active');
 
 	// Tab-specific initialization
-	if (targetTab === 'editor') {
+	if (targetTab === 'add-event') {
 		await initializeEditorTab();
 	} else if (targetTab === 'schedules') {
 		if (window.schedulesModule && window.schedulesModule.initializeSchedules) {
 			await window.schedulesModule.initializeSchedules();
 		}
-	} else if (targetTab === 'events') {
+	} else if (targetTab === 'view-events') {
 		if (window.eventsModule && window.eventsModule.initializeEvents) {
 			await window.eventsModule.initializeEvents();
 		}
 	}
 
 	// Clean up matrix on desktop when leaving editor tab
-	if (targetTab !== 'editor' && editorMatrix) {
+	if (targetTab !== 'add-event' && editorMatrix) {
 		editorMatrix.clear();
 
 		const editorContainer = document.getElementById('matrix-container-editor');
