@@ -253,6 +253,17 @@ export async function loadScheduleTemplate() {
 			index
 		}));
 
+		// If this is a date-specific schedule, update all items to use the date's day of week
+		if (currentScheduleData.type !== 'default' && currentScheduleData.date) {
+			const scheduleDate = new Date(currentScheduleData.date + 'T00:00:00');
+			const scheduleDayOfWeek = (scheduleDate.getDay() + 6) % 7;
+			const newDayString = scheduleDayOfWeek.toString();
+
+			currentScheduleData.items.forEach(item => {
+				item.days = newDayString;
+			});
+		}
+
 		renderScheduleItems();
 		updateTimelineView();
 		showStatus('Template loaded successfully!', 'success');
