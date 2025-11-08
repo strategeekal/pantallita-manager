@@ -550,6 +550,7 @@ header p {
 .list-actions {
 	display: flex;
 	gap: 10px;
+	margin-bottom: 15px;
 }
 
 .loading-message, .error-message, .empty-message {
@@ -1301,6 +1302,11 @@ header p {
 	transition: all 0.1s;
 	box-shadow: 2px 2px 0px rgba(0, 0, 0, 0.3);
 	overflow: hidden;
+	
+	/* FIXED: Make full width */
+	left: 0 !important;
+	right: 0 !important;
+	width: auto !important;
 }
 
 .timeline-item:hover {
@@ -1503,6 +1509,11 @@ header p {
 	display: flex;
 	align-items: center;
 	justify-content: center;
+	
+	/* FIXED: Make full width */
+	left: 0 !important;
+	right: 0 !important;
+	width: auto !important;
 }
 
 .gap-content {
@@ -1712,4 +1723,60 @@ header p {
 	font-weight: normal;
 	text-transform: uppercase;
 	letter-spacing: 0.5px;
+}
+
+.timeline-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 15px;
+}
+
+.timeline-date-display {
+	background: #000;
+	color: white;
+	padding: 8px 16px;
+	font-family: 'Courier New', monospace;
+	font-weight: bold;
+	border: 3px solid #000;
+}
+
+.timeline-date-display.hidden {
+	display: none;
+}
+
+/* Timeline Item Content - Single Line */
+.timeline-item-content {
+	padding: 8px;
+	height: 100%;
+	display: flex;
+	align-items: center; /* Vertically center */
+	justify-content: space-between; /* Space between text and warning */
+	gap: 8px;
+}
+
+/* Single line text */
+.timeline-text {
+	font-size: 0.85em;
+	font-weight: bold;
+	font-family: 'Courier New', monospace;
+	white-space: nowrap; /* Keep on one line */
+	overflow: hidden;
+	text-overflow: ellipsis; /* Show ... if too long */
+	flex: 1; /* Take available space */
+}
+
+/* Remove old multi-line styles */
+.timeline-item-content .time,
+.timeline-item-content .name {
+	/* These are no longer used */
+	display: none;
+}
+
+/* Overlap warning - inline */
+.overlap-warning {
+	color: #ff0000;
+	font-weight: bold;
+	font-size: 0.75em;
+	white-space: nowrap;
 }
