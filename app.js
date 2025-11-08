@@ -1966,6 +1966,9 @@ async function makeThisDefault() {
 		// CHANGED: Reload schedules with delay to get fresh GitHub data
 		setTimeout(async () => {
 			await loadSchedules(); // Force refresh from GitHub
+
+			// Show alert and redirect to default schedule editor
+			alert('Default schedule saved! Now redirecting to the default schedule editor where you can select which days of the week this schedule applies to.');
 			editSchedule('default.csv');
 		}, 1000);
 		
