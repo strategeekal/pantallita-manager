@@ -97,12 +97,15 @@ function displayEvents() {
 
 export async function saveEvent() {
 	const date = document.getElementById('editor-event-date').value;
-	const startHour = parseInt(document.getElementById('editor-event-start-hour').value);
-	const startMin = parseInt(document.getElementById('editor-event-start-min').value);
 	const topLine = document.getElementById('editor-event-top').value;
 	const bottomLine = document.getElementById('editor-event-bottom').value;
 	const colorName = document.getElementById('editor-event-color').value;
 	const iconName = document.getElementById('editor-event-image').value;
+
+	// Get time fields - default to 9:00 if not specified
+	const hasTime = document.getElementById('editor-event-has-time')?.checked || false;
+	const startHour = parseInt(document.getElementById('editor-event-start-hour')?.value || '9');
+	const startMin = 0; // Simplified - no minutes in current HTML
 
 	if (!date || !topLine || !bottomLine) {
 		showStatus('Please fill in all required fields', 'error');
@@ -139,21 +142,47 @@ export async function saveEvent() {
 export function editEvent(index) {
 	editingEventIndex = index;
 	populateEditForm();
-	document.getElementById('editor-event-top').focus();
+
+	// Switch to add-event tab
+	const tabButton = document.querySelector('[data-tab="add-event"]');
+	if (tabButton) tabButton.click();
+
+	// Focus on the top line input
+	setTimeout(() => {
+		document.getElementById('editor-event-top')?.focus();
+	}, 100);
 }
 
 function populateEditForm() {
 	const event = currentEvents[editingEventIndex];
 
 	document.getElementById('editor-event-date').value = event.date;
-	document.getElementById('editor-event-start-hour').value = event.startHour;
-	document.getElementById('editor-event-start-min').value = event.startMin;
 	document.getElementById('editor-event-top').value = event.topLine;
 	document.getElementById('editor-event-bottom').value = event.bottomLine;
 	document.getElementById('editor-event-color').value = event.colorName;
 	document.getElementById('editor-event-image').value = event.iconName;
 
-	document.getElementById('save-event-btn').textContent = '💾 Update Event';
+	// Set time fields if applicable
+	const hasTimeCheckbox = document.getElementById('editor-event-has-time');
+	if (hasTimeCheckbox && event.startHour !== undefined && event.startHour !== 0) {
+		hasTimeCheckbox.checked = true;
+		const timeFields = document.getElementById('editor-event-time-fields');
+		if (timeFields) timeFields.classList.remove('hidden');
+
+		const startHourField = document.getElementById('editor-event-start-hour');
+		if (startHourField) startHourField.value = event.startHour;
+	}
+
+	// Update form title
+	const formTitle = document.getElementById('editor-form-title');
+	if (formTitle) formTitle.textContent = 'Edit Event';
+
+	// Update character counters
+	const topCount = document.getElementById('editor-event-top-count');
+	if (topCount) topCount.textContent = `${event.topLine.length}/12`;
+
+	const bottomCount = document.getElementById('editor-event-bottom-count');
+	if (bottomCount) bottomCount.textContent = `${event.bottomLine.length}/12`;
 }
 
 export async function deleteEvent(index) {
@@ -191,16 +220,50 @@ export async function clearPastEvents() {
 	}
 }
 
-function clearEventForm() {
-	document.getElementById('editor-event-date').value = '';
-	document.getElementById('editor-event-start-hour').value = '9';
-	document.getElementById('editor-event-start-min').value = '0';
-	document.getElementById('editor-event-top').value = '';
-	document.getElementById('editor-event-bottom').value = '';
-	document.getElementById('editor-event-color').value = 'MINT';
-	document.getElementById('editor-event-image').value = '';
-	document.getElementById('save-event-btn').textContent = '💾 Save Event';
+export function clearEventForm() {
+	const dateField = document.getElementById('editor-event-date');
+	if (dateField) dateField.value = '';
+
+	const topField = document.getElementById('editor-event-top');
+	if (topField) topField.value = '';
+
+	const bottomField = document.getElementById('editor-event-bottom');
+	if (bottomField) bottomField.value = '';
+
+	const colorField = document.getElementById('editor-event-color');
+	if (colorField) colorField.value = 'MINT';
+
+	const imageField = document.getElementById('editor-event-image');
+	if (imageField) imageField.value = '';
+
+	const hasTimeCheckbox = document.getElementById('editor-event-has-time');
+	if (hasTimeCheckbox) hasTimeCheckbox.checked = false;
+
+	const timeFields = document.getElementById('editor-event-time-fields');
+	if (timeFields) timeFields.classList.add('hidden');
+
+	const startHourField = document.getElementById('editor-event-start-hour');
+	if (startHourField) startHourField.value = '9';
+
+	const endHourField = document.getElementById('editor-event-end-hour');
+	if (endHourField) endHourField.value = '17';
+
+	const topCount = document.getElementById('editor-event-top-count');
+	if (topCount) topCount.textContent = '0/12';
+
+	const bottomCount = document.getElementById('editor-event-bottom-count');
+	if (bottomCount) bottomCount.textContent = '0/12';
+
+	const formTitle = document.getElementById('editor-form-title');
+	if (formTitle) formTitle.textContent = 'Add New Event';
+
 	editingEventIndex = null;
+
+	// Clear matrix if on desktop
+	if (window.editorMatrix) {
+		window.editorMatrix.clear();
+		window.editorMatrix.render();
+	}
 }
 
 async function saveEventsToGitHub() {
@@ -217,47 +280,76 @@ function generateEventsCSV() {
 }
 
 function setupEventFormHandlers() {
-	const saveBtn = document.getElementById('save-event-btn');
-	if (saveBtn) {
-		saveBtn.addEventListener('click', saveEvent);
+	// Character counters
+	const topInput = document.getElementById('editor-event-top');
+	if (topInput) {
+		topInput.addEventListener('input', () => {
+			const count = topInput.value.length;
+			const counter = document.getElementById('editor-event-top-count');
+			if (counter) counter.textContent = `${count}/12`;
+		});
 	}
 
-	const clearBtn = document.getElementById('clear-past-events-btn');
-	if (clearBtn) {
-		clearBtn.addEventListener('click', clearPastEvents);
+	const bottomInput = document.getElementById('editor-event-bottom');
+	if (bottomInput) {
+		bottomInput.addEventListener('input', () => {
+			const count = bottomInput.value.length;
+			const counter = document.getElementById('editor-event-bottom-count');
+			if (counter) counter.textContent = `${count}/12`;
+		});
+	}
+
+	// Time checkbox toggle
+	const hasTimeCheckbox = document.getElementById('editor-event-has-time');
+	const timeFieldsContainer = document.getElementById('editor-event-time-fields');
+	if (hasTimeCheckbox && timeFieldsContainer) {
+		hasTimeCheckbox.addEventListener('change', () => {
+			if (hasTimeCheckbox.checked) {
+				timeFieldsContainer.classList.remove('hidden');
+			} else {
+				timeFieldsContainer.classList.add('hidden');
+			}
+		});
 	}
 }
 
 function showEventsLoading() {
-	document.getElementById('events-loading').classList.remove('hidden');
+	const loading = document.getElementById('events-loading');
+	if (loading) loading.classList.remove('hidden');
 	hideEventsError();
 	hideEventsEmpty();
 }
 
 function showEventsError(message) {
 	const errorEl = document.getElementById('events-error');
-	errorEl.textContent = message;
-	errorEl.classList.remove('hidden');
+	if (errorEl) {
+		errorEl.textContent = message;
+		errorEl.classList.remove('hidden');
+	}
 	hideEventsLoading();
 	hideEventsEmpty();
 }
 
 function showEventsEmpty() {
-	document.getElementById('events-empty').classList.remove('hidden');
+	const empty = document.getElementById('events-empty');
+	if (empty) empty.classList.remove('hidden');
 	hideEventsLoading();
 	hideEventsError();
 }
 
 function hideEventsLoading() {
-	document.getElementById('events-loading').classList.add('hidden');
+	const loading = document.getElementById('events-loading');
+	if (loading) loading.classList.add('hidden');
 }
 
 function hideEventsError() {
-	document.getElementById('events-error').classList.add('hidden');
+	const errorEl = document.getElementById('events-error');
+	if (errorEl) errorEl.classList.add('hidden');
 }
 
 function hideEventsEmpty() {
-	document.getElementById('events-empty').classList.add('hidden');
+	const empty = document.getElementById('events-empty');
+	if (empty) empty.classList.add('hidden');
 }
 
 function hideEventsMessages() {
@@ -268,8 +360,14 @@ function hideEventsMessages() {
 
 // Expose functions globally for onclick handlers
 window.eventsModule = {
+	initializeEvents,
+	loadEvents,
 	editEvent,
 	deleteEvent,
 	clearPastEvents,
-	saveEvent
+	saveEvent,
+	clearEventForm
 };
+
+// Also expose directly for HTML onclick
+window.clearEventForm = clearEventForm;
