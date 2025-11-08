@@ -290,3 +290,6 @@ function generateCloudIcon() {
     }
     return icon;
 }
+
+// Export for ES6 modules
+export { MatrixEmulator };

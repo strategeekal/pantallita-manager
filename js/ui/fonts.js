@@ -114,3 +114,9 @@ const TINYBIT_CHARS = {
 for (const [char, data] of Object.entries(TINYBIT_CHARS)) {
     TINYBIT_FONT.glyphs[char] = data;
 }
+
+// Export for ES6 modules
+
+// Export for ES6 modules
+export { TINYBIT_FONT };
+window.TINYBIT_FONT = TINYBIT_FONT;
