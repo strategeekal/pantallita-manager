@@ -325,7 +325,9 @@ export function addScheduleItem() {
 	let defaultDays = '0123456';
 	if (currentScheduleData.type !== 'default' && currentScheduleData.date) {
 		const scheduleDate = new Date(currentScheduleData.date + 'T00:00:00');
-		defaultDays = scheduleDate.getDay().toString();
+		// Convert JS day (0=Sunday) to schedule day (0=Monday)
+		const scheduleDayOfWeek = (scheduleDate.getDay() + 6) % 7;
+		defaultDays = scheduleDayOfWeek.toString();
 	}
 
 	const newItem = {
@@ -371,8 +373,9 @@ function renderScheduleItems() {
 			// Show read-only day name
 			const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 			const scheduleDate = new Date(currentScheduleData.date + 'T00:00:00');
-			const dayOfWeek = scheduleDate.getDay();
-			daysHTML = `<span class="read-only-day">${dayNames[dayOfWeek]}</span>`;
+			// Convert JS day (0=Sunday) to schedule day (0=Monday)
+			const scheduleDayOfWeek = (scheduleDate.getDay() + 6) % 7;
+			daysHTML = `<span class="read-only-day">${dayNames[scheduleDayOfWeek]}</span>`;
 		} else {
 			// Show checkboxes for default schedule
 			daysHTML = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, dayIndex) => {

@@ -35,7 +35,10 @@ export function formatDate(dateStr) {
 
 export function getDayOfWeek(dateStr) {
 	const date = new Date(dateStr + 'T00:00:00');
-	return ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][date.getDay()];
+	// Convert JS day (0=Sunday) to schedule day (0=Monday) and return name
+	const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+	const scheduleDayOfWeek = (date.getDay() + 6) % 7;
+	return dayNames[scheduleDayOfWeek];
 }
 
 export function debounce(func, wait) {

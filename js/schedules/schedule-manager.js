@@ -118,7 +118,32 @@ export async function duplicateSchedule(filename) {
 		const { content } = await fetchGitHubFile(`schedules/${filename}`);
 		const newFilename = `${date}.csv`;
 
-		await saveGitHubFile(`schedules/${newFilename}`, content);
+		// Calculate the day of week for the new date
+		const scheduleDate = new Date(date + 'T00:00:00');
+		const scheduleDayOfWeek = (scheduleDate.getDay() + 6) % 7; // Convert JS day to schedule day
+		const newDayString = scheduleDayOfWeek.toString();
+
+		// Parse and update the CSV to use the new day
+		const lines = content.split('\n');
+		const updatedLines = lines.map(line => {
+			// Skip comments and empty lines
+			if (!line.trim() || line.trim().startsWith('#')) {
+				return line;
+			}
+
+			// Parse the line and update the days field
+			const parts = line.split(',');
+			if (parts.length >= 9) {
+				// Format: name,enabled,days,start_hour,start_min,end_hour,end_min,image,progressbar
+				parts[2] = newDayString; // Update days field
+				return parts.join(',');
+			}
+			return line;
+		});
+
+		const updatedContent = updatedLines.join('\n');
+
+		await saveGitHubFile(`schedules/${newFilename}`, updatedContent);
 		showStatus('Schedule duplicated successfully!', 'success');
 		await loadSchedules();
 	} catch (error) {
