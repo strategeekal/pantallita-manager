@@ -250,10 +250,10 @@ export function clearEventForm() {
 	if (timeFields) timeFields.classList.add('hidden');
 
 	const startHourField = document.getElementById('editor-event-start-hour');
-	if (startHourField) startHourField.value = '9';
+	if (startHourField) startHourField.value = '0';
 
 	const endHourField = document.getElementById('editor-event-end-hour');
-	if (endHourField) endHourField.value = '17';
+	if (endHourField) endHourField.value = '23';
 
 	const topCount = document.getElementById('editor-event-top-count');
 	if (topCount) topCount.textContent = '0/12';
