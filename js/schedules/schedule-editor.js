@@ -2,7 +2,7 @@
 import { fetchGitHubFile, saveGitHubFile, deleteGitHubFile } from '../core/api.js';
 import { showStatus, parseCSV, getDayOfWeek } from '../core/utils.js';
 import { loadConfig } from '../core/config.js';
-import { loadSchedules, scheduleImages } from './schedule-manager.js';
+import { loadSchedules, scheduleImages, scheduleTemplates } from './schedule-manager.js';
 import { updateTimelineView } from './timeline.js';
 import { updateSchedulePreview } from './preview.js';
 
@@ -166,6 +166,11 @@ function populateScheduleEditor() {
 				}
 			}
 		} else if (currentScheduleData.type === 'new-date') {
+			// Generate template options
+			const templateOptions = scheduleTemplates.map(t =>
+				`<option value="${t.name}">${t.displayName}</option>`
+			).join('');
+
 			scheduleInfoForm.innerHTML = `
 				<div class="form-group">
 					<label>Schedule Date *</label>
@@ -176,6 +181,7 @@ function populateScheduleEditor() {
 					<select id="schedule-template" onchange="window.schedulesModule.loadScheduleTemplate()">
 						<option value="">-- Blank Schedule --</option>
 						<option value="default">Default Schedule</option>
+						${templateOptions}
 					</select>
 				</div>
 			`;
@@ -245,7 +251,12 @@ export async function loadScheduleTemplate() {
 	if (!templateName) return;
 
 	try {
-		const { content } = await fetchGitHubFile(`schedules/${templateName}.csv`);
+		// Load from templates directory, or from schedules/ for "default"
+		const templatePath = templateName === 'default'
+			? `schedules/default.csv`
+			: `schedules/templates/${templateName}`;
+
+		const { content } = await fetchGitHubFile(templatePath);
 		const parsedItems = parseScheduleCSV(content);
 
 		currentScheduleData.items = parsedItems.map((item, index) => ({
@@ -269,6 +280,63 @@ export async function loadScheduleTemplate() {
 		showStatus('Template loaded successfully!', 'success');
 	} catch (error) {
 		showStatus('Failed to load template: ' + error.message, 'error');
+	}
+}
+
+export async function saveAsTemplate() {
+	if (!currentScheduleData || !currentScheduleData.items || currentScheduleData.items.length === 0) {
+		showStatus('Cannot save empty schedule as template', 'error');
+		return;
+	}
+
+	const templateName = prompt('Enter template name (will be saved as schedules/templates/[name].csv):');
+	if (!templateName) return;
+
+	// Clean up the name (remove .csv if user added it, replace spaces with dashes)
+	const cleanName = templateName.replace('.csv', '').replace(/\s+/g, '-').toLowerCase();
+	if (!cleanName) {
+		showStatus('Invalid template name', 'error');
+		return;
+	}
+
+	const config = loadConfig();
+
+	try {
+		// Check if template already exists
+		let sha = null;
+		try {
+			const response = await fetch(
+				`https://api.github.com/repos/${config.owner}/${config.repo}/contents/schedules/templates/${cleanName}.csv`,
+				{
+					headers: {
+						'Authorization': `Bearer ${config.token}`,
+						'Accept': 'application/vnd.github.v3+json'
+					}
+				}
+			);
+
+			if (response.ok) {
+				const data = await response.json();
+				sha = data.sha;
+				if (!confirm(`Template "${cleanName}" already exists. Overwrite?`)) {
+					return;
+				}
+			}
+		} catch (e) {
+			// Template doesn't exist yet - that's fine
+		}
+
+		const csvContent = generateScheduleCSV();
+		await saveGitHubFile(`schedules/templates/${cleanName}.csv`, csvContent, sha);
+
+		showStatus('Template saved successfully!', 'success');
+
+		// Reload templates
+		const { loadScheduleTemplates } = await import('./schedule-manager.js');
+		await loadScheduleTemplates();
+
+	} catch (error) {
+		showStatus('Failed to save template: ' + error.message, 'error');
 	}
 }
 
