@@ -215,7 +215,7 @@ function displayHello(matrix) {
 	
 	if (name && name.length <= 12) {
 		// Two-line greeting: "Hello!" and name
-		const line1 = "Hello!";
+		const line1 = "Hola!";
 		const line2 = name;
 		
 		const totalHeight = (fontHeight * 2) + lineSpacing;
@@ -253,7 +253,7 @@ function displayHello(matrix) {
 		
 	} else {
 		// Single line: just "Hello!"
-		const text = "Hello!";
+		const text = "Hola!";
 		
 		let textWidth = 0;
 		for (let char of text.toUpperCase()) {
