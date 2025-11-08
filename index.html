@@ -205,61 +205,64 @@
 			</div>
 
 			<!-- ============================================
-			     UPDATED SCHEDULE EDITOR HTML
-			     Replace the schedule editor section in index.html
-			     ============================================ -->
+				 UPDATED SCHEDULE EDITOR HTML
+				 Replace the schedule editor section in index.html
+				 ============================================ -->
 			
 			<!-- Schedule Editor -->
 			<div id="schedule-editor" class="schedule-editor hidden">
-			    <div class="editor-header">
-			        <h3 id="schedule-editor-title">Edit Schedule</h3>
-			        <button class="btn-pixel btn-secondary" onclick="closeScheduleEditor()">✕ Close</button>
-			    </div>
+				<div class="editor-header">
+					<h3 id="schedule-editor-title">Edit Schedule</h3>
+					<button class="btn-pixel btn-secondary" onclick="closeScheduleEditor()">✕ Close</button>
+				</div>
 			
-			    <div class="schedule-editor-content">
-			        <!-- Dynamic form populated by JavaScript -->
-			        <div id="schedule-info-form"></div>
+				<div class="schedule-editor-content">
+					<!-- Dynamic form populated by JavaScript -->
+					<div id="schedule-info-form"></div>
 			
-			        <div class="schedule-items-section">
-			            <div class="section-header">
-			                <h4>Schedule Items</h4>
-			                <button class="btn-pixel btn-primary btn-sm" onclick="addScheduleItem()">➕ Add Item</button>
-			            </div>
-			            <div id="schedule-items-list"></div>
-			        </div>
+					<div class="schedule-items-section">
+						<div class="section-header">
+							<h4>Schedule Items</h4>
+							<button class="btn-pixel btn-primary btn-sm" onclick="addScheduleItem()">➕ Add Item</button>
+						</div>
+						<div id="schedule-items-list"></div>
+					</div>
 			
-			        <div class="timeline-view-section">
-			            <h4>Timeline View</h4>
-			            <select id="timeline-day-filter" onchange="updateTimelineView()">
-			                <option value="0">Monday</option>
-			                <option value="1">Tuesday</option>
-			                <option value="2">Wednesday</option>
-			                <option value="3">Thursday</option>
-			                <option value="4">Friday</option>
-			                <option value="5">Saturday</option>
-			                <option value="6">Sunday</option>
-			            </select>
-			            <div id="timeline-view" class="timeline-view"></div>
-			        </div>
+					<div class="timeline-view-section">
+						<div class="timeline-header">
+							<h4>Timeline View</h4>
+							<div id="timeline-date-display" class="timeline-date-display hidden"></div>
+							<select id="timeline-day-filter" onchange="updateTimelineView()">
+								<option value="0">Monday</option>
+								<option value="1">Tuesday</option>
+								<option value="2">Wednesday</option>
+								<option value="3">Thursday</option>
+								<option value="4">Friday</option>
+								<option value="5">Saturday</option>
+								<option value="6">Sunday</option>
+							</select>
+						</div>
+						<div id="timeline-view" class="timeline-view"></div>
+					</div>
 			
-			        <div class="schedule-preview-section">
-			            <h4>Preview</h4>
-			            <div class="schedule-preview-controls">
-			                <select id="preview-item-select" onchange="updateSchedulePreview()">
-			                    <option value="">Select item to preview...</option>
-			                </select>
-			            </div>
-			            <p class="preview-note">Preview shows item at 74% progress (visual indicator only)</p>
-			            <div class="emulator-wrapper schedule-emulator">
-			                <div id="matrix-container-schedule"></div>
-			            </div>
-			        </div>
+					<div class="schedule-preview-section">
+						<h4>Preview</h4>
+						<div class="schedule-preview-controls">
+							<select id="preview-item-select" onchange="updateSchedulePreview()">
+								<option value="">Select item to preview...</option>
+							</select>
+						</div>
+						<p class="preview-note">Preview shows item at 74% progress (visual indicator only)</p>
+						<div class="emulator-wrapper schedule-emulator">
+							<div id="matrix-container-schedule"></div>
+						</div>
+					</div>
 			
-			        <div class="schedule-actions">
-			            <button class="btn-pixel btn-primary" onclick="saveSchedule()">💾 Save Schedule</button>
-			            <button class="btn-pixel btn-secondary" onclick="closeScheduleEditor()">Cancel</button>
-			        </div>
-			    </div>
+					<div class="schedule-actions">
+						<button class="btn-pixel btn-primary" onclick="saveSchedule()">💾 Save Schedule</button>
+						<button class="btn-pixel btn-secondary" onclick="closeScheduleEditor()">Cancel</button>
+					</div>
+				</div>
 			</div>
 		</section>
 
