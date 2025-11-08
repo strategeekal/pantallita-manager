@@ -358,6 +358,11 @@ header p {
 	color: white;
 }
 
+.btn-sm {
+	padding: 6px 12px;
+	font-size: 0.85em;
+}
+
 .status {
 	position: fixed;
 	bottom: 20px;
@@ -453,7 +458,10 @@ header p {
 	}
 }
 
-/* Events Management Styles */
+/* ============================================
+   EVENTS MANAGEMENT STYLES
+   ============================================ */
+
 .event-editor {
 	background: #f0f0f0;
 	border: 3px solid #000;
@@ -553,21 +561,6 @@ header p {
 	margin-bottom: 15px;
 }
 
-.loading-message, .error-message, .empty-message {
-	text-align: center;
-	padding: 40px 20px;
-	font-size: 1.1em;
-}
-
-.error-message {
-	color: #FF0088;
-	font-weight: bold;
-}
-
-.empty-message {
-	color: #666;
-}
-
 .info-message {
 	background: #e0e0e0;
 	border: 3px solid #000;
@@ -593,7 +586,7 @@ header p {
 	align-items: center;
 	box-shadow: 2px 2px 0px rgba(0, 0, 0, 0.3);
 	margin-bottom: 15px;
-	contain: layout style; /* Performance optimization for mobile */
+	contain: layout style;
 }
 
 .event-card:hover {
@@ -752,15 +745,15 @@ header p {
 		min-width: 60px;
 		padding: 10px;
 	}
-	
+
 	.event-date-badge .month {
 		font-size: 0.7em;
 	}
-	
+
 	.event-date-badge .day {
 		font-size: 1.5em;
 	}
-	
+
 	.event-date-badge .year {
 		font-size: 0.7em;
 	}
@@ -770,7 +763,7 @@ header p {
 		gap: 10px;
 		width: 100%;
 	}
-	
+
 	.event-actions .btn-pixel {
 		flex: 1;
 		margin: 0;
@@ -788,13 +781,10 @@ header p {
 	}
 }
 
-
 /* ============================================
-   MOBILE PREVIEW BUTTON STYLES
-   Add these styles to your existing style.css
+   MOBILE PREVIEW STYLES
    ============================================ */
 
-/* Mobile text preview (replaces matrix emulator on mobile) */
 .mobile-text-preview {
 	background: #1a1a1a;
 	border: 4px solid #000;
@@ -879,7 +869,6 @@ header p {
 	}
 }
 
-/* Mobile preview button - REMOVED, no longer needed */
 .mobile-preview-btn {
 	display: none !important;
 }
@@ -887,43 +876,35 @@ header p {
 /* Mobile optimizations for event list scrolling */
 @media (max-width: 768px) {
 	.events-list {
-		/* Enable GPU acceleration for smoother scrolling */
 		transform: translateZ(0);
 		-webkit-transform: translateZ(0);
 		will-change: scroll-position;
 	}
-	
+
 	.event-card {
-		/* Reduce repaints during scroll */
 		contain: layout style paint;
 		content-visibility: auto;
 	}
-	
-	/* Simplify event cards on mobile for better performance */
+
 	.event-info p {
 		font-size: 0.85em;
 	}
-	
+
 	.event-actions .btn-pixel {
 		font-size: 0.85em;
 		padding: 8px 12px;
 	}
-}
 
-/* Additional performance hints for mobile */
-@media (max-width: 768px) {
-	/* Reduce animation complexity on mobile */
 	.btn-pixel:hover {
 		transform: none;
 		box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.3);
 	}
-	
+
 	.btn-pixel:active {
 		transform: translate(2px, 2px);
 		box-shadow: 2px 2px 0px rgba(0, 0, 0, 0.3);
 	}
-	
-	/* No emulator on mobile, so no need for canvas optimization */
+
 	.emulator-wrapper canvas {
 		display: none;
 	}
@@ -967,11 +948,6 @@ header p {
 	gap: 8px;
 }
 
-.btn-sm {
-	padding: 6px 12px;
-	font-size: 0.85em;
-}
-
 /* Schedule Editor */
 .schedule-editor {
 	background: #f0f0f0;
@@ -1000,7 +976,7 @@ header p {
 	grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
 }
 
-/* Schedule Items */
+/* Schedule Items Section */
 .schedule-items-section {
 	background: white;
 	border: 3px solid #000;
@@ -1020,121 +996,7 @@ header p {
 	gap: 10px;
 }
 
-.schedule-item {
-	display: flex;
-	gap: 8px;
-	align-items: center;
-	padding: 10px;
-	background: #f0f0f0;
-	border: 2px solid #000;
-	flex-wrap: wrap;
-}
-
-.schedule-item input[type="text"],
-.schedule-item input[type="number"],
-.schedule-item select {
-	border: 2px solid #000;
-	padding: 4px 8px;
-	font-family: 'Courier New', monospace;
-}
-
-/* Timeline View */
-.timeline-view-section {
-	background: white;
-	border: 3px solid #000;
-	padding: 15px;
-}
-
-.day-filter {
-	margin-bottom: 15px;
-	display: flex;
-	gap: 10px;
-	align-items: center;
-}
-
-.timeline-view {
-	border: 2px solid #000;
-	padding: 10px;
-	background: #f0f0f0;
-	min-height: 200px;
-}
-
-.timeline-item {
-	padding: 10px;
-	background: white;
-	border: 2px solid #000;
-	margin-bottom: 8px;
-	cursor: pointer;
-	display: flex;
-	justify-content: space-between;
-	align-items: center;
-}
-
-.timeline-item:hover {
-	background: #e0f0ff;
-}
-
-.timeline-item.overlap {
-	background: #ffe0e0;
-	border-color: #ff0000;
-}
-
-.overlap-warning {
-	color: #ff0000;
-	font-weight: bold;
-}
-
-/* Schedule Preview */
-.schedule-preview-section {
-	background: white;
-	border: 3px solid #000;
-	padding: 15px;
-}
-
-.schedule-preview-controls {
-	display: flex;
-	gap: 10px;
-	align-items: center;
-	margin-bottom: 15px;
-	flex-wrap: wrap;
-}
-
-.schedule-preview-controls input[type="range"] {
-	flex: 1;
-	min-width: 200px;
-}
-
-.schedule-emulator {
-	background: #1a1a1a;
-}
-
-/* Mobile Responsive */
-@media (max-width: 768px) {
-	.schedule-info-form {
-		grid-template-columns: 1fr;
-	}
-	
-	.schedule-item {
-		flex-direction: column;
-		align-items: stretch;
-	}
-	
-	.schedule-item input,
-	.schedule-item select {
-		width: 100%;
-	}
-	
-	.schedule-preview-section {
-		display: none; /* Skip preview on mobile */
-	}
-}
-
-/* ============================================
-   ENHANCED SCHEDULE MANAGER STYLES
-   Add these to your existing style.css
-   ============================================ */
-
-/* Schedule Item Improved Layout */
+/* Schedule Item - Enhanced Layout */
 .schedule-item {
 	background: white;
 	border: 3px solid #000;
@@ -1189,6 +1051,14 @@ header p {
 	text-transform: uppercase;
 }
 
+.schedule-item input[type="text"],
+.schedule-item input[type="number"],
+.schedule-item select {
+	border: 2px solid #000;
+	padding: 4px 8px;
+	font-family: 'Courier New', monospace;
+}
+
 /* Day Checkboxes */
 .day-checkboxes {
 	display: flex;
@@ -1223,7 +1093,6 @@ header p {
 	margin: 0;
 }
 
-/* Day Badge (for date-specific schedules) */
 .day-badge {
 	background: #000;
 	color: white;
@@ -1232,6 +1101,15 @@ header p {
 	font-family: 'Courier New', monospace;
 	font-size: 0.9em;
 	text-transform: uppercase;
+}
+
+.day-badge-placeholder {
+	background: #ccc;
+	color: #666;
+	padding: 6px 12px;
+	font-style: italic;
+	font-family: 'Courier New', monospace;
+	font-size: 0.9em;
 }
 
 /* Time Inputs */
@@ -1250,12 +1128,20 @@ header p {
 	text-align: center;
 }
 
+.time-input-large {
+	width: 60px !important;
+	border: 2px solid #000;
+	padding: 6px 8px;
+	font-family: 'Courier New', monospace;
+	text-align: center;
+	font-size: 1em;
+}
+
 .time-separator {
 	font-weight: bold;
 	padding: 0 5px;
 }
 
-/* Image Select */
 .image-select {
 	flex: 1;
 	border: 2px solid #000;
@@ -1272,7 +1158,20 @@ header p {
 	white-space: nowrap;
 }
 
-/* Enhanced Timeline View */
+/* Timeline View */
+.timeline-view-section {
+	background: white;
+	border: 3px solid #000;
+	padding: 15px;
+}
+
+.day-filter {
+	margin-bottom: 15px;
+	display: flex;
+	gap: 10px;
+	align-items: center;
+}
+
 .timeline-view {
 	border: 2px solid #000;
 	padding: 0;
@@ -1283,14 +1182,28 @@ header p {
 
 .timeline-container {
 	position: relative;
-	background: linear-gradient(to bottom, 
-		#f0f0f0 0%, 
-		#f0f0f0 calc(100% / 24), 
-		#e0e0e0 calc(100% / 24), 
-		#e0e0e0 calc(200% / 24),
-		#f0f0f0 calc(200% / 24)
-	);
-	background-size: 100% calc(100% / 12);
+	background: #f0f0f0;
+	overflow-y: auto;
+}
+
+.timeline-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 15px;
+}
+
+.timeline-date-display {
+	background: #000;
+	color: white;
+	padding: 8px 16px;
+	font-family: 'Courier New', monospace;
+	font-weight: bold;
+	border: 3px solid #000;
+}
+
+.timeline-date-display.hidden {
+	display: none;
 }
 
 .timeline-item {
@@ -1302,8 +1215,6 @@ header p {
 	transition: all 0.1s;
 	box-shadow: 2px 2px 0px rgba(0, 0, 0, 0.3);
 	overflow: hidden;
-	
-	/* FIXED: Make full width */
 	left: 0 !important;
 	right: 0 !important;
 	width: auto !important;
@@ -1324,31 +1235,65 @@ header p {
 	padding: 8px;
 	height: 100%;
 	display: flex;
-	flex-direction: column;
-	justify-content: center;
-	gap: 4px;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
 }
 
-.timeline-item .time {
-	font-size: 0.75em;
+.timeline-text {
+	font-size: 0.85em;
 	font-weight: bold;
 	font-family: 'Courier New', monospace;
-	color: #666;
-}
-
-.timeline-item .name {
-	font-size: 0.9em;
-	font-weight: bold;
-	font-family: 'Courier New', monospace;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	flex: 1;
 }
 
 .overlap-warning {
 	color: #ff0000;
 	font-weight: bold;
 	font-size: 0.75em;
+	white-space: nowrap;
 }
 
-/* Timeline Day Filter */
+.timeline-gap {
+	position: absolute;
+	left: 0;
+	right: 0;
+	background: rgba(200, 200, 200, 0.3);
+	border-top: 1px solid #ddd;
+	border-bottom: 1px solid #ddd;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.timeline-gap-content {
+	width: 100%;
+	text-align: center;
+	padding: 4px;
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+}
+
+.gap-time {
+	font-size: 0.65em;
+	color: #999;
+	font-family: 'Courier New', monospace;
+	font-weight: normal;
+}
+
+.gap-duration {
+	font-size: 0.7em;
+	color: #999;
+	font-family: 'Courier New', monospace;
+	font-weight: normal;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+}
+
 #timeline-day-filter {
 	margin-bottom: 15px;
 	padding: 8px 12px;
@@ -1358,87 +1303,7 @@ header p {
 	font-size: 1em;
 }
 
-/* Schedule Preview Controls */
-.schedule-preview-controls {
-	display: flex;
-	gap: 10px;
-	align-items: center;
-	margin-bottom: 15px;
-	flex-wrap: wrap;
-}
-
-.schedule-preview-controls select {
-	flex: 1;
-	min-width: 150px;
-	padding: 8px;
-	border: 2px solid #000;
-	font-family: 'Courier New', monospace;
-}
-
-.schedule-preview-controls input[type="range"] {
-	flex: 2;
-	min-width: 200px;
-}
-
-#preview-progress-value {
-	font-weight: bold;
-	font-family: 'Courier New', monospace;
-	min-width: 40px;
-}
-
-/* Mobile Responsive Updates */
-@media (max-width: 768px) {
-	.schedule-item-header {
-		flex-direction: column;
-		align-items: stretch;
-	}
-	
-	.item-name-input {
-		width: 100%;
-	}
-	
-	.item-enabled {
-		justify-content: space-between;
-	}
-	
-	.schedule-item-row {
-		flex-direction: column;
-		align-items: stretch;
-	}
-	
-	.item-label {
-		min-width: auto;
-	}
-	
-	.day-checkboxes {
-		width: 100%;
-	}
-	
-	.day-checkbox {
-		flex: 1;
-		justify-content: center;
-		min-width: 40px;
-	}
-	
-	.time-inputs {
-		flex-wrap: wrap;
-		justify-content: center;
-	}
-	
-	.image-select {
-		width: 100%;
-	}
-	
-	.timeline-item {
-		font-size: 0.85em;
-	}
-	
-	.timeline-item-content {
-		padding: 4px;
-	}
-}
-
-/* Preview Section Enhancement */
+/* Schedule Preview */
 .schedule-preview-section {
 	background: white;
 	border: 3px solid #000;
@@ -1452,106 +1317,49 @@ header p {
 	font-family: 'Courier New', monospace;
 }
 
+.schedule-preview-controls {
+	display: flex;
+	gap: 10px;
+	align-items: center;
+	margin-bottom: 15px;
+	flex-wrap: wrap;
+}
+
+.schedule-preview-controls select {
+	flex: 1;
+	padding: 10px;
+	border: 3px solid #000;
+	font-family: 'Courier New', monospace;
+	font-size: 1em;
+	min-width: 150px;
+}
+
+.schedule-preview-controls input[type="range"] {
+	flex: 2;
+	min-width: 200px;
+}
+
+#preview-progress-value {
+	font-weight: bold;
+	font-family: 'Courier New', monospace;
+	min-width: 40px;
+}
+
+.preview-note {
+	font-size: 0.85em;
+	color: #666;
+	text-align: center;
+	margin-bottom: 10px;
+	font-style: italic;
+}
+
 .schedule-emulator {
 	background: #1a1a1a;
 	padding: 20px;
 	margin-top: 15px;
 }
 
-/* Empty State Improvements */
-.empty-message {
-	text-align: center;
-	padding: 40px 20px;
-	color: #666;
-	font-style: italic;
-}
-
-/* Loading States */
-.loading-message {
-	text-align: center;
-	padding: 40px 20px;
-	font-weight: bold;
-}
-
-/* Error States */
-.error-message {
-	background: #ffe0e0;
-	border: 3px solid #ff0000;
-	padding: 20px;
-	margin: 20px 0;
-	color: #cc0000;
-	font-weight: bold;
-	text-align: center;
-}
-
-/* Success States */
-.success-message {
-	background: #e0ffe0;
-	border: 3px solid #00cc00;
-	padding: 20px;
-	margin: 20px 0;
-	color: #006600;
-	font-weight: bold;
-	text-align: center;
-}
-
-/* ============================================
-   ADDITIONAL CSS FOR SCHEDULE FIXES
-   Add these to your existing schedule styles
-   ============================================ */
-
-/* Timeline Gap Styling */
-.timeline-gap {
-	position: absolute;
-	background: rgba(200, 200, 200, 0.3);
-	border-top: 1px solid #ddd;
-	border-bottom: 1px solid #ddd;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	
-	/* FIXED: Make full width */
-	left: 0 !important;
-	right: 0 !important;
-	width: auto !important;
-}
-
-.gap-content {
-	width: 100%;
-	text-align: center;
-	padding: 4px;
-}
-
-.gap-text {
-	font-size: 0.7em;
-	color: #999;
-	font-family: 'Courier New', monospace;
-	font-weight: normal;
-	text-transform: uppercase;
-	letter-spacing: 0.5px;
-}
-
-/* Schedule Mode Info */
-.schedule-mode-info {
-	background: #e0e0e0;
-	padding: 12px;
-	border: 2px solid #000;
-	font-weight: bold;
-	text-align: center;
-	margin: 0;
-}
-
-/* Day Badge Placeholder */
-.day-badge-placeholder {
-	background: #ccc;
-	color: #666;
-	padding: 6px 12px;
-	font-style: italic;
-	font-family: 'Courier New', monospace;
-	font-size: 0.9em;
-}
-
-/* Schedule Info Form - Updated */
+/* Schedule Info Form */
 #schedule-info-form {
 	background: #f0f0f0;
 	padding: 20px;
@@ -1603,180 +1411,129 @@ header p {
 	margin: 0;
 }
 
-/* Preview Section - Simplified (no slider) */
-.schedule-preview-section {
-	background: white;
-	border: 3px solid #000;
-	padding: 20px;
-}
-
-.schedule-preview-section h4 {
-	margin-bottom: 15px;
-	text-transform: uppercase;
-	font-family: 'Courier New', monospace;
-}
-
-.schedule-preview-controls {
-	display: flex;
-	gap: 10px;
-	align-items: center;
-	margin-bottom: 15px;
-}
-
-.schedule-preview-controls select {
-	flex: 1;
-	padding: 10px;
-	border: 3px solid #000;
-	font-family: 'Courier New', monospace;
-	font-size: 1em;
-}
-
-.preview-note {
-	font-size: 0.85em;
-	color: #666;
+.schedule-mode-info {
+	background: #e0e0e0;
+	padding: 12px;
+	border: 2px solid #000;
+	font-weight: bold;
 	text-align: center;
-	margin-bottom: 10px;
+	margin: 0;
+}
+
+/* Empty, Loading, Error States */
+.loading-message {
+	text-align: center;
+	padding: 40px 20px;
+	font-weight: bold;
+	font-size: 1.1em;
+}
+
+.error-message {
+	background: #ffe0e0;
+	border: 3px solid #ff0000;
+	padding: 20px;
+	margin: 20px 0;
+	color: #cc0000;
+	font-weight: bold;
+	text-align: center;
+}
+
+.empty-message {
+	text-align: center;
+	padding: 40px 20px;
+	color: #666;
 	font-style: italic;
 }
 
-/* Timeline Container - Increased Height */
-.timeline-container {
-	position: relative;
-	background: #f0f0f0;
-	overflow-y: auto;
+.success-message {
+	background: #e0ffe0;
+	border: 3px solid #00cc00;
+	padding: 20px;
+	margin: 20px 0;
+	color: #006600;
+	font-weight: bold;
+	text-align: center;
 }
 
-/* Timeline Item - Improved Content Display */
-.timeline-item-content {
-	padding: 8px;
-	height: 100%;
-	display: flex;
-	flex-direction: column;
-	gap: 4px;
-	overflow: hidden;
-}
-
-/* Ensure text doesn't overflow on short items */
-.timeline-item-content .time {
-	font-size: 0.7em;
-	white-space: nowrap;
-}
-
-.timeline-item-content .name {
-	font-size: 0.85em;
-	overflow: hidden;
-	text-overflow: ellipsis;
-}
-
-/* Mobile Responsiveness */
+/* Mobile Responsive for Schedules */
 @media (max-width: 768px) {
+	.schedule-info-form {
+		grid-template-columns: 1fr;
+	}
+
+	.schedule-item-header {
+		flex-direction: column;
+		align-items: stretch;
+	}
+
+	.item-name-input {
+		width: 100%;
+	}
+
+	.item-enabled {
+		justify-content: space-between;
+	}
+
+	.schedule-item {
+		flex-direction: column;
+		align-items: stretch;
+	}
+
+	.schedule-item input,
+	.schedule-item select {
+		width: 100%;
+	}
+
+	.schedule-item-row {
+		flex-direction: column;
+		align-items: stretch;
+	}
+
+	.item-label {
+		min-width: auto;
+	}
+
+	.day-checkboxes {
+		width: 100%;
+	}
+
+	.day-checkbox {
+		flex: 1;
+		justify-content: center;
+		min-width: 40px;
+	}
+
+	.time-inputs {
+		flex-wrap: wrap;
+		justify-content: center;
+	}
+
+	.image-select {
+		width: 100%;
+	}
+
+	.timeline-item {
+		font-size: 0.85em;
+	}
+
+	.timeline-item-content {
+		padding: 4px;
+	}
+
 	.timeline-gap {
 		min-height: 20px;
 	}
-	
-	.gap-text {
+
+	.gap-time,
+	.gap-duration {
 		font-size: 0.6em;
 	}
-	
+
 	.schedule-preview-section {
-		display: block; /* Show on mobile now that preview is simpler */
+		display: block;
 	}
-	
+
 	#schedule-info-form {
 		padding: 15px;
 	}
-}
-
-/* Larger time inputs for better visibility */
-.time-input-large {
-	width: 60px !important;
-	border: 2px solid #000;
-	padding: 6px 8px;
-	font-family: 'Courier New', monospace;
-	text-align: center;
-	font-size: 1em;
-}
-
-/* Fixed-height timeline gaps */
-.timeline-gap {
-	position: absolute;
-	left: 0;
-	right: 0;
-	background: rgba(200, 200, 200, 0.3);
-	border-top: 1px solid #ddd;
-	border-bottom: 1px solid #ddd;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-}
-
-.gap-content {
-	width: 100%;
-	text-align: center;
-	padding: 4px;
-}
-
-.gap-text {
-	font-size: 0.7em;
-	color: #999;
-	font-family: 'Courier New', monospace;
-	font-weight: normal;
-	text-transform: uppercase;
-	letter-spacing: 0.5px;
-}
-
-.timeline-header {
-	display: flex;
-	justify-content: space-between;
-	align-items: center;
-	margin-bottom: 15px;
-}
-
-.timeline-date-display {
-	background: #000;
-	color: white;
-	padding: 8px 16px;
-	font-family: 'Courier New', monospace;
-	font-weight: bold;
-	border: 3px solid #000;
-}
-
-.timeline-date-display.hidden {
-	display: none;
-}
-
-/* Timeline Item Content - Single Line */
-.timeline-item-content {
-	padding: 8px;
-	height: 100%;
-	display: flex;
-	align-items: center; /* Vertically center */
-	justify-content: space-between; /* Space between text and warning */
-	gap: 8px;
-}
-
-/* Single line text */
-.timeline-text {
-	font-size: 0.85em;
-	font-weight: bold;
-	font-family: 'Courier New', monospace;
-	white-space: nowrap; /* Keep on one line */
-	overflow: hidden;
-	text-overflow: ellipsis; /* Show ... if too long */
-	flex: 1; /* Take available space */
-}
-
-/* Remove old multi-line styles */
-.timeline-item-content .time,
-.timeline-item-content .name {
-	/* These are no longer used */
-	display: none;
-}
-
-/* Overlap warning - inline */
-.overlap-warning {
-	color: #ff0000;
-	font-weight: bold;
-	font-size: 0.75em;
-	white-space: nowrap;
 }
