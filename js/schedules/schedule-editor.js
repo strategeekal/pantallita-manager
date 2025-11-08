@@ -1,5 +1,5 @@
 // Schedule Editor Module - Edit schedule items, add/delete, save
-import { fetchGitHubFile, saveGitHubFile } from '../core/api.js';
+import { fetchGitHubFile, saveGitHubFile, deleteGitHubFile } from '../core/api.js';
 import { showStatus, parseCSV, getDayOfWeek } from '../core/utils.js';
 import { loadConfig } from '../core/config.js';
 import { loadSchedules, scheduleImages } from './schedule-manager.js';
@@ -514,6 +514,11 @@ export function updateScheduleItem(index, field, value) {
 		updateTimelineView();
 	}
 
+	// Update preview selector when name changes
+	if (field === 'name') {
+		updatePreviewSelector();
+	}
+
 	// Update preview when image or progress bar changes
 	if (['image', 'progressBar'].includes(field)) {
 		updateSchedulePreview();
@@ -542,7 +547,9 @@ export async function saveSchedule() {
 		return;
 	}
 
+	const config = loadConfig();
 	let filename;
+	let oldFilename = null;
 
 	if (currentScheduleData.type === 'default') {
 		filename = 'default.csv';
@@ -553,15 +560,35 @@ export async function saveSchedule() {
 			return;
 		}
 		filename = `${date}.csv`;
+
+		// Check if date was changed on an existing schedule
+		if (currentScheduleData.filename && currentScheduleData.filename !== filename) {
+			oldFilename = currentScheduleData.filename;
+		}
+
 		currentScheduleData.date = date;
 	}
 
 	try {
+		// If date was changed, delete the old file first
+		if (oldFilename && currentScheduleData.sha) {
+			try {
+				await deleteGitHubFile(`schedules/${oldFilename}`, currentScheduleData.sha);
+				console.log('Deleted old schedule file:', oldFilename);
+				// Clear sha since we deleted the old file
+				currentScheduleData.sha = null;
+			} catch (error) {
+				console.error('Failed to delete old schedule file:', error);
+				showStatus('Warning: Could not delete old schedule file', 'warning');
+			}
+		}
+
 		const csvContent = generateScheduleCSV();
 		const saveData = await saveGitHubFile(`schedules/${filename}`, csvContent, currentScheduleData.sha);
 
 		if (currentScheduleData) {
 			currentScheduleData.sha = saveData.content.sha;
+			currentScheduleData.filename = filename;
 		}
 
 		showStatus('Schedule saved successfully!', 'success');
