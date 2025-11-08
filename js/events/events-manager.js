@@ -22,7 +22,7 @@ export async function loadEvents() {
 	showEventsLoading();
 
 	try {
-		const { content } = await fetchGitHubFile('events.csv');
+		const { content } = await fetchGitHubFile('ephemeral_events.csv');
 		currentEvents = parseEventsCSV(content);
 		displayEvents();
 	} catch (error) {
@@ -268,7 +268,7 @@ export function clearEventForm() {
 
 async function saveEventsToGitHub() {
 	const csvContent = generateEventsCSV();
-	await saveGitHubFile('events.csv', csvContent);
+	await saveGitHubFile('ephemeral_events.csv', csvContent);
 }
 
 function generateEventsCSV() {

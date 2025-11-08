@@ -129,12 +129,25 @@ function displayHello(matrix) {
 	const bottomText = "WORLD!";
 	const color = '#00FFAA';
 
+	// Check if font is loaded
+	if (!window.TINYBIT_FONT || !window.TINYBIT_FONT.glyphs) {
+		console.warn('TINYBIT_FONT not loaded yet');
+		// Draw a simple fallback pattern
+		for (let y = 10; y < 25; y++) {
+			for (let x = 5; x < 60; x += 3) {
+				matrix.setPixel(x, y, color);
+			}
+		}
+		matrix.render();
+		return;
+	}
+
 	// Simple text rendering using TINYBIT_FONT bitmap format
 	let x = 2;
 	let y = 8;
 
 	topText.split('').forEach(char => {
-		if (window.TINYBIT_FONT && window.TINYBIT_FONT.glyphs[char]) {
+		if (window.TINYBIT_FONT.glyphs[char]) {
 			const glyph = window.TINYBIT_FONT.glyphs[char];
 			// Convert bitmap to pixels
 			for (let row = 0; row < glyph.height; row++) {
@@ -154,7 +167,7 @@ function displayHello(matrix) {
 	y = 20;
 
 	bottomText.split('').forEach(char => {
-		if (window.TINYBIT_FONT && window.TINYBIT_FONT.glyphs[char]) {
+		if (window.TINYBIT_FONT.glyphs[char]) {
 			const glyph = window.TINYBIT_FONT.glyphs[char];
 			// Convert bitmap to pixels
 			for (let row = 0; row < glyph.height; row++) {
@@ -169,6 +182,9 @@ function displayHello(matrix) {
 			x += glyph.width + 1;
 		}
 	});
+
+	// Actually render the pixels to canvas
+	matrix.render();
 }
 
 function drawFeatureIcons() {
