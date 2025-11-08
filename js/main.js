@@ -82,6 +82,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 	// Load available images
 	await loadAvailableImages();
 
+	// Auto-load events on startup
+	if (eventsModule && eventsModule.loadEvents) {
+		await eventsModule.loadEvents();
+	}
+
 	// Setup settings form
 	const settingsForm = document.getElementById('settings-form');
 	if (settingsForm) {

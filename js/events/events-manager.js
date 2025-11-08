@@ -68,7 +68,12 @@ function displayEvents() {
 		return;
 	}
 
-	const eventsHTML = currentEvents.map((event, index) => {
+	// Sort events by date ascending (earliest first)
+	const sortedEvents = [...currentEvents].sort((a, b) => {
+		return new Date(a.date) - new Date(b.date);
+	});
+
+	const eventsHTML = sortedEvents.map((event) => {
 		const eventDate = new Date(event.date + 'T00:00:00');
 		const isPast = eventDate < new Date();
 		const formattedDate = formatDate(event.date);
@@ -87,8 +92,8 @@ function displayEvents() {
 					<p>Color: ${event.colorName} | Icon: ${event.iconName || 'None'}</p>
 				</div>
 				<div class="event-actions">
-					<button class="btn-pixel btn-primary btn-sm" onclick="window.eventsModule.editEvent(${index})">Edit</button>
-					<button class="btn-pixel btn-secondary btn-sm" onclick="window.eventsModule.deleteEvent(${index})">Delete</button>
+					<button class="btn-pixel btn-primary btn-sm" onclick="window.eventsModule.editEvent(${event.index})">Edit</button>
+					<button class="btn-pixel btn-secondary btn-sm" onclick="window.eventsModule.deleteEvent(${event.index})">Delete</button>
 				</div>
 			</div>
 		`;
@@ -151,10 +156,12 @@ export function editEvent(index) {
 	const tabButton = document.querySelector('[data-tab="add-event"]');
 	if (tabButton) tabButton.click();
 
-	// Focus on the top line input
+	// Focus on the top line input and update preview
 	setTimeout(() => {
 		document.getElementById('editor-event-top')?.focus();
-	}, 100);
+		// Trigger preview update for existing event
+		updateEventPreview();
+	}, 150);
 }
 
 function populateEditForm() {
@@ -190,6 +197,9 @@ function populateEditForm() {
 
 	const bottomCount = document.getElementById('editor-event-bottom-count');
 	if (bottomCount) bottomCount.textContent = `${event.bottomLine.length}/12`;
+
+	// Update color preview square
+	updateColorPreview();
 }
 
 export async function deleteEvent(index) {
@@ -303,6 +313,7 @@ function setupEventFormHandlers() {
 			const count = topInput.value.length;
 			const counter = document.getElementById('editor-event-top-count');
 			if (counter) counter.textContent = `${count}/12`;
+			updateEventPreview();
 		});
 	}
 
@@ -312,6 +323,24 @@ function setupEventFormHandlers() {
 			const count = bottomInput.value.length;
 			const counter = document.getElementById('editor-event-bottom-count');
 			if (counter) counter.textContent = `${count}/12`;
+			updateEventPreview();
+		});
+	}
+
+	// Color dropdown - update preview square and emulator
+	const colorSelect = document.getElementById('editor-event-color');
+	if (colorSelect) {
+		colorSelect.addEventListener('change', () => {
+			updateColorPreview();
+			updateEventPreview();
+		});
+	}
+
+	// Image dropdown - update emulator
+	const imageSelect = document.getElementById('editor-event-image');
+	if (imageSelect) {
+		imageSelect.addEventListener('change', () => {
+			updateEventPreview();
 		});
 	}
 
@@ -326,6 +355,31 @@ function setupEventFormHandlers() {
 				timeFieldsContainer.classList.add('hidden');
 			}
 		});
+	}
+}
+
+// Update color preview square
+function updateColorPreview() {
+	const colorSelect = document.getElementById('editor-event-color');
+	const colorPreview = document.getElementById('editor-event-color-preview');
+
+	if (colorSelect && colorPreview && window.COLOR_MAP) {
+		const colorName = colorSelect.value;
+		const colorHex = window.COLOR_MAP[colorName] || '#00FFAA';
+		colorPreview.style.background = colorHex;
+	}
+}
+
+// Update event preview on emulator
+async function updateEventPreview() {
+	const topLine = document.getElementById('editor-event-top')?.value || '';
+	const bottomLine = document.getElementById('editor-event-bottom')?.value || '';
+	const colorName = document.getElementById('editor-event-color')?.value || 'MINT';
+	const iconName = document.getElementById('editor-event-image')?.value || '';
+
+	// Update matrix emulator if available
+	if (window.editorMatrix && window.renderEventOnMatrix) {
+		await window.renderEventOnMatrix(window.editorMatrix, topLine, bottomLine, colorName, iconName);
 	}
 }
 
