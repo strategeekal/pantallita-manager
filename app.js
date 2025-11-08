@@ -1646,9 +1646,9 @@ async function editSchedule(filename) {
 
 		const data = await response.json();
 
-		const contentTimestamp = new Date().getTime();
-		const contentResponse = await fetch(`${data.download_url}?nocache=${contentTimestamp}`);
-		const content = await contentResponse.text();
+		// Decode content directly from API response instead of using download_url
+		// This avoids GitHub CDN caching issues
+		const content = decodeURIComponent(escape(atob(data.content)));
 
 		const isDefault = filename === 'default.csv';
 		const date = isDefault ? null : filename.replace('.csv', '');
@@ -2530,15 +2530,22 @@ async function saveSchedule() {
 		if (!response.ok) {
 			throw new Error(`GitHub API error: ${response.status}`);
 		}
-		
+
+		const saveData = await response.json();
+
+		// Update SHA with the new one from the save response
+		if (currentScheduleData) {
+			currentScheduleData.sha = saveData.content.sha;
+		}
+
 		showStatus('Schedule saved successfully!', 'success');
-				
+
 		// CRITICAL: Add delay then reload schedules to get fresh data from GitHub
 		// This ensures we see the changes we just made
 		setTimeout(async () => {
 			await loadSchedules(); // Force refresh from GitHub
 		}, 1000);
-		
+
 		closeScheduleEditor();
 		
 	} catch (error) {
