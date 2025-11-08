@@ -33,6 +33,10 @@ export async function handleTabSwitch(targetTab) {
 
 	// Tab-specific initialization
 	if (targetTab === 'add-event') {
+		// Clear form if not editing (check if we're coming from an edit action)
+		if (window.eventsModule && !window.eventsModule.isEditing()) {
+			window.eventsModule.clearEventForm();
+		}
 		await initializeEditorTab();
 	} else if (targetTab === 'schedules') {
 		if (window.schedulesModule && window.schedulesModule.initializeSchedules) {
@@ -54,13 +58,17 @@ export async function handleTabSwitch(targetTab) {
 		}
 
 		editorMatrix = null;
+		window.editorMatrix = null;
 	}
 }
 
 export async function initializeEditorTab() {
 	// Setup event form handlers only once
 	if (!editorTabInitialized) {
-		setupEventFormHandlers();
+		// Initialize color preview square on first load
+		if (window.eventsModule && window.eventsModule.initializeColorPreview) {
+			window.eventsModule.initializeColorPreview();
+		}
 		editorTabInitialized = true;
 	}
 
@@ -74,42 +82,9 @@ export async function initializeEditorTab() {
 		// Desktop: Create emulator if it doesn't exist
 		if (!editorMatrix && window.MatrixEmulator) {
 			editorMatrix = new window.MatrixEmulator('matrix-container-editor', 64, 32, 6);
+			window.editorMatrix = editorMatrix;
 		}
 	}
 }
 
-function setupEventFormHandlers() {
-	// Input handlers for live preview
-	const inputs = [
-		'editor-event-top',
-		'editor-event-bottom',
-		'editor-event-color',
-		'editor-event-image'
-	];
-
-	inputs.forEach(id => {
-		const element = document.getElementById(id);
-		if (element) {
-			element.addEventListener('input', updateEditorPreview);
-		}
-	});
-}
-
-async function updateEditorPreview() {
-	const topLine = document.getElementById('editor-event-top').value || '';
-	const bottomLine = document.getElementById('editor-event-bottom').value || '';
-	const colorName = document.getElementById('editor-event-color').value;
-	const iconName = document.getElementById('editor-event-image').value;
-
-	if (isMobileDevice()) {
-		// Update mobile text preview
-		if (window.updateMobileTextPreview) {
-			await window.updateMobileTextPreview(topLine, bottomLine, colorName, iconName);
-		}
-	} else {
-		// Update desktop matrix emulator
-		if (editorMatrix && window.renderEventOnMatrix) {
-			await window.renderEventOnMatrix(editorMatrix, topLine, bottomLine, colorName, iconName);
-		}
-	}
-}
+// Event form handlers are now managed in events-manager.js

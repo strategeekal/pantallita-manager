@@ -9,6 +9,8 @@ let editingEventIndex = null;
 export async function initializeEvents() {
 	await loadEvents();
 	setupEventFormHandlers();
+	// Initialize color preview on first load
+	initializeColorPreview();
 }
 
 export async function loadEvents() {
@@ -143,6 +145,12 @@ export async function saveEvent() {
 		showStatus('Event saved successfully!', 'success');
 		clearEventForm();
 		await loadEvents();
+
+		// Redirect to view-events tab after save
+		const viewEventsTab = document.querySelector('[data-tab="view-events"]');
+		if (viewEventsTab) {
+			setTimeout(() => viewEventsTab.click(), 500);
+		}
 	} catch (error) {
 		showStatus('Failed to save event: ' + error.message, 'error');
 	}
@@ -156,12 +164,17 @@ export function editEvent(index) {
 	const tabButton = document.querySelector('[data-tab="add-event"]');
 	if (tabButton) tabButton.click();
 
-	// Focus on the top line input and update preview
+	// Focus on the top line input and update preview after a delay to ensure matrix is created
 	setTimeout(() => {
 		document.getElementById('editor-event-top')?.focus();
 		// Trigger preview update for existing event
 		updateEventPreview();
-	}, 150);
+	}, 300);
+}
+
+// Check if currently editing
+export function isEditing() {
+	return editingEventIndex !== null;
 }
 
 function populateEditForm() {
@@ -370,6 +383,13 @@ function updateColorPreview() {
 	}
 }
 
+// Initialize color preview to default (MINT)
+export function initializeColorPreview() {
+	setTimeout(() => {
+		updateColorPreview();
+	}, 100);
+}
+
 // Update event preview on emulator
 async function updateEventPreview() {
 	const topLine = document.getElementById('editor-event-top')?.value || '';
@@ -436,7 +456,9 @@ window.eventsModule = {
 	deleteEvent,
 	clearPastEvents,
 	saveEvent,
-	clearEventForm
+	clearEventForm,
+	isEditing,
+	initializeColorPreview
 };
 
 // Also expose directly for HTML onclick
