@@ -1489,12 +1489,16 @@ async function loadSchedules() {
 	showSchedulesLoading();
 	
 	try {
+		// FIXED: Add cache-busting parameter
+		const timestamp = new Date().getTime();
+		
 		const response = await fetch(
-			`https://api.github.com/repos/${config.owner}/${config.repo}/contents/schedules`,
+			`https://api.github.com/repos/${config.owner}/${config.repo}/contents/schedules?nocache=${timestamp}`,
 			{
 				headers: {
 					'Authorization': `Bearer ${config.token}`,
 					'Accept': 'application/vnd.github.v3+json'
+					// REMOVED: Cache-Control headers (cause CORS error)
 				}
 			}
 		);
@@ -1622,32 +1626,81 @@ function createNewSchedule() {
 
 // Edit existing schedule - FIXED: Determines correct edit mode
 async function editSchedule(filename) {
-	const config = loadConfig();
-	const schedule = currentSchedules.find(s => s.name === filename);
+	alert('START: editSchedule called with: ' + filename);
 	
-	if (!schedule) return;
+	const config = loadConfig();
+	currentScheduleData = null;
 	
 	try {
-		const response = await fetch(schedule.url);
-		const content = await response.text();
+		alert('STEP 1: Starting fetch');
+		
+		const timestamp = new Date().getTime();
+		const apiUrl = `https://api.github.com/repos/${config.owner}/${config.repo}/contents/schedules/${filename}?nocache=${timestamp}`;
+		
+		const response = await fetch(apiUrl, {
+			headers: {
+				'Authorization': `Bearer ${config.token}`,
+				'Accept': 'application/vnd.github.v3+json'
+			}
+		});
+		
+		alert('STEP 2: Got response status: ' + response.status);
+		
+		if (!response.ok) {
+			throw new Error(`GitHub API error: ${response.status}`);
+		}
+		
+		const data = await response.json();
+		
+		alert('STEP 3: Fetching content from download_url');
+		
+		const contentTimestamp = new Date().getTime();
+		const contentResponse = await fetch(`${data.download_url}?nocache=${contentTimestamp}`);
+		const content = await contentResponse.text();
+		
+		alert('STEP 4: Got content, length: ' + content.length);
+		
+		const isDefault = filename === 'default.csv';
+		const date = isDefault ? null : filename.replace('.csv', '');
+		
+		alert('STEP 5: About to parse CSV');
+		
+		const parsedItems = parseScheduleCSV(content);
+		
+		alert('STEP 6: Parsed ' + parsedItems.length + ' items');
 		
 		currentScheduleData = {
-			type: schedule.isDefault ? 'default' : 'edit-date',
-			date: schedule.date,
+			type: isDefault ? 'default' : 'edit-date',
+			date: date,
 			filename: filename,
-			sha: schedule.sha,
-			items: parseScheduleCSV(content),
+			sha: data.sha,
+			items: parsedItems,
 			isNew: false
 		};
 		
+		alert('STEP 7: About to call showScheduleEditor');
+		
 		showScheduleEditor();
+		
+		alert('STEP 8: About to call populateScheduleEditor');
+		
 		populateScheduleEditor();
 		
-		const title = schedule.isDefault ? 'Edit Default Schedule' : `Edit Schedule for ${schedule.date}`;
-		document.getElementById('schedule-editor-title').textContent = title;
+		alert('STEP 9: About to set title');
+		
+		const title = isDefault ? 'Edit Default Schedule' : `Edit Schedule for ${date}`;
+		const titleElement = document.getElementById('schedule-editor-title');
+		
+		if (titleElement) {
+			titleElement.textContent = title;
+			alert('STEP 10: SUCCESS - All done!');
+		} else {
+			alert('STEP 10: Title element not found but continuing');
+		}
 		
 	} catch (error) {
-		console.error('Error loading schedule:', error);
+		alert('ERROR: ' + error.message);
+		console.error('Full error:', error);
 		showStatus('Failed to load schedule: ' + error.message, 'error');
 	}
 }
@@ -1689,61 +1742,124 @@ function showScheduleEditor() {
 function closeScheduleEditor() {
 	document.getElementById('schedule-editor').classList.add('hidden');
 	document.querySelector('.schedule-list-section').classList.remove('hidden');
+	
+	// CRITICAL: Clear cached data
 	currentScheduleData = null;
+	
+	// Clean up schedule matrix
+	if (scheduleMatrix) {
+		scheduleMatrix.clear();
+		const container = document.getElementById('matrix-container-schedule');
+		if (container) {
+			container.innerHTML = '';
+		}
+		scheduleMatrix = null;
+	}
 }
 
 // Populate schedule editor - FIXED: Shows correct controls based on mode
 function populateScheduleEditor() {
-	if (!currentScheduleData) return;
+	console.log('populateScheduleEditor called');
+	console.log('currentScheduleData:', currentScheduleData);
+	
+	if (!currentScheduleData) {
+		console.error('No currentScheduleData!');
+		return;
+	}
 	
 	const scheduleInfoForm = document.getElementById('schedule-info-form');
 	
-	if (currentScheduleData.type === 'default') {
-		// EDITING DEFAULT: No controls, just show info
-		scheduleInfoForm.innerHTML = `
-			<div class="form-group">
-				<p class="schedule-mode-info">Editing default schedule template</p>
-			</div>
-		`;
-	} else if (currentScheduleData.type === 'edit-date') {
-		// EDITING SPECIFIC DATE: Just show date picker + make default button
-		const scheduleDate = new Date(currentScheduleData.date + 'T00:00:00');
-		const dayOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][scheduleDate.getDay()];
+	if (!scheduleInfoForm) {
+		console.error('schedule-info-form element not found!');
+		return;
+	}
+	
+	try {
+		if (currentScheduleData.type === 'default') {
+			// EDITING DEFAULT: No controls, just show info
+			scheduleInfoForm.innerHTML = `
+				<div class="form-group">
+					<p class="schedule-mode-info">Editing default schedule template</p>
+				</div>
+			`;
+		} else if (currentScheduleData.type === 'edit-date') {
+			// EDITING SPECIFIC DATE: Check if date exists
+			if (!currentScheduleData.date) {
+				console.error('Date is missing for edit-date type!');
+				scheduleInfoForm.innerHTML = `
+					<div class="form-group">
+						<p class="schedule-mode-info error">Error: Date is missing</p>
+					</div>
+				`;
+			} else {
+				// Date exists, proceed normally
+				try {
+					const scheduleDate = new Date(currentScheduleData.date + 'T00:00:00');
+					const dayOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][scheduleDate.getDay()];
+					
+					scheduleInfoForm.innerHTML = `
+						<div class="form-group">
+							<label>Schedule Date</label>
+							<input type="date" id="schedule-date" value="${currentScheduleData.date}" onchange="handleDateChange()">
+							<small>This schedule is for ${dayOfWeek}</small>
+						</div>
+						<div class="form-group">
+							<button type="button" class="btn-pixel btn-secondary" onclick="makeThisDefault()">
+								💾 Make This the Default Schedule
+							</button>
+						</div>
+					`;
+				} catch (dateError) {
+					console.error('Error parsing date:', dateError);
+					scheduleInfoForm.innerHTML = `
+						<div class="form-group">
+							<p class="schedule-mode-info error">Error: Invalid date format</p>
+						</div>
+					`;
+				}
+			}
+		} else if (currentScheduleData.type === 'new-date') {
+			// CREATING NEW: Show date picker + template selector
+			scheduleInfoForm.innerHTML = `
+				<div class="form-group">
+					<label>Schedule Date *</label>
+					<input type="date" id="schedule-date" value="${currentScheduleData.date || ''}" onchange="handleDateChange()">
+				</div>
+				<div class="form-group">
+					<label>Start From Template</label>
+					<select id="schedule-template" onchange="loadScheduleTemplate()">
+						<option value="">-- Blank Schedule --</option>
+						<option value="default">Default Schedule</option>
+					</select>
+				</div>
+			`;
+		} else {
+			// Unknown type
+			console.error('Unknown schedule type:', currentScheduleData.type);
+			scheduleInfoForm.innerHTML = `
+				<div class="form-group">
+					<p class="schedule-mode-info error">Error: Unknown schedule type</p>
+				</div>
+			`;
+		}
 		
+		console.log('About to call renderScheduleItems...');
+		renderScheduleItems();
+		console.log('About to call updateTimelineView...');
+		updateTimelineView();
+		console.log('populateScheduleEditor complete');
+		
+	} catch (error) {
+		console.error('Error in populateScheduleEditor:', error);
 		scheduleInfoForm.innerHTML = `
 			<div class="form-group">
-				<label>Schedule Date</label>
-				<input type="date" id="schedule-date" value="${currentScheduleData.date}" onchange="handleDateChange()">
-				<small>This schedule is for ${dayOfWeek}</small>
-			</div>
-			<div class="form-group">
-				<button type="button" class="btn-pixel btn-secondary" onclick="makeThisDefault()">
-					💾 Make This the Default Schedule
-				</button>
-			</div>
-		`;
-	} else if (currentScheduleData.type === 'new-date') {
-		// CREATING NEW: Show date picker + template selector
-		scheduleInfoForm.innerHTML = `
-			<div class="form-group">
-				<label>Schedule Date *</label>
-				<input type="date" id="schedule-date" value="" onchange="handleDateChange()">
-			</div>
-			<div class="form-group">
-				<label>Start From Template</label>
-				<select id="schedule-template" onchange="loadScheduleTemplate()">
-					<option value="">-- Blank Schedule --</option>
-					<option value="default">Default Schedule</option>
-				</select>
+				<p class="schedule-mode-info error">Error loading schedule: ${error.message}</p>
 			</div>
 		`;
 	}
-	
-	renderScheduleItems();
-	updateTimelineView();
 }
 
-// Handle date change - FIXED: Updates day-of-week properly
+// Handle date change - Updates day-of-week
 function handleDateChange() {
 	const dateInput = document.getElementById('schedule-date');
 	if (!dateInput || !dateInput.value || !currentScheduleData) return;
@@ -1753,7 +1869,7 @@ function handleDateChange() {
 	const scheduleDate = new Date(dateInput.value + 'T00:00:00');
 	const dayOfWeek = (scheduleDate.getDay() + 6) % 7; // Convert Sunday=0 to Monday=0
 	
-	// Update all items to use only this day
+	// CRITICAL: Update all items to use ONLY this specific day
 	currentScheduleData.items.forEach(item => {
 		item.days = dayOfWeek.toString();
 	});
@@ -1768,6 +1884,7 @@ function handleDateChange() {
 	}
 	
 	renderScheduleItems();
+	updateTimelineView();
 }
 
 // Load schedule template - FIXED: Only for new schedules
@@ -1804,9 +1921,15 @@ async function loadScheduleTemplate() {
 			
 			currentScheduleData.items = JSON.parse(JSON.stringify(templateItems));
 			
-			// Update days if date is set
+			// CRITICAL: Force update days if date is set
 			if (currentScheduleData.date) {
-				handleDateChange();
+				const scheduleDate = new Date(currentScheduleData.date + 'T00:00:00');
+				const dayOfWeek = (scheduleDate.getDay() + 6) % 7;
+				
+				// Force all items to use only the selected date's day
+				currentScheduleData.items.forEach(item => {
+					item.days = dayOfWeek.toString();
+				});
 			}
 			
 			renderScheduleItems();
@@ -1878,11 +2001,11 @@ async function makeThisDefault() {
 		
 		showStatus('Default schedule updated successfully!', 'success');
 		
-		// Reload schedules and redirect to default editor
-		await loadSchedules();
-		
-		// Show alert and redirect to default schedule editor - NEW
-		setTimeout(() => {
+		// CHANGED: Reload schedules with delay to get fresh GitHub data
+		setTimeout(async () => {
+			await loadSchedules(); // Force refresh from GitHub
+			
+			// Show alert and redirect to default schedule editor
 			alert('Default schedule saved! Now redirecting to the default schedule editor where you can select which days of the week this schedule applies to.');
 			editSchedule('default.csv');
 		}, 1000);
@@ -2087,14 +2210,45 @@ function deleteScheduleItem(index) {
 // Update timeline view - FIXED: Shows gaps and proportional spacing
 function updateTimelineView() {
 	const container = document.getElementById('timeline-view');
-	const dayFilter = parseInt(document.getElementById('timeline-day-filter').value);
+	const dayFilterSelect = document.getElementById('timeline-day-filter');
+	const dateDisplay = document.getElementById('timeline-date-display');
 	
 	if (!currentScheduleData || currentScheduleData.items.length === 0) {
 		container.innerHTML = '<p class="empty-message">No items to display</p>';
 		return;
 	}
 	
-	// Filter items for selected day
+	// [Keep existing day filter logic here - don't change]
+	let dayFilter;
+	if (currentScheduleData.type !== 'default' && currentScheduleData.date) {
+		if (dayFilterSelect) {
+			dayFilterSelect.style.display = 'none';
+		}
+		if (dateDisplay) {
+			dateDisplay.style.display = 'block';
+			dateDisplay.classList.remove('hidden');
+			
+			const scheduleDate = new Date(currentScheduleData.date + 'T00:00:00');
+			const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+			const month = months[scheduleDate.getMonth()];
+			const day = scheduleDate.getDate();
+			const year = scheduleDate.getFullYear();
+			dateDisplay.textContent = `${month} ${day}, ${year}`;
+		}
+		
+		const scheduleDate = new Date(currentScheduleData.date + 'T00:00:00');
+		dayFilter = (scheduleDate.getDay() + 6) % 7;
+	} else {
+		if (dayFilterSelect) {
+			dayFilterSelect.style.display = 'block';
+		}
+		if (dateDisplay) {
+			dateDisplay.style.display = 'none';
+			dateDisplay.classList.add('hidden');
+		}
+		dayFilter = parseInt(dayFilterSelect?.value || 0);
+	}
+	
 	const dayItems = currentScheduleData.items.filter(item => 
 		item.enabled && item.days.includes(dayFilter.toString())
 	);
@@ -2104,14 +2258,12 @@ function updateTimelineView() {
 		return;
 	}
 	
-	// Sort by start time
 	dayItems.sort((a, b) => {
 		const aStart = a.startHour * 60 + a.startMin;
 		const bStart = b.startHour * 60 + b.startMin;
 		return aStart - bStart;
 	});
 	
-	// Check for overlaps
 	const overlaps = [];
 	for (let i = 0; i < dayItems.length - 1; i++) {
 		const current = dayItems[i];
@@ -2126,26 +2278,55 @@ function updateTimelineView() {
 		}
 	}
 	
-	// FIXED: Render full day from 00:00 to 24:00 (1440 minutes)
+	// FIXED: Calculate total schedule duration
+	let totalScheduleMinutes = 0;
+	dayItems.forEach(item => {
+		const startMinutes = item.startHour * 60 + item.startMin;
+		const endMinutes = item.endHour * 60 + item.endMin;
+		totalScheduleMinutes += (endMinutes - startMinutes);
+	});
+	
+	// Count gaps
 	const dayStart = 0;
-	const dayEnd = 1440; // 24 hours * 60 minutes
-	const totalMinutes = dayEnd - dayStart;
-	const containerHeight = 600; // Increased for better visibility
-	const pixelsPerMinute = containerHeight / totalMinutes;
+	const dayEnd = 1440;
+	let gapCount = 0;
+	let currentMinute = 0;
+	dayItems.forEach(item => {
+		const startMinutes = item.startHour * 60 + item.startMin;
+		if (startMinutes > currentMinute) {
+			gapCount++;
+		}
+		currentMinute = item.endHour * 60 + item.endMin;
+	});
+	if (currentMinute < dayEnd) {
+		gapCount++;
+	}
+	
+	// FIXED: Better proportions
+	const GAP_HEIGHT = 25; // Fixed gap height
+	const totalGapHeight = gapCount * GAP_HEIGHT;
+	
+	// FIXED: Use remaining space for schedule items
+	const MIN_CONTAINER_HEIGHT = 400; // Minimum readable height
+	const AVAILABLE_HEIGHT = Math.max(500, totalScheduleMinutes * 2.5); // Increased from 1.5 to 2.5 // More generous space
+	
+	// Calculate pixels per minute for schedule items only
+	const pixelsPerScheduleMinute = AVAILABLE_HEIGHT / totalScheduleMinutes;
+	
+	// Total container height
+	const containerHeight = AVAILABLE_HEIGHT + totalGapHeight + 40;
 	
 	let timelineHTML = '';
-	let currentMinute = 0;
+	currentMinute = 0;
+	let currentTopOffset = 20;
 	
 	dayItems.forEach((item, idx) => {
 		const startMinutes = item.startHour * 60 + item.startMin;
 		const endMinutes = item.endHour * 60 + item.endMin;
 		
-		// Render gap before this item (if any)
+		// Render gap - FIXED HEIGHT
 		if (startMinutes > currentMinute) {
 			const gapDuration = startMinutes - currentMinute;
-			const gapHeight = gapDuration * pixelsPerMinute;
-			const topOffset = currentMinute * pixelsPerMinute;
-			
 			const gapHours = Math.floor(gapDuration / 60);
 			const gapMins = gapDuration % 60;
 			const startHour = Math.floor(currentMinute / 60);
@@ -2155,32 +2336,37 @@ function updateTimelineView() {
 			
 			let timeText = '';
 			if (gapHours > 0 && gapMins > 0) {
-				timeText = `${gapHours} hr ${gapMins} min`;
+				timeText = `${gapHours}h ${gapMins}m`;
 			} else if (gapHours > 0) {
-				timeText = `${gapHours} hr`;
+				timeText = `${gapHours}h`;
 			} else {
-				timeText = `${gapMins} min`;
+				timeText = `${gapMins}m`;
 			}
 			
 			timelineHTML += `
-				<div class="timeline-gap" 
-					 style="position: absolute; top: ${topOffset}px; height: ${gapHeight}px; left: 0; right: 0;">
-					<div class="gap-content">
-						<span class="gap-text">NO SCHEDULE ${String(startHour).padStart(2,'0')}:${String(startMin).padStart(2,'0')} - ${String(endHour).padStart(2,'0')}:${String(endMin).padStart(2,'0')} (${timeText})</span>
+				<div class="timeline-item ${hasOverlap ? 'overlap' : ''}" 
+					 style="top: ${currentTopOffset}px; height: ${itemHeight}px;"
+					 onclick="selectScheduleItem(${item.index})">
+					<div class="timeline-item-content">
+						<span class="timeline-text">${String(item.startHour).padStart(2,'0')}:${String(item.startMin).padStart(2,'0')} - ${String(item.endHour).padStart(2,'0')}:${String(item.endMin).padStart(2,'0')} ${item.name}</span>
+						${hasOverlap ? '<span class="overlap-warning">⚠️ Overlap</span>' : ''}
 					</div>
 				</div>
 			`;
+			
+			currentTopOffset += GAP_HEIGHT;
 		}
 		
-		// Render the schedule item
+		// Render schedule item - PROPORTIONAL TO SCHEDULE TIME
 		const hasOverlap = overlaps.includes(item.index);
 		const duration = endMinutes - startMinutes;
-		const topOffset = startMinutes * pixelsPerMinute;
-		const itemHeight = duration * pixelsPerMinute;
+		const MIN_ITEM_HEIGHT = 40; // Minimum 40px for readability
+		const calculatedHeight = duration * pixelsPerScheduleMinute;
+		const itemHeight = Math.max(MIN_ITEM_HEIGHT, calculatedHeight);
 		
 		timelineHTML += `
 			<div class="timeline-item ${hasOverlap ? 'overlap' : ''}" 
-				 style="position: absolute; top: ${topOffset}px; height: ${itemHeight}px; left: 0; right: 0;"
+				 style="top: ${currentTopOffset}px; height: ${itemHeight}px;"
 				 onclick="selectScheduleItem(${item.index})">
 				<div class="timeline-item-content">
 					<span class="time">${String(item.startHour).padStart(2,'0')}:${String(item.startMin).padStart(2,'0')} - ${String(item.endHour).padStart(2,'0')}:${String(item.endMin).padStart(2,'0')}</span>
@@ -2190,15 +2376,13 @@ function updateTimelineView() {
 			</div>
 		`;
 		
+		currentTopOffset += itemHeight;
 		currentMinute = endMinutes;
 	});
 	
-	// Render final gap (if any)
+	// Render final gap
 	if (currentMinute < dayEnd) {
 		const gapDuration = dayEnd - currentMinute;
-		const gapHeight = gapDuration * pixelsPerMinute;
-		const topOffset = currentMinute * pixelsPerMinute;
-		
 		const gapHours = Math.floor(gapDuration / 60);
 		const gapMins = gapDuration % 60;
 		const startHour = Math.floor(currentMinute / 60);
@@ -2206,25 +2390,25 @@ function updateTimelineView() {
 		
 		let timeText = '';
 		if (gapHours > 0 && gapMins > 0) {
-			timeText = `${gapHours} hr ${gapMins} min`;
+			timeText = `${gapHours}h ${gapMins}m`;
 		} else if (gapHours > 0) {
-			timeText = `${gapHours} hr`;
+			timeText = `${gapHours}h`;
 		} else {
-			timeText = `${gapMins} min`;
+			timeText = `${gapMins}m`;
 		}
 		
 		timelineHTML += `
 			<div class="timeline-gap" 
-				 style="position: absolute; top: ${topOffset}px; height: ${gapHeight}px; left: 0; right: 0;">
+				 style="top: ${currentTopOffset}px; height: ${GAP_HEIGHT}px;">
 				<div class="gap-content">
-					<span class="gap-text">NO SCHEDULE ${String(startHour).padStart(2,'0')}:${String(startMin).padStart(2,'0')} - 24:00 (${timeText})</span>
+					<span class="gap-text">FREE ${String(startHour).padStart(2,'0')}:${String(startMin).padStart(2,'0')} - 24:00 (${timeText})</span>
 				</div>
 			</div>
 		`;
 	}
 	
 	container.innerHTML = `
-		<div class="timeline-container" style="position: relative; height: ${containerHeight}px; border: 2px solid #000; background: #f0f0f0;">
+		<div class="timeline-container" style="height: ${containerHeight}px;">
 			${timelineHTML}
 		</div>
 	`;
@@ -2384,8 +2568,14 @@ async function saveSchedule() {
 		}
 		
 		showStatus('Schedule saved successfully!', 'success');
+				
+		// CRITICAL: Add delay then reload schedules to get fresh data from GitHub
+		// This ensures we see the changes we just made
+		setTimeout(async () => {
+			await loadSchedules(); // Force refresh from GitHub
+		}, 1000);
+		
 		closeScheduleEditor();
-		loadSchedules();
 		
 	} catch (error) {
 		console.error('Error saving schedule:', error);
