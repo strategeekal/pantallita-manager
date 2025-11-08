@@ -4,6 +4,7 @@ import { isMobileDevice } from './core/utils.js';
 import { setupTabs, handleTabSwitch } from './ui/tabs.js';
 import { showApp, scrollToAbout, createPixelBackground } from './ui/landing.js';
 import { setupMobileTextPreview, updateMobileTextPreview } from './ui/mobile-preview.js';
+import { loadAvailableImages } from './ui/rendering.js';
 
 // Import events module
 import * as eventsModule from './events/events-manager.js';
@@ -51,6 +52,22 @@ window.scrollToAbout = scrollToAbout;
 window.setupMobileTextPreview = setupMobileTextPreview;
 window.updateMobileTextPreview = updateMobileTextPreview;
 
+// Expose config functions globally for onclick handlers
+window.handleSettingsSubmit = handleSettingsSubmit;
+window.loadSettings = loadSettings;
+
+// Expose schedule functions globally (additional to window.schedulesModule)
+window.createNewSchedule = scheduleEditor.createNewSchedule;
+window.loadSchedules = scheduleManager.loadSchedules;
+window.clearOldSchedules = scheduleManager.clearOldSchedules;
+window.updateTimelineView = timeline.updateTimelineView;
+window.updateSchedulePreview = preview.updateSchedulePreview;
+
+// Expose event functions globally
+window.loadEvents = eventsModule.loadEvents;
+window.saveEvent = eventsModule.saveEvent;
+window.clearPastEvents = eventsModule.clearPastEvents;
+
 // Initialize app on page load
 document.addEventListener('DOMContentLoaded', async () => {
 	console.log('SCREENY Manager loaded!');
@@ -61,6 +78,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 	// Setup tabs
 	setupTabs();
+
+	// Load available images
+	await loadAvailableImages();
 
 	// Setup settings form
 	const settingsForm = document.getElementById('settings-form');
@@ -109,21 +129,24 @@ function displayHello(matrix) {
 	const bottomText = "WORLD!";
 	const color = '#00FFAA';
 
-	// Simple text rendering (assuming TINYBIT_FONT is available)
+	// Simple text rendering using TINYBIT_FONT bitmap format
 	let x = 2;
 	let y = 8;
 
 	topText.split('').forEach(char => {
 		if (window.TINYBIT_FONT && window.TINYBIT_FONT.glyphs[char]) {
 			const glyph = window.TINYBIT_FONT.glyphs[char];
-			for (let row = 0; row < glyph.length; row++) {
-				for (let col = 0; col < glyph[row].length; col++) {
-					if (glyph[row][col] === 1) {
+			// Convert bitmap to pixels
+			for (let row = 0; row < glyph.height; row++) {
+				const byte = glyph.bitmap[row];
+				for (let col = 0; col < glyph.width; col++) {
+					const mask = 0x80 >> col;
+					if (byte & mask) {
 						matrix.setPixel(x + col, y + row, color);
 					}
 				}
 			}
-			x += glyph[0].length + 1;
+			x += glyph.width + 1;
 		}
 	});
 
@@ -133,14 +156,17 @@ function displayHello(matrix) {
 	bottomText.split('').forEach(char => {
 		if (window.TINYBIT_FONT && window.TINYBIT_FONT.glyphs[char]) {
 			const glyph = window.TINYBIT_FONT.glyphs[char];
-			for (let row = 0; row < glyph.length; row++) {
-				for (let col = 0; col < glyph[row].length; col++) {
-					if (glyph[row][col] === 1) {
+			// Convert bitmap to pixels
+			for (let row = 0; row < glyph.height; row++) {
+				const byte = glyph.bitmap[row];
+				for (let col = 0; col < glyph.width; col++) {
+					const mask = 0x80 >> col;
+					if (byte & mask) {
 						matrix.setPixel(x + col, y + row, color);
 					}
 				}
 			}
-			x += glyph[0].length + 1;
+			x += glyph.width + 1;
 		}
 	});
 }

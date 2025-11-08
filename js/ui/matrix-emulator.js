@@ -292,4 +292,8 @@ function generateCloudIcon() {
 }
 
 // Export for ES6 modules
-export { MatrixEmulator };
+export { MatrixEmulator, COLOR_MAP, SIMPLE_ICONS };
+
+// Also expose globally for compatibility
+window.COLOR_MAP = COLOR_MAP;
+window.SIMPLE_ICONS = SIMPLE_ICONS;
