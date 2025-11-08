@@ -1,8 +1,8 @@
 // Main App Entry Point - Coordinates all modules with mobile optimization
-import { loadSettings, handleSettingsSubmit } from './core/config.js';
+import { hasToken, getToken } from './core/config.js';
 import { isMobileDevice } from './core/utils.js';
 import { setupTabs, handleTabSwitch } from './ui/tabs.js';
-import { showApp, scrollToAbout, createPixelBackground } from './ui/landing.js';
+import { showApp, scrollToAbout, createPixelBackground, handleTokenSubmit } from './ui/landing.js';
 import { setupMobileTextPreview, updateMobileTextPreview } from './ui/mobile-preview.js';
 import { loadAvailableImages } from './ui/rendering.js';
 
@@ -48,14 +48,11 @@ window.schedulesModule = {
 // Expose landing functions globally
 window.showApp = showApp;
 window.scrollToAbout = scrollToAbout;
+window.handleTokenSubmit = handleTokenSubmit;
 
 // Expose mobile preview functions
 window.setupMobileTextPreview = setupMobileTextPreview;
 window.updateMobileTextPreview = updateMobileTextPreview;
-
-// Expose config functions globally for onclick handlers
-window.handleSettingsSubmit = handleSettingsSubmit;
-window.loadSettings = loadSettings;
 
 // Expose schedule functions globally (additional to window.schedulesModule)
 window.createNewSchedule = scheduleEditor.createNewSchedule;
@@ -86,15 +83,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 	// Load available images
 	await loadAvailableImages();
 
-	// Auto-load events on startup
-	if (eventsModule && eventsModule.loadEvents) {
-		await eventsModule.loadEvents();
-	}
-
-	// Setup settings form
-	const settingsForm = document.getElementById('settings-form');
-	if (settingsForm) {
-		settingsForm.addEventListener('submit', handleSettingsSubmit);
+	// Pre-fill token if exists
+	if (hasToken()) {
+		const tokenInput = document.getElementById('landing-token-input');
+		if (tokenInput) {
+			tokenInput.value = getToken();
+		}
+		// Auto-show app if token exists
+		showApp();
 	}
 
 	// Load matrix emulator for landing page (desktop only)
