@@ -68,7 +68,7 @@ function populateImageDropdowns() {
 export async function loadBMPImage(imageName) {
 	const config = loadConfig();
 
-	console.log('Loading image:', imageName);
+	console.log('Loading event image:', imageName);
 
 	// Check cache first
 	if (imageCache[imageName]) {
@@ -91,8 +91,57 @@ export async function loadBMPImage(imageName) {
 
 	console.log('Fetching from URL:', imageInfo.url);
 
+	return await fetchAndParseBMP(imageInfo.url, imageName);
+}
+
+// Load schedule BMP image from img/schedules
+export async function loadScheduleBMPImage(imageName) {
+	const config = loadConfig();
+
+	console.log('Loading schedule image:', imageName);
+
+	// Check cache first
+	const cacheKey = 'schedule_' + imageName;
+	if (imageCache[cacheKey]) {
+		console.log('Using cached schedule image:', imageName);
+		return imageCache[cacheKey];
+	}
+
+	// Clear cache if it gets too large
+	if (Object.keys(imageCache).length > 20) {
+		console.log('Clearing image cache to free memory');
+		imageCache = {};
+	}
+
 	try {
-		const response = await fetch(imageInfo.url);
+		const url = `https://api.github.com/repos/${config.owner}/${config.repo}/contents/img/schedules/${imageName}`;
+		const response = await fetch(url, {
+			headers: {
+				'Authorization': `Bearer ${config.token}`,
+				'Accept': 'application/vnd.github.v3+json'
+			}
+		});
+
+		if (!response.ok) {
+			console.error('Failed to fetch schedule image metadata:', response.status);
+			return null;
+		}
+
+		const data = await response.json();
+		const downloadUrl = data.download_url;
+
+		const result = await fetchAndParseBMP(downloadUrl, cacheKey);
+		return result;
+
+	} catch (error) {
+		console.error('Error loading schedule BMP:', error);
+		return null;
+	}
+}
+
+async function fetchAndParseBMP(url, cacheKey) {
+	try {
+		const response = await fetch(url);
 
 		if (!response.ok) {
 			console.error('Fetch failed:', response.status, response.statusText);
@@ -118,7 +167,7 @@ export async function loadBMPImage(imageName) {
 		const bitsPerPixel = dataView.getUint16(28, true);
 
 		console.log('BMP Info:', {
-			imageName,
+			cacheKey,
 			width,
 			height,
 			bitsPerPixel,
@@ -207,7 +256,7 @@ export async function loadBMPImage(imageName) {
 		const result = { pixels, canvas };
 
 		// Cache the result
-		imageCache[imageName] = result;
+		imageCache[cacheKey] = result;
 
 		return result;
 
@@ -215,13 +264,6 @@ export async function loadBMPImage(imageName) {
 		console.error('Error loading BMP:', error);
 		return null;
 	}
-}
-
-// Load schedule BMP image (uses same logic as event images)
-export async function loadScheduleBMPImage(imageName) {
-	// For now, use the same function as loadBMPImage
-	// You can customize this later if schedule images are in a different location
-	return await loadBMPImage(imageName);
 }
 
 // Render event on matrix (shared function)
