@@ -38,7 +38,7 @@ window.schedulesModule = {
 	updateScheduleItem: scheduleEditor.updateScheduleItem,
 	deleteScheduleItem: scheduleEditor.deleteScheduleItem,
 	updateTimelineView: timeline.updateTimelineView,
-	selectScheduleItem: timeline.selectScheduleItem,
+	selectScheduleItem: preview.selectScheduleItem,
 	duplicateSchedule: scheduleManager.duplicateSchedule,
 	deleteSchedule: scheduleManager.deleteSchedule,
 	updateSchedulePreview: preview.updateSchedulePreview

@@ -4,6 +4,7 @@ import { showStatus, parseCSV, getDayOfWeek } from '../core/utils.js';
 import { loadConfig } from '../core/config.js';
 import { loadSchedules, scheduleImages } from './schedule-manager.js';
 import { updateTimelineView } from './timeline.js';
+import { updateSchedulePreview } from './preview.js';
 
 let currentScheduleData = null;
 let scheduleMatrix = null;
@@ -194,6 +195,9 @@ function populateScheduleEditor() {
 			window.schedulesModule.currentScheduleData = currentScheduleData;
 		}
 
+		// Update preview after rendering with a short delay
+		setTimeout(() => updateSchedulePreview(), 50);
+
 	} catch (error) {
 		scheduleInfoForm.innerHTML = `
 			<div class="form-group">
@@ -340,6 +344,9 @@ export function addScheduleItem() {
 	currentScheduleData.items.push(newItem);
 	renderScheduleItems();
 	updateTimelineView();
+
+	// Update preview after a short delay to ensure DOM is updated
+	setTimeout(() => updateSchedulePreview(), 50);
 }
 
 function renderScheduleItems() {
@@ -356,17 +363,30 @@ function renderScheduleItems() {
 			`<option value="${img.name}" ${item.image === img.name ? 'selected' : ''}>${img.name}</option>`
 		).join('');
 
-		const daysHTML = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, dayIndex) => {
-			const isChecked = item.days.includes(dayIndex.toString());
-			return `
-				<label class="day-checkbox ${isChecked ? 'checked' : ''}">
-					<input type="checkbox"
-						${isChecked ? 'checked' : ''}
-						onchange="window.schedulesModule.updateScheduleDays(${index}, this)">
-					${day}
-				</label>
-			`;
-		}).join('');
+		// For date-specific schedules, show read-only day instead of checkboxes
+		const isDateSpecific = currentScheduleData.type !== 'default';
+		let daysHTML;
+
+		if (isDateSpecific && currentScheduleData.date) {
+			// Show read-only day name
+			const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+			const scheduleDate = new Date(currentScheduleData.date + 'T00:00:00');
+			const dayOfWeek = scheduleDate.getDay();
+			daysHTML = `<span class="read-only-day">${dayNames[dayOfWeek]}</span>`;
+		} else {
+			// Show checkboxes for default schedule
+			daysHTML = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, dayIndex) => {
+				const isChecked = item.days.includes(dayIndex.toString());
+				return `
+					<label class="day-checkbox ${isChecked ? 'checked' : ''}">
+						<input type="checkbox"
+							${isChecked ? 'checked' : ''}
+							onchange="window.schedulesModule.updateScheduleDays(${index}, this)">
+						${day}
+					</label>
+				`;
+			}).join('');
+		}
 
 		return `
 			<div class="schedule-item">
@@ -432,6 +452,28 @@ function renderScheduleItems() {
 	}).join('');
 
 	container.innerHTML = itemsHTML;
+
+	// Update preview selector
+	updatePreviewSelector();
+}
+
+function updatePreviewSelector() {
+	const selector = document.getElementById('preview-item-select');
+	if (!selector || !currentScheduleData) return;
+
+	const currentValue = selector.value;
+
+	// Clear and populate selector
+	selector.innerHTML = currentScheduleData.items.map((item, index) =>
+		`<option value="${index}">${item.name}</option>`
+	).join('');
+
+	// Restore previous selection if it still exists, otherwise select first item
+	if (currentValue !== '' && currentScheduleData.items[currentValue]) {
+		selector.value = currentValue;
+	} else if (currentScheduleData.items.length > 0) {
+		selector.value = '0';
+	}
 }
 
 export function updateScheduleDays(index, checkbox) {
@@ -471,6 +513,11 @@ export function updateScheduleItem(index, field, value) {
 	if (['startHour', 'startMin', 'endHour', 'endMin', 'enabled', 'days'].includes(field)) {
 		updateTimelineView();
 	}
+
+	// Update preview when image or progress bar changes
+	if (['image', 'progressBar'].includes(field)) {
+		updateSchedulePreview();
+	}
 }
 
 export function deleteScheduleItem(index) {
@@ -483,6 +530,9 @@ export function deleteScheduleItem(index) {
 
 	renderScheduleItems();
 	updateTimelineView();
+
+	// Update preview after a short delay
+	setTimeout(() => updateSchedulePreview(), 50);
 }
 
 export async function saveSchedule() {
