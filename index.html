@@ -294,8 +294,13 @@
 		<div id="status" class="status hidden"></div>
 	</div>
 
-	<script src="matrix-emulator.js"></script>
-	<script src="fonts.js"></script>
-	<script src="app.js"></script>
+	<!-- ES6 Modules - Mobile optimized -->
+	<script type="module" src="js/ui/fonts.js"></script>
+	<script type="module" src="js/main.js"></script>
+
+	<!-- Fallback for older browsers -->
+	<script nomodule>
+		alert('Your browser does not support ES6 modules. Please use a modern browser like Chrome, Firefox, Safari, or Edge.');
+	</script>
 </body>
 </html>

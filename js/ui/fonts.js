@@ -119,3 +119,4 @@ for (const [char, data] of Object.entries(TINYBIT_CHARS)) {
 
 // Export for ES6 modules
 export { TINYBIT_FONT };
+window.TINYBIT_FONT = TINYBIT_FONT;
