@@ -218,6 +218,21 @@ export function handleDateChange() {
 			smallEl.textContent = `This schedule is for ${dayOfWeek}`;
 		}
 
+		// Update all schedule items to use the new day-of-week
+		if (currentScheduleData.type !== 'default' && currentScheduleData.date) {
+			const scheduleDate = new Date(currentScheduleData.date + 'T00:00:00');
+			const scheduleDayOfWeek = (scheduleDate.getDay() + 6) % 7;
+			const newDayString = scheduleDayOfWeek.toString();
+
+			// Update all items to use the new day
+			currentScheduleData.items.forEach(item => {
+				item.days = newDayString;
+			});
+
+			// Re-render items to show updated day
+			renderScheduleItems();
+		}
+
 		updateTimelineView();
 	}
 }
