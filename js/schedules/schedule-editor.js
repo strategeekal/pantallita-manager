@@ -3,7 +3,7 @@ import { fetchGitHubFile, saveGitHubFile, deleteGitHubFile } from '../core/api.j
 import { showStatus, parseCSV, getDayOfWeek } from '../core/utils.js';
 import { loadConfig } from '../core/config.js';
 import { loadSchedules, scheduleImages, scheduleTemplates } from './schedule-manager.js';
-import { updateTimelineView } from './timeline.js';
+import { updateTimelineView, refreshTimelineViews } from './timeline.js';
 import { updateSchedulePreview } from './preview.js';
 
 let currentScheduleData = null;
@@ -194,7 +194,7 @@ function populateScheduleEditor() {
 		}
 
 		renderScheduleItems();
-		updateTimelineView();
+		refreshTimelineViews();
 
 		// Expose currentScheduleData globally for preview module
 		if (window.schedulesModule) {
@@ -239,7 +239,7 @@ export function handleDateChange() {
 			renderScheduleItems();
 		}
 
-		updateTimelineView();
+		refreshTimelineViews();
 	}
 }
 
@@ -276,7 +276,7 @@ export async function loadScheduleTemplate() {
 		}
 
 		renderScheduleItems();
-		updateTimelineView();
+		refreshTimelineViews();
 		showStatus('Template loaded successfully!', 'success');
 	} catch (error) {
 		showStatus('Failed to load template: ' + error.message, 'error');
@@ -439,7 +439,7 @@ export function addScheduleItem() {
 
 	currentScheduleData.items.push(newItem);
 	renderScheduleItems();
-	updateTimelineView();
+	refreshTimelineViews();
 
 	// Update preview after a short delay to ensure DOM is updated
 	setTimeout(() => updateSchedulePreview(), 50);
@@ -599,7 +599,7 @@ export function updateScheduleDays(index, checkbox) {
 		label.classList.remove('checked');
 	}
 
-	updateTimelineView();
+	refreshTimelineViews();
 }
 
 export function updateScheduleItem(index, field, value) {
@@ -608,7 +608,7 @@ export function updateScheduleItem(index, field, value) {
 	currentScheduleData.items[index][field] = value;
 
 	if (['startHour', 'startMin', 'endHour', 'endMin', 'enabled', 'days'].includes(field)) {
-		updateTimelineView();
+		refreshTimelineViews();
 	}
 
 	// Update preview selector when name changes
@@ -631,7 +631,7 @@ export function deleteScheduleItem(index) {
 	currentScheduleData.items.forEach((item, i) => item.index = i);
 
 	renderScheduleItems();
-	updateTimelineView();
+	refreshTimelineViews();
 
 	// Update preview after a short delay
 	setTimeout(() => updateSchedulePreview(), 50);

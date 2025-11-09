@@ -1,6 +1,120 @@
 // Timeline Module - Render schedule timeline view with gaps and overlap detection
 import { currentScheduleData } from './schedule-editor.js';
 
+let timelineViewMode = 'day'; // 'day' or 'week'
+
+// Helper function to update both views
+export function refreshTimelineViews() {
+	if (timelineViewMode === 'week') {
+		updateWeekView();
+	}
+	updateTimelineView();
+}
+
+export function setTimelineViewMode(mode) {
+	timelineViewMode = mode;
+
+	// Update button states
+	const dayBtn = document.getElementById('timeline-view-day');
+	const weekBtn = document.getElementById('timeline-view-week');
+	const dayFilter = document.getElementById('timeline-day-filter');
+	const dayView = document.getElementById('timeline-view');
+	const weekView = document.getElementById('timeline-week-view');
+
+	if (mode === 'day') {
+		if (dayBtn) {
+			dayBtn.classList.remove('btn-secondary');
+			dayBtn.classList.add('btn-primary');
+		}
+		if (weekBtn) {
+			weekBtn.classList.remove('btn-primary');
+			weekBtn.classList.add('btn-secondary');
+		}
+		if (dayFilter) dayFilter.style.display = 'block';
+		if (dayView) dayView.classList.remove('hidden');
+		if (weekView) weekView.classList.add('hidden');
+		updateTimelineView();
+	} else if (mode === 'week') {
+		if (dayBtn) {
+			dayBtn.classList.remove('btn-primary');
+			dayBtn.classList.add('btn-secondary');
+		}
+		if (weekBtn) {
+			weekBtn.classList.remove('btn-secondary');
+			weekBtn.classList.add('btn-primary');
+		}
+		if (dayFilter) dayFilter.style.display = 'none';
+		if (dayView) dayView.classList.add('hidden');
+		if (weekView) weekView.classList.remove('hidden');
+		updateWeekView();
+	}
+}
+
+export function updateWeekView() {
+	const container = document.getElementById('timeline-week-view');
+
+	if (!currentScheduleData || currentScheduleData.items.length === 0) {
+		container.innerHTML = '<p class="empty-message">No items to display</p>';
+		return;
+	}
+
+	// Week view only makes sense for default schedules
+	if (currentScheduleData.type !== 'default') {
+		container.innerHTML = '<p class="empty-message">Week view is only available for default schedules</p>';
+		return;
+	}
+
+	const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+	const today = (new Date().getDay() + 6) % 7; // Convert Sunday=0 to Monday=0
+
+	let weekHTML = '<div class="week-grid">';
+
+	// Generate each day column
+	for (let dayNum = 0; dayNum < 7; dayNum++) {
+		const dayItems = currentScheduleData.items.filter(item =>
+			item.enabled && item.days.includes(dayNum.toString())
+		).sort((a, b) => {
+			const aStart = a.startHour * 60 + a.startMin;
+			const bStart = b.startHour * 60 + b.startMin;
+			return aStart - bStart;
+		});
+
+		const isToday = dayNum === today;
+
+		weekHTML += `
+			<div class="week-day-column">
+				<div class="week-day-header ${isToday ? 'today' : ''}">${days[dayNum]}</div>
+				<div class="week-day-items">
+		`;
+
+		if (dayItems.length === 0) {
+			weekHTML += '<p style="text-align: center; color: #999; font-size: 0.8em; margin-top: 20px;">No items</p>';
+		} else {
+			dayItems.forEach(item => {
+				const startTime = `${String(item.startHour).padStart(2, '0')}:${String(item.startMin).padStart(2, '0')}`;
+				const endTime = `${String(item.endHour).padStart(2, '0')}:${String(item.endMin).padStart(2, '0')}`;
+
+				weekHTML += `
+					<div class="week-item ${item.enabled ? '' : 'disabled'}"
+					     onclick="window.schedulesModule.selectScheduleItem(${item.index})"
+					     title="${item.name} (${startTime} - ${endTime})">
+						<div class="week-item-name">${item.name}</div>
+						<div class="week-item-time">${startTime} - ${endTime}</div>
+					</div>
+				`;
+			});
+		}
+
+		weekHTML += `
+				</div>
+			</div>
+		`;
+	}
+
+	weekHTML += '</div>';
+	container.innerHTML = weekHTML;
+}
+
 export function updateTimelineView() {
 	const container = document.getElementById('timeline-view');
 	const dayFilterSelect = document.getElementById('timeline-day-filter');
