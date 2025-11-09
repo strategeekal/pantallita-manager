@@ -1614,14 +1614,14 @@ header p {
 	flex: 0 0 45%;
 	max-width: 45%;
 	margin-top: 0;
-	max-height: 750px;
+	max-height: 760px;
 	overflow-y: auto;
 }
 
 .schedule-editor-layout .schedule-preview-section {
 	flex: 1;
 	margin-top: 0;
-	max-height: 750px;
+	max-height: 760px;
 	overflow-y: auto;
 }
 

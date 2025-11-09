@@ -182,6 +182,45 @@ export async function loadScheduleBMPImage(imageName) {
 	}
 }
 
+// Load weather column BMP image from GitHub
+export async function loadWeatherColumnImage(imageName) {
+	const config = loadConfig();
+
+	console.log('Loading weather column:', imageName);
+
+	// Check cache first
+	const cacheKey = 'weather_' + imageName;
+	if (imageCache[cacheKey]) {
+		console.log('Using cached weather column:', imageName);
+		return imageCache[cacheKey];
+	}
+
+	try {
+		const url = `https://api.github.com/repos/${config.owner}/${config.repo}/contents/img/weather/columns/${imageName}`;
+		const response = await fetch(url, {
+			headers: {
+				'Authorization': `Bearer ${config.token}`,
+				'Accept': 'application/vnd.github.v3+json'
+			}
+		});
+
+		if (!response.ok) {
+			console.error('Failed to fetch weather column metadata:', response.status);
+			return null;
+		}
+
+		const data = await response.json();
+		const downloadUrl = data.download_url;
+
+		const result = await fetchAndParseBMP(downloadUrl, cacheKey);
+		return result;
+
+	} catch (error) {
+		console.error('Error loading weather column BMP:', error);
+		return null;
+	}
+}
+
 async function fetchAndParseBMP(url, cacheKey) {
 	try {
 		const response = await fetch(url);
@@ -358,5 +397,6 @@ export async function renderEventOnMatrix(matrix, topLine, bottomLine, colorName
 // Expose functions globally for onclick handlers and compatibility
 window.loadBMPImage = loadBMPImage;
 window.loadScheduleBMPImage = loadScheduleBMPImage;
+window.loadWeatherColumnImage = loadWeatherColumnImage;
 window.renderEventOnMatrix = renderEventOnMatrix;
 window.loadAvailableImages = loadAvailableImages;
