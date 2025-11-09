@@ -1,6 +1,30 @@
 // Landing Page Module - Handle landing page animations and transitions
+import { saveToken, hasToken, getToken } from '../core/config.js';
+import { showStatus } from '../core/utils.js';
+
+export function handleTokenSubmit(event) {
+	event.preventDefault();
+
+	const tokenInput = document.getElementById('landing-token-input');
+	const token = tokenInput.value.trim();
+
+	if (!token) {
+		showStatus('Please enter a valid GitHub token', 'error');
+		return;
+	}
+
+	// Save token and show app
+	saveToken(token);
+	showApp();
+}
 
 export function showApp() {
+	// Check if token exists
+	if (!hasToken()) {
+		showStatus('Please enter your GitHub token first', 'error');
+		return;
+	}
+
 	const landingPage = document.querySelector('.landing-page');
 	const mainApp = document.querySelector('.main-app');
 
@@ -15,6 +39,11 @@ export function showApp() {
 			landingContainer.innerHTML = '';
 		}
 		window.landingMatrix = null;
+	}
+
+	// Auto-load events when app starts
+	if (window.eventsModule && window.eventsModule.loadEvents) {
+		window.eventsModule.loadEvents();
 	}
 }
 

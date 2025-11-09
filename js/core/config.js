@@ -1,42 +1,30 @@
 // Configuration management
-const CONFIG_KEY = 'screeny_config';
+import { GITHUB_OWNER, GITHUB_REPO } from './constants.js';
+
+const TOKEN_KEY = 'pantallita_token';
 
 export function loadConfig() {
-	return JSON.parse(localStorage.getItem(CONFIG_KEY) || '{}');
-}
-
-export function saveConfig(config) {
-	localStorage.setItem(CONFIG_KEY, JSON.stringify(config));
-}
-
-export function handleSettingsSubmit(e) {
-	e.preventDefault();
-
-	const config = {
-		token: document.getElementById('github-token').value,
-		owner: document.getElementById('github-owner').value,
-		repo: document.getElementById('github-repo').value
+	const token = localStorage.getItem(TOKEN_KEY) || '';
+	return {
+		token,
+		owner: GITHUB_OWNER,
+		repo: GITHUB_REPO
 	};
-
-	saveConfig(config);
-	showStatus('Settings saved!', 'success');
 }
 
-export function loadSettings() {
-	const config = loadConfig();
-
-	if (config.token) document.getElementById('github-token').value = config.token;
-	if (config.owner) document.getElementById('github-owner').value = config.owner;
-	if (config.repo) document.getElementById('github-repo').value = config.repo;
+export function saveToken(token) {
+	localStorage.setItem(TOKEN_KEY, token);
 }
 
-function showStatus(message, type) {
-	const status = document.getElementById('status');
-	status.textContent = message;
-	status.className = `status ${type}`;
-	status.classList.remove('hidden');
+export function getToken() {
+	return localStorage.getItem(TOKEN_KEY) || '';
+}
 
-	setTimeout(() => {
-		status.classList.add('hidden');
-	}, 3000);
+export function clearToken() {
+	localStorage.removeItem(TOKEN_KEY);
+}
+
+export function hasToken() {
+	const token = getToken();
+	return token && token.length > 0;
 }

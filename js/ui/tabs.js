@@ -1,6 +1,5 @@
 // Tabs Module - Handle tab switching and initialization
 
-import { loadSettings } from '../core/config.js';
 import { isMobileDevice } from '../core/utils.js';
 
 let editorMatrix = null;
@@ -17,9 +16,6 @@ export function setupTabs() {
 			handleTabSwitch(targetTab);
 		});
 	});
-
-	// Load settings initially
-	loadSettings();
 }
 
 export async function handleTabSwitch(targetTab) {
