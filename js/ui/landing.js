@@ -18,7 +18,7 @@ export async function handleTokenSubmit(event) {
 	await showApp();
 }
 
-export function logout() {
+export async function logout() {
 	if (!confirm('Are you sure you want to logout?')) {
 		return;
 	}
@@ -32,6 +32,19 @@ export function logout() {
 
 	if (mainApp) mainApp.classList.add('hidden');
 	if (landingPage) landingPage.classList.remove('hidden');
+
+	// Recreate landing matrix and show "BYE"
+	if (window.MatrixEmulator && !window.landingMatrix) {
+		const landingMatrix = new window.MatrixEmulator('matrix-container', 64, 32, 8);
+		window.landingMatrix = landingMatrix;
+
+		// Show "BYE" message
+		if (window.displayBye) {
+			window.displayBye(landingMatrix);
+		}
+	} else if (window.landingMatrix && window.displayBye) {
+		window.displayBye(window.landingMatrix);
+	}
 
 	// Clear token input
 	const tokenInput = document.getElementById('landing-token-input');

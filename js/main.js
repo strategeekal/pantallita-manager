@@ -132,9 +132,14 @@ function displayHello(matrix) {
 
 	matrix.clear();
 
-	const topText = "HELLO";
-	const bottomText = "WORLD!";
-	const color = '#00FFAA';
+	// Check for name parameter in URL
+	const urlParams = new URLSearchParams(window.location.search);
+	const name = urlParams.get('name');
+
+	let topText = "HOLA";
+	let bottomText = name && name.length <= 12 ? name.toUpperCase() : "";
+	const topColor = '#00FFAA'; // Mint color
+	const bottomColor = '#FF0088'; // Bugambilia color
 
 	// Check if font is loaded
 	if (!window.TINYBIT_FONT || !window.TINYBIT_FONT.glyphs) {
@@ -142,7 +147,7 @@ function displayHello(matrix) {
 		// Draw a simple fallback pattern
 		for (let y = 10; y < 25; y++) {
 			for (let x = 5; x < 60; x += 3) {
-				matrix.setPixel(x, y, color);
+				matrix.setPixel(x, y, topColor);
 			}
 		}
 		matrix.render();
@@ -162,7 +167,7 @@ function displayHello(matrix) {
 				for (let col = 0; col < glyph.width; col++) {
 					const mask = 0x80 >> col;
 					if (byte & mask) {
-						matrix.setPixel(x + col, y + row, color);
+						matrix.setPixel(x + col, y + row, topColor);
 					}
 				}
 			}
@@ -170,10 +175,53 @@ function displayHello(matrix) {
 		}
 	});
 
-	x = 2;
-	y = 20;
+	// Only render bottom text if there's a name
+	if (bottomText) {
+		x = 2;
+		y = 20;
 
-	bottomText.split('').forEach(char => {
+		bottomText.split('').forEach(char => {
+			if (window.TINYBIT_FONT.glyphs[char]) {
+				const glyph = window.TINYBIT_FONT.glyphs[char];
+				// Convert bitmap to pixels
+				for (let row = 0; row < glyph.height; row++) {
+					const byte = glyph.bitmap[row];
+					for (let col = 0; col < glyph.width; col++) {
+						const mask = 0x80 >> col;
+						if (byte & mask) {
+							matrix.setPixel(x + col, y + row, bottomColor);
+						}
+					}
+				}
+				x += glyph.width + 1;
+			}
+		});
+	}
+
+	// Actually render the pixels to canvas
+	matrix.render();
+}
+
+function displayBye(matrix) {
+	if (!matrix) return;
+
+	matrix.clear();
+
+	const text = "BYE";
+	const color = '#FF0088'; // Bugambilia color
+
+	// Check if font is loaded
+	if (!window.TINYBIT_FONT || !window.TINYBIT_FONT.glyphs) {
+		console.warn('TINYBIT_FONT not loaded yet');
+		matrix.render();
+		return;
+	}
+
+	// Center text vertically
+	let x = 2;
+	let y = 13; // Centered vertically for single line
+
+	text.split('').forEach(char => {
 		if (window.TINYBIT_FONT.glyphs[char]) {
 			const glyph = window.TINYBIT_FONT.glyphs[char];
 			// Convert bitmap to pixels
@@ -190,9 +238,11 @@ function displayHello(matrix) {
 		}
 	});
 
-	// Actually render the pixels to canvas
 	matrix.render();
 }
+
+// Expose display functions globally
+window.displayBye = displayBye;
 
 function drawFeatureIcons() {
 	// Feature icon rendering would go here
