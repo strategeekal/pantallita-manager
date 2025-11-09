@@ -1,6 +1,7 @@
 // Rendering Utilities Module - Image loading and event rendering
 import { loadConfig } from '../core/config.js';
 import { COLOR_MAP, SIMPLE_ICONS } from './matrix-emulator.js';
+import { TINYBIT_FONT } from './fonts.js';
 
 let availableImages = [];
 let imageCache = {};
