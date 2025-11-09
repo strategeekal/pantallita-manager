@@ -86,6 +86,13 @@ export async function initializeEditorTab() {
 			window.editorMatrix = editorMatrix;
 		}
 	}
+
+	// Trigger preview update after matrix is ready
+	setTimeout(() => {
+		if (window.eventsModule && window.eventsModule.triggerPreviewUpdate) {
+			window.eventsModule.triggerPreviewUpdate();
+		}
+	}, 100);
 }
 
 // Event form handlers are now managed in events-manager.js
