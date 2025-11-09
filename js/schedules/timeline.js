@@ -247,6 +247,9 @@ export function updateTimelineView() {
 					<span class="timeline-item-time">${startTime}-${endTime}</span>
 					<span class="timeline-item-name">${item.name}</span>
 					<span class="timeline-item-duration">(${duration} min)</span>
+					<button class="timeline-item-delete"
+					        onclick="event.stopPropagation(); window.schedulesModule.deleteScheduleItem(${item.index});"
+					        title="Delete item">Delete</button>
 				</div>
 				${hasOverlap ? '<div class="overlap-warning">⚠️ Overlap</div>' : ''}
 			</div>
