@@ -1438,6 +1438,13 @@ header p {
 	border-color: #ff0000;
 }
 
+.timeline-item.selected {
+	background: #d4f4dd;
+	border-color: #00FFAA;
+	border-width: 3px;
+	box-shadow: 3px 3px 0px rgba(0, 255, 170, 0.3);
+}
+
 .timeline-item-content {
 	display: flex;
 	align-items: center;
@@ -1522,8 +1529,8 @@ header p {
 .timeline-edit-panel {
 	background: white;
 	border: 3px solid #000;
-	padding: 15px;
-	margin-top: 15px;
+	padding: 10px;
+	margin-top: 10px;
 	box-shadow: 2px 2px 0px rgba(0, 0, 0, 0.3);
 }
 
@@ -1532,48 +1539,49 @@ header p {
 }
 
 .timeline-edit-panel h5 {
-	margin: 0 0 15px 0;
+	margin: 0 0 8px 0;
 	font-family: 'Press Start 2P', monospace;
-	font-size: 0.9em;
+	font-size: 0.8em;
 }
 
 .edit-panel-content {
 	display: flex;
 	flex-direction: column;
-	gap: 12px;
+	gap: 8px;
 }
 
 .edit-panel-content .form-group {
 	display: flex;
 	flex-direction: column;
-	gap: 5px;
+	gap: 3px;
 }
 
 .edit-panel-content label {
 	font-family: 'Courier New', monospace;
 	font-weight: bold;
-	font-size: 0.9em;
+	font-size: 0.8em;
 }
 
 .edit-panel-content .form-input {
-	padding: 8px;
+	padding: 5px;
 	border: 2px solid #000;
 	font-family: 'Courier New', monospace;
-	font-size: 0.9em;
+	font-size: 0.85em;
 }
 
 .days-checkboxes {
 	display: flex;
-	gap: 10px;
+	gap: 6px;
 	flex-wrap: wrap;
 }
 
 .days-checkboxes label {
 	display: flex;
 	align-items: center;
-	gap: 5px;
+	gap: 3px;
 	font-weight: normal;
 	cursor: pointer;
+	font-size: 0.8em;
 }
 
 .days-checkboxes input[type="checkbox"] {
@@ -1582,8 +1590,8 @@ header p {
 
 .edit-panel-actions {
 	display: flex;
-	gap: 10px;
-	margin-top: 5px;
+	gap: 8px;
+	margin-top: 0;
 }
 
 .btn-danger {
@@ -1606,15 +1614,15 @@ header p {
 	flex: 0 0 45%;
 	max-width: 45%;
 	margin-top: 0;
-	max-height: 650px;
+	max-height: 750px;
 	overflow-y: auto;
 }
 
 .schedule-editor-layout .schedule-preview-section {
 	flex: 1;
 	margin-top: 0;
-	max-height: 650px;
-	overflow: hidden;
+	max-height: 750px;
+	overflow-y: auto;
 }
 
 /* Hide preview section in week view */

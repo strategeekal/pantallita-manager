@@ -32,6 +32,11 @@ export async function updateSchedulePreview() {
 		return;
 	}
 
+	// Update edit panel when dropdown changes
+	if (window.schedulesModule?.showEditPanel && itemIndex !== '') {
+		window.schedulesModule.showEditPanel(parseInt(itemIndex));
+	}
+
 	const item = currentScheduleData.items[itemIndex];
 
 	// Create or get schedule matrix emulator (desktop only)

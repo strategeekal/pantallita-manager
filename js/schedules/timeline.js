@@ -303,7 +303,7 @@ export async function selectScheduleItem(index) {
 	showEditPanel(index);
 }
 
-function showEditPanel(index) {
+export function showEditPanel(index) {
 	const editPanel = document.getElementById('timeline-edit-panel');
 	if (!editPanel || !currentScheduleData) return;
 
@@ -312,6 +312,16 @@ function showEditPanel(index) {
 
 	// Store current editing index
 	editPanel.dataset.editingIndex = index;
+
+	// Highlight selected timeline item
+	const timelineItems = document.querySelectorAll('.timeline-item');
+	timelineItems.forEach((item, idx) => {
+		if (idx === index) {
+			item.classList.add('selected');
+		} else {
+			item.classList.remove('selected');
+		}
+	});
 
 	// Populate form fields
 	document.getElementById('edit-item-name').value = item.name || '';

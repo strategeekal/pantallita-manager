@@ -41,6 +41,7 @@ window.schedulesModule = {
 	deleteScheduleItem: scheduleEditor.deleteScheduleItem,
 	updateTimelineView: timeline.updateTimelineView,
 	selectScheduleItem: timeline.selectScheduleItem,
+	showEditPanel: timeline.showEditPanel,
 	saveItemEdit: timeline.saveItemEdit,
 	deleteScheduleItemFromPanel: timeline.deleteScheduleItemFromPanel,
 	duplicateSchedule: scheduleManager.duplicateSchedule,
