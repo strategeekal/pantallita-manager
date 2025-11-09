@@ -230,12 +230,10 @@ export function updateTimelineView() {
 			`;
 		}
 
-		// Calculate proportional height (min 60px, max 200px, scaled by duration)
-		const baseHeight = 60;
-		const maxHeight = 200;
-		const heightPerMinute = 0.5;
-		const calculatedHeight = baseHeight + (duration * heightPerMinute);
-		const itemHeight = Math.min(maxHeight, Math.max(baseHeight, calculatedHeight));
+		// Calculate proportional height (15 min or less = gap height of 30px, then scale at 2px/min)
+		const minHeight = 30; // Same as gap blocks
+		const pixelsPerMinute = 2; // 2px per minute gives proper proportions
+		const itemHeight = Math.max(minHeight, duration * pixelsPerMinute);
 
 		// Render schedule item
 		const startTime = `${String(item.startHour).padStart(2, '0')}:${String(item.startMin).padStart(2, '0')}`;
