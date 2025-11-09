@@ -295,7 +295,7 @@ export async function renderEventOnMatrix(matrix, topLine, bottomLine, colorName
 
 	// Calculate bottom-aligned text positions
 	const positions = matrix.calculateBottomAlignedPositions(
-		window.TINYBIT_FONT,
+		TINYBIT_FONT,
 		topLine,
 		bottomLine,
 		32
@@ -303,11 +303,11 @@ export async function renderEventOnMatrix(matrix, topLine, bottomLine, colorName
 
 	// Draw text
 	if (topLine) {
-		matrix.drawTextWithFont(topLine, TEXT_MARGIN, positions.line1Y, topColor, window.TINYBIT_FONT);
+		matrix.drawTextWithFont(topLine, TEXT_MARGIN, positions.line1Y, topColor, TINYBIT_FONT);
 	}
 
 	if (bottomLine) {
-		matrix.drawTextWithFont(bottomLine, TEXT_MARGIN, positions.line2Y, bottomColor, window.TINYBIT_FONT);
+		matrix.drawTextWithFont(bottomLine, TEXT_MARGIN, positions.line2Y, bottomColor, TINYBIT_FONT);
 	}
 
 	matrix.render();
