@@ -318,6 +318,16 @@ function generateEventsCSV() {
 	return header + lines.join('\n');
 }
 
+let formHandlersInitialized = false;
+
+export function initializeEventFormHandlers() {
+	// Only set up handlers once
+	if (formHandlersInitialized) return;
+
+	setupEventFormHandlers();
+	formHandlersInitialized = true;
+}
+
 function setupEventFormHandlers() {
 	// Character counters
 	const topInput = document.getElementById('editor-event-top');

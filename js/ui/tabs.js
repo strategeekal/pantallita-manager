@@ -66,9 +66,13 @@ export async function handleTabSwitch(targetTab) {
 export async function initializeEditorTab() {
 	// Setup event form handlers only once
 	if (!editorTabInitialized) {
-		// Initialize color preview square on first load
+		// Initialize color preview square and form handlers on first load
 		if (window.eventsModule && window.eventsModule.initializeColorPreview) {
 			window.eventsModule.initializeColorPreview();
+		}
+		// Initialize form handlers once
+		if (window.eventsModule && window.eventsModule.initializeEventFormHandlers) {
+			window.eventsModule.initializeEventFormHandlers();
 		}
 		editorTabInitialized = true;
 	}
@@ -87,12 +91,12 @@ export async function initializeEditorTab() {
 		}
 	}
 
-	// Trigger preview update after matrix is ready
-	setTimeout(() => {
+	// Trigger preview update after matrix is ready - use requestAnimationFrame for proper timing
+	requestAnimationFrame(() => {
 		if (window.eventsModule && window.eventsModule.triggerPreviewUpdate) {
 			window.eventsModule.triggerPreviewUpdate();
 		}
-	}, 100);
+	});
 }
 
 // Event form handlers are now managed in events-manager.js
