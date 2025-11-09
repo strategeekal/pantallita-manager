@@ -250,9 +250,6 @@ export function updateTimelineView() {
 					<span class="timeline-item-time">${startTime}-${endTime}</span>
 					<span class="timeline-item-name">${item.name}</span>
 					<span class="timeline-item-duration">(${duration} min)</span>
-					<button class="timeline-item-delete"
-					        onclick="event.stopPropagation(); window.schedulesModule.deleteScheduleItem(${item.index});"
-					        title="Delete item">Delete</button>
 				</div>
 				${hasOverlap ? '<div class="overlap-warning">⚠️ Overlap</div>' : ''}
 			</div>
@@ -301,5 +298,116 @@ export async function selectScheduleItem(index) {
 	// Preview will be handled by preview.js module
 	if (window.schedulesModule && window.schedulesModule.updateSchedulePreview) {
 		await window.schedulesModule.updateSchedulePreview();
+	}
+	// Show and populate edit panel
+	showEditPanel(index);
+}
+
+function showEditPanel(index) {
+	const editPanel = document.getElementById('timeline-edit-panel');
+	if (!editPanel || !currentScheduleData) return;
+
+	const item = currentScheduleData.items[index];
+	if (!item) return;
+
+	// Store current editing index
+	editPanel.dataset.editingIndex = index;
+
+	// Populate form fields
+	document.getElementById('edit-item-name').value = item.name || '';
+	document.getElementById('edit-item-image').value = item.image || '';
+
+	// Handle days checkboxes (only for default schedules)
+	const daysGroup = document.getElementById('edit-days-group');
+	const isDefaultSchedule = !currentScheduleData.date;
+
+	if (isDefaultSchedule) {
+		daysGroup.style.display = 'flex';
+		// Clear all checkboxes
+		for (let i = 0; i < 7; i++) {
+			const checkbox = document.getElementById(`edit-day-${i}`);
+			if (checkbox) {
+				checkbox.checked = item.days && item.days.includes(i.toString());
+			}
+		}
+	} else {
+		daysGroup.style.display = 'none';
+	}
+
+	// Populate image dropdown with available images
+	populateImageDropdown();
+
+	// Show the panel
+	editPanel.classList.remove('hidden');
+}
+
+function populateImageDropdown() {
+	const imageSelect = document.getElementById('edit-item-image');
+	if (!imageSelect) return;
+
+	// Get images from window.schedulesModule if available
+	if (window.schedulesModule && window.schedulesModule.availableImages) {
+		const images = window.schedulesModule.availableImages;
+		imageSelect.innerHTML = '<option value="">Select image...</option>';
+		images.forEach(img => {
+			const option = document.createElement('option');
+			option.value = img;
+			option.textContent = img;
+			imageSelect.appendChild(option);
+		});
+	}
+}
+
+export function saveItemEdit() {
+	const editPanel = document.getElementById('timeline-edit-panel');
+	if (!editPanel || !currentScheduleData) return;
+
+	const index = parseInt(editPanel.dataset.editingIndex);
+	const item = currentScheduleData.items[index];
+	if (!item) return;
+
+	// Update item properties
+	item.name = document.getElementById('edit-item-name').value;
+	item.image = document.getElementById('edit-item-image').value;
+
+	// Update days if default schedule
+	const isDefaultSchedule = !currentScheduleData.date;
+	if (isDefaultSchedule) {
+		const selectedDays = [];
+		for (let i = 0; i < 7; i++) {
+			const checkbox = document.getElementById(`edit-day-${i}`);
+			if (checkbox && checkbox.checked) {
+				selectedDays.push(i.toString());
+			}
+		}
+		item.days = selectedDays;
+	}
+
+	// Refresh timeline views
+	refreshTimelineViews();
+
+	// Update schedule editor if available
+	if (window.schedulesModule && window.schedulesModule.renderScheduleEditor) {
+		window.schedulesModule.renderScheduleEditor();
+	}
+
+	// Update preview
+	if (window.schedulesModule && window.schedulesModule.updateSchedulePreview) {
+		window.schedulesModule.updateSchedulePreview();
+	}
+}
+
+export function deleteScheduleItemFromPanel() {
+	const editPanel = document.getElementById('timeline-edit-panel');
+	if (!editPanel || !currentScheduleData) return;
+
+	const index = parseInt(editPanel.dataset.editingIndex);
+
+	// Hide edit panel first
+	editPanel.classList.add('hidden');
+
+	// Delete the item
+	if (window.schedulesModule && window.schedulesModule.deleteScheduleItem) {
+		window.schedulesModule.deleteScheduleItem(index);
 	}
 }

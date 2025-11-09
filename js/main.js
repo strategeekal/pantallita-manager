@@ -4,7 +4,7 @@ import { isMobileDevice } from './core/utils.js';
 import { setupTabs, handleTabSwitch } from './ui/tabs.js';
 import { showApp, scrollToAbout, createPixelBackground, handleTokenSubmit, logout } from './ui/landing.js';
 import { setupMobileTextPreview, updateMobileTextPreview } from './ui/mobile-preview.js';
-import { loadAvailableImages } from './ui/rendering.js';
+import { loadAvailableImages, availableImages } from './ui/rendering.js';
 import { TINYBIT_FONT } from './ui/fonts.js';
 
 // Import events module
@@ -40,10 +40,13 @@ window.schedulesModule = {
 	updateScheduleItem: scheduleEditor.updateScheduleItem,
 	deleteScheduleItem: scheduleEditor.deleteScheduleItem,
 	updateTimelineView: timeline.updateTimelineView,
-	selectScheduleItem: preview.selectScheduleItem,
+	selectScheduleItem: timeline.selectScheduleItem,
+	saveItemEdit: timeline.saveItemEdit,
+	deleteScheduleItemFromPanel: timeline.deleteScheduleItemFromPanel,
 	duplicateSchedule: scheduleManager.duplicateSchedule,
 	deleteSchedule: scheduleManager.deleteSchedule,
-	updateSchedulePreview: preview.updateSchedulePreview
+	updateSchedulePreview: preview.updateSchedulePreview,
+	get availableImages() { return availableImages; }
 };
 
 // Expose landing functions globally
