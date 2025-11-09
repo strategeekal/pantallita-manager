@@ -2,7 +2,7 @@
 import { hasToken, getToken } from './core/config.js';
 import { isMobileDevice } from './core/utils.js';
 import { setupTabs, handleTabSwitch } from './ui/tabs.js';
-import { showApp, scrollToAbout, createPixelBackground, handleTokenSubmit } from './ui/landing.js';
+import { showApp, scrollToAbout, createPixelBackground, handleTokenSubmit, logout } from './ui/landing.js';
 import { setupMobileTextPreview, updateMobileTextPreview } from './ui/mobile-preview.js';
 import { loadAvailableImages } from './ui/rendering.js';
 
@@ -49,10 +49,14 @@ window.schedulesModule = {
 window.showApp = showApp;
 window.scrollToAbout = scrollToAbout;
 window.handleTokenSubmit = handleTokenSubmit;
+window.logout = logout;
 
 // Expose mobile preview functions
 window.setupMobileTextPreview = setupMobileTextPreview;
 window.updateMobileTextPreview = updateMobileTextPreview;
+
+// Expose image loading globally
+window.loadAvailableImages = loadAvailableImages;
 
 // Expose schedule functions globally (additional to window.schedulesModule)
 window.createNewSchedule = scheduleEditor.createNewSchedule;
@@ -80,9 +84,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 	// Setup tabs
 	setupTabs();
 
-	// Load available images
-	await loadAvailableImages();
-
 	// Pre-fill token if exists
 	if (hasToken()) {
 		const tokenInput = document.getElementById('landing-token-input');
@@ -90,7 +91,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 			tokenInput.value = getToken();
 		}
 		// Auto-show app if token exists
-		showApp();
+		await showApp();
 	}
 
 	// Load matrix emulator for landing page (desktop only)
