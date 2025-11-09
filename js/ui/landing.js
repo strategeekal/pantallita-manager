@@ -82,6 +82,9 @@ export async function showApp() {
 	if (window.loadAvailableImages) {
 		await window.loadAvailableImages();
 	}
+	if (window.loadScheduleImages) {
+		await window.loadScheduleImages();
+	}
 
 	// Auto-load events when app starts
 	if (window.eventsModule && window.eventsModule.loadEvents) {

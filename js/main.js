@@ -4,7 +4,7 @@ import { isMobileDevice } from './core/utils.js';
 import { setupTabs, handleTabSwitch } from './ui/tabs.js';
 import { showApp, scrollToAbout, createPixelBackground, handleTokenSubmit, logout } from './ui/landing.js';
 import { setupMobileTextPreview, updateMobileTextPreview } from './ui/mobile-preview.js';
-import { loadAvailableImages, availableImages } from './ui/rendering.js';
+import { loadAvailableImages, availableImages, loadScheduleImages, availableScheduleImages } from './ui/rendering.js';
 import { TINYBIT_FONT } from './ui/fonts.js';
 
 // Import events module
@@ -47,7 +47,7 @@ window.schedulesModule = {
 	duplicateSchedule: scheduleManager.duplicateSchedule,
 	deleteSchedule: scheduleManager.deleteSchedule,
 	updateSchedulePreview: preview.updateSchedulePreview,
-	get availableImages() { return availableImages; }
+	get availableImages() { return availableScheduleImages; }
 };
 
 // Expose landing functions globally
@@ -62,6 +62,7 @@ window.updateMobileTextPreview = updateMobileTextPreview;
 
 // Expose image loading globally
 window.loadAvailableImages = loadAvailableImages;
+window.loadScheduleImages = loadScheduleImages;
 
 // Expose schedule functions globally (additional to window.schedulesModule)
 window.createNewSchedule = scheduleEditor.createNewSchedule;
