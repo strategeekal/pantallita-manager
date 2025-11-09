@@ -190,52 +190,16 @@ export function updateTimelineView() {
 		}
 	}
 
-	// Calculate total schedule duration
-	let totalScheduleMinutes = 0;
-	dayItems.forEach(item => {
-		const startMinutes = item.startHour * 60 + item.startMin;
-		const endMinutes = item.endHour * 60 + item.endMin;
-		totalScheduleMinutes += (endMinutes - startMinutes);
-	});
-
-	// Count gaps
-	const dayStart = 0;
-	const dayEnd = 1440;
-	let gapCount = 0;
-	let currentMinute = 0;
-	dayItems.forEach(item => {
-		const startMinutes = item.startHour * 60 + item.startMin;
-		if (startMinutes > currentMinute) {
-			gapCount++;
-		}
-		currentMinute = item.endHour * 60 + item.endMin;
-	});
-	if (currentMinute < dayEnd) {
-		gapCount++;
-	}
-
-	// Calculate heights
-	const GAP_HEIGHT = 25; // Fixed gap height
-	const totalGapHeight = gapCount * GAP_HEIGHT;
-	const AVAILABLE_HEIGHT = Math.max(500, totalScheduleMinutes * 2.5);
-	const pixelsPerScheduleMinute = AVAILABLE_HEIGHT / totalScheduleMinutes;
-	const containerHeight = AVAILABLE_HEIGHT + totalGapHeight + 40;
-
-	// Render timeline
+	// Render timeline using card-based layout
 	let timelineHTML = '';
-	currentMinute = 0;
-	let currentTopOffset = 20;
+	let currentMinute = 0;
+	const dayEnd = 1440;
 
-	dayItems.forEach((item, idx) => {
+	dayItems.forEach((item) => {
 		const startMinutes = item.startHour * 60 + item.startMin;
 		const endMinutes = item.endHour * 60 + item.endMin;
-
-		// Declare variables needed for rendering
-		const hasOverlap = overlaps.includes(item.index);
 		const duration = endMinutes - startMinutes;
-		const MIN_ITEM_HEIGHT = 40;
-		const calculatedHeight = duration * pixelsPerScheduleMinute;
-		const itemHeight = Math.max(MIN_ITEM_HEIGHT, calculatedHeight);
+		const hasOverlap = overlaps.includes(item.index);
 
 		// Render gap before item
 		if (startMinutes > currentMinute) {
@@ -257,31 +221,36 @@ export function updateTimelineView() {
 			}
 
 			timelineHTML += `
-				<div class="timeline-gap"
-					 style="top: ${currentTopOffset}px; height: ${GAP_HEIGHT}px;">
+				<div class="timeline-gap">
 					<div class="timeline-gap-content">
 						<span class="gap-time">${String(startHour).padStart(2,'0')}:${String(startMin).padStart(2,'0')} - ${String(endHour).padStart(2,'0')}:${String(endMin).padStart(2,'0')}</span>
 						<span class="gap-duration">${timeText} free</span>
 					</div>
 				</div>
 			`;
-
-			currentTopOffset += GAP_HEIGHT;
 		}
 
+		// Calculate proportional height (min 60px, max 200px, scaled by duration)
+		const baseHeight = 60;
+		const maxHeight = 200;
+		const heightPerMinute = 0.5;
+		const calculatedHeight = baseHeight + (duration * heightPerMinute);
+		const itemHeight = Math.min(maxHeight, Math.max(baseHeight, calculatedHeight));
+
 		// Render schedule item
+		const startTime = `${String(item.startHour).padStart(2, '0')}:${String(item.startMin).padStart(2, '0')}`;
+		const endTime = `${String(item.endHour).padStart(2, '0')}:${String(item.endMin).padStart(2, '0')}`;
+
 		timelineHTML += `
 			<div class="timeline-item ${hasOverlap ? 'overlap' : ''}"
-				 style="top: ${currentTopOffset}px; height: ${itemHeight}px;"
+				 style="min-height: ${itemHeight}px;"
 				 onclick="window.schedulesModule.selectScheduleItem(${item.index})">
-				<div class="timeline-item-content">
-					<span class="timeline-text">${String(item.startHour).padStart(2,'0')}:${String(item.startMin).padStart(2,'0')} - ${String(item.endHour).padStart(2,'0')}:${String(item.endMin).padStart(2,'0')} ${item.name}</span>
-					${hasOverlap ? '<span class="overlap-warning">⚠️ Overlap</span>' : ''}
-				</div>
+				<div class="timeline-item-header">${item.name}</div>
+				<div class="timeline-item-time">${startTime} - ${endTime} (${duration} min)</div>
+				${hasOverlap ? '<div class="overlap-warning">⚠️ Time Overlap Detected</div>' : ''}
 			</div>
 		`;
 
-		currentTopOffset += itemHeight;
 		currentMinute = endMinutes;
 	});
 
@@ -303,8 +272,7 @@ export function updateTimelineView() {
 		}
 
 		timelineHTML += `
-			<div class="timeline-gap"
-				 style="top: ${currentTopOffset}px; height: ${GAP_HEIGHT}px;">
+			<div class="timeline-gap">
 				<div class="timeline-gap-content">
 					<span class="gap-time">${String(startHour).padStart(2,'0')}:${String(startMin).padStart(2,'0')} - 24:00</span>
 					<span class="gap-duration">${timeText} free</span>
@@ -315,7 +283,7 @@ export function updateTimelineView() {
 
 	// Render container
 	container.innerHTML = `
-		<div class="timeline-container" style="height: ${containerHeight}px;">
+		<div class="timeline-container">
 			${timelineHTML}
 		</div>
 	`;
