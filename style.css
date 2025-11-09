@@ -328,7 +328,7 @@ header p {
 
 .btn-logout-footer {
 	padding: 8px 16px;
-	background: #ff6b6b;
+	background: #FF0088;
 	color: white;
 	border: 3px solid #000;
 	font-family: 'Courier New', monospace;
@@ -340,13 +340,13 @@ header p {
 }
 
 .btn-logout-footer:hover {
-	background: #ff5252;
+	background: #dd0077;
 	box-shadow: 2px 2px 0px rgba(0, 0, 0, 0.5);
 	transform: translate(1px, 1px);
 }
 
 .btn-logout-footer:active {
-	background: #ff3838;
+	background: #bb0066;
 	box-shadow: 1px 1px 0px rgba(0, 0, 0, 0.5);
 	transform: translate(2px, 2px);
 }

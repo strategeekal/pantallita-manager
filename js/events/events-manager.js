@@ -403,6 +403,11 @@ async function updateEventPreview() {
 	}
 }
 
+// Public function to trigger preview update
+export function triggerPreviewUpdate() {
+	updateEventPreview();
+}
+
 function showEventsLoading() {
 	const loading = document.getElementById('events-loading');
 	if (loading) loading.classList.remove('hidden');
