@@ -1441,10 +1441,16 @@ header p {
 .timeline-item-content {
 	display: flex;
 	align-items: center;
-	justify-content: space-between;
 	gap: 8px;
 	font-family: 'Courier New', monospace;
 	overflow: hidden;
+}
+
+.timeline-item-time {
+	color: #666;
+	font-size: 0.85em;
+	white-space: nowrap;
+	flex-shrink: 0;
 }
 
 .timeline-item-name {
@@ -1457,7 +1463,7 @@ header p {
 	min-width: 0;
 }
 
-.timeline-item-time {
+.timeline-item-duration {
 	color: #666;
 	font-size: 0.85em;
 	white-space: nowrap;
