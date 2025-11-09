@@ -243,17 +243,22 @@
 						<div class="timeline-header">
 							<h4>Timeline View</h4>
 							<div id="timeline-date-display" class="timeline-date-display hidden"></div>
-							<select id="timeline-day-filter" onchange="updateTimelineView()">
-								<option value="0">Monday</option>
-								<option value="1">Tuesday</option>
-								<option value="2">Wednesday</option>
-								<option value="3">Thursday</option>
-								<option value="4">Friday</option>
-								<option value="5">Saturday</option>
-								<option value="6">Sunday</option>
-							</select>
+							<div class="timeline-view-controls">
+								<button id="timeline-view-day" class="btn-pixel btn-sm btn-primary" onclick="window.schedulesModule.setTimelineViewMode('day')">Day</button>
+								<button id="timeline-view-week" class="btn-pixel btn-sm btn-secondary" onclick="window.schedulesModule.setTimelineViewMode('week')">Week</button>
+								<select id="timeline-day-filter" onchange="updateTimelineView()">
+									<option value="0">Monday</option>
+									<option value="1">Tuesday</option>
+									<option value="2">Wednesday</option>
+									<option value="3">Thursday</option>
+									<option value="4">Friday</option>
+									<option value="5">Saturday</option>
+									<option value="6">Sunday</option>
+								</select>
+							</div>
 						</div>
 						<div id="timeline-view" class="timeline-view"></div>
+						<div id="timeline-week-view" class="timeline-week-view hidden"></div>
 					</div>
 			
 					<div class="schedule-preview-section">
