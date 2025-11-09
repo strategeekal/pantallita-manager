@@ -99,6 +99,7 @@ export function updateWeekView() {
 
 				weekHTML += `
 					<div class="week-item ${item.enabled ? '' : 'disabled'}"
+					     data-index="${item.index}"
 					     onclick="window.schedulesModule.selectScheduleItem(${item.index})"
 					     title="${item.name} (${startTime} - ${endTime})">
 						<div class="week-item-name">${item.name}</div>
@@ -245,6 +246,7 @@ export function updateTimelineView() {
 		timelineHTML += `
 			<div class="timeline-item ${hasOverlap ? 'overlap' : ''}"
 				 style="height: ${itemHeight}px;"
+				 data-index="${item.index}"
 				 onclick="window.schedulesModule.selectScheduleItem(${item.index})">
 				<div class="timeline-item-content">
 					<span class="timeline-item-time">${startTime}-${endTime}</span>
@@ -315,11 +317,12 @@ export function showEditPanel(index) {
 
 	// Highlight selected timeline item
 	const timelineItems = document.querySelectorAll('.timeline-item');
-	timelineItems.forEach((item, idx) => {
-		if (idx === index) {
-			item.classList.add('selected');
+	timelineItems.forEach((timelineItem) => {
+		const itemIndex = parseInt(timelineItem.dataset.index);
+		if (itemIndex === index) {
+			timelineItem.classList.add('selected');
 		} else {
-			item.classList.remove('selected');
+			timelineItem.classList.remove('selected');
 		}
 	});
 

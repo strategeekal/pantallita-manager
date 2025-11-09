@@ -4,9 +4,51 @@ import { COLOR_MAP, SIMPLE_ICONS } from './matrix-emulator.js';
 import { TINYBIT_FONT } from './fonts.js';
 
 let availableImages = [];
+let availableScheduleImages = [];
 let imageCache = {};
 
-export { availableImages };
+export { availableImages, availableScheduleImages };
+
+// Load list of available schedule images from GitHub
+export async function loadScheduleImages() {
+	const config = loadConfig();
+
+	if (!config.token || !config.owner || !config.repo) {
+		console.log('GitHub not configured - schedule images unavailable');
+		return;
+	}
+
+	try {
+		const response = await fetch(
+			`https://api.github.com/repos/${config.owner}/${config.repo}/contents/img/schedules`,
+			{
+				headers: {
+					'Authorization': `Bearer ${config.token}`,
+					'Accept': 'application/vnd.github.v3+json'
+				}
+			}
+		);
+
+		if (!response.ok) {
+			console.error('Failed to load schedule images:', response.status);
+			return;
+		}
+
+		const files = await response.json();
+		availableScheduleImages = files
+			.filter(f => f.name.endsWith('.bmp'))
+			.map(f => ({
+				name: f.name,
+				url: f.download_url,
+				sha: f.sha
+			}));
+
+		console.log(`Loaded ${availableScheduleImages.length} schedule images from GitHub`);
+
+	} catch (error) {
+		console.error('Error loading schedule images:', error);
+	}
+}
 
 // Load list of available images from GitHub
 export async function loadAvailableImages() {
