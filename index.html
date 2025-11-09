@@ -260,39 +260,6 @@
 							</div>
 							<div id="timeline-view" class="timeline-view"></div>
 							<div id="timeline-week-view" class="timeline-week-view hidden"></div>
-
-						<!-- Edit Panel -->
-						<div id="timeline-edit-panel" class="timeline-edit-panel hidden">
-							<h5>Edit Item</h5>
-							<div class="edit-panel-content">
-								<div class="form-group">
-									<label for="edit-item-name">Name:</label>
-									<input type="text" id="edit-item-name" class="form-input" placeholder="Item name">
-								</div>
-								<div class="form-group" id="edit-days-group">
-									<label>Days:</label>
-									<div class="days-checkboxes">
-										<label><input type="checkbox" id="edit-day-0" value="0"> Mon</label>
-										<label><input type="checkbox" id="edit-day-1" value="1"> Tue</label>
-										<label><input type="checkbox" id="edit-day-2" value="2"> Wed</label>
-										<label><input type="checkbox" id="edit-day-3" value="3"> Thu</label>
-										<label><input type="checkbox" id="edit-day-4" value="4"> Fri</label>
-										<label><input type="checkbox" id="edit-day-5" value="5"> Sat</label>
-										<label><input type="checkbox" id="edit-day-6" value="6"> Sun</label>
-									</div>
-								</div>
-								<div class="form-group">
-									<label for="edit-item-image">Image:</label>
-									<select id="edit-item-image" class="form-input">
-										<option value="">Select image...</option>
-									</select>
-								</div>
-								<div class="edit-panel-actions">
-									<button class="btn-pixel btn-sm btn-primary" onclick="window.schedulesModule.saveItemEdit()">Save</button>
-									<button class="btn-pixel btn-sm btn-danger" onclick="window.schedulesModule.deleteScheduleItemFromPanel()">Delete</button>
-								</div>
-							</div>
-						</div>
 						</div>
 						<div class="schedule-preview-section">
 							<h4>Preview</h4>
@@ -304,6 +271,39 @@
 							<p class="preview-note">Preview shows item at 74% progress (visual indicator only)</p>
 							<div class="emulator-wrapper schedule-emulator">
 								<div id="matrix-container-schedule"></div>
+							</div>
+
+							<!-- Edit Panel -->
+							<div id="timeline-edit-panel" class="timeline-edit-panel hidden">
+								<h5>Edit Item</h5>
+								<div class="edit-panel-content">
+									<div class="form-group">
+										<label for="edit-item-name">Name:</label>
+										<input type="text" id="edit-item-name" class="form-input" placeholder="Item name">
+									</div>
+									<div class="form-group" id="edit-days-group">
+										<label>Days:</label>
+										<div class="days-checkboxes">
+											<label><input type="checkbox" id="edit-day-0" value="0"> Mon</label>
+											<label><input type="checkbox" id="edit-day-1" value="1"> Tue</label>
+											<label><input type="checkbox" id="edit-day-2" value="2"> Wed</label>
+											<label><input type="checkbox" id="edit-day-3" value="3"> Thu</label>
+											<label><input type="checkbox" id="edit-day-4" value="4"> Fri</label>
+											<label><input type="checkbox" id="edit-day-5" value="5"> Sat</label>
+											<label><input type="checkbox" id="edit-day-6" value="6"> Sun</label>
+										</div>
+									</div>
+									<div class="form-group">
+										<label for="edit-item-image">Image:</label>
+										<select id="edit-item-image" class="form-input">
+											<option value="">Select image...</option>
+										</select>
+									</div>
+									<div class="edit-panel-actions">
+										<button class="btn-pixel btn-sm btn-primary" onclick="window.schedulesModule.saveItemEdit()">Save</button>
+										<button class="btn-pixel btn-sm btn-danger" onclick="window.schedulesModule.deleteScheduleItemFromPanel()">Delete</button>
+									</div>
+								</div>
 							</div>
 						</div>
 					</div>
