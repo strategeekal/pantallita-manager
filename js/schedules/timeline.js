@@ -351,8 +351,8 @@ function populateImageDropdown() {
 		imageSelect.innerHTML = '<option value="">Select image...</option>';
 		images.forEach(img => {
 			const option = document.createElement('option');
-			option.value = img;
-			option.textContent = img;
+			option.value = img.name;
+			option.textContent = img.name;
 			imageSelect.appendChild(option);
 		});
 	}
