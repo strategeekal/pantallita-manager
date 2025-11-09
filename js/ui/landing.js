@@ -1,8 +1,8 @@
 // Landing Page Module - Handle landing page animations and transitions
-import { saveToken, hasToken, getToken } from '../core/config.js';
+import { saveToken, hasToken, getToken, clearToken } from '../core/config.js';
 import { showStatus } from '../core/utils.js';
 
-export function handleTokenSubmit(event) {
+export async function handleTokenSubmit(event) {
 	event.preventDefault();
 
 	const tokenInput = document.getElementById('landing-token-input');
@@ -15,10 +15,34 @@ export function handleTokenSubmit(event) {
 
 	// Save token and show app
 	saveToken(token);
-	showApp();
+	await showApp();
 }
 
-export function showApp() {
+export function logout() {
+	if (!confirm('Are you sure you want to logout?')) {
+		return;
+	}
+
+	// Clear token
+	clearToken();
+
+	// Hide main app
+	const mainApp = document.querySelector('.main-app');
+	const landingPage = document.querySelector('.landing-page');
+
+	if (mainApp) mainApp.classList.add('hidden');
+	if (landingPage) landingPage.classList.remove('hidden');
+
+	// Clear token input
+	const tokenInput = document.getElementById('landing-token-input');
+	if (tokenInput) {
+		tokenInput.value = '';
+	}
+
+	showStatus('Logged out successfully', 'success');
+}
+
+export async function showApp() {
 	// Check if token exists
 	if (!hasToken()) {
 		showStatus('Please enter your GitHub token first', 'error');
@@ -41,9 +65,19 @@ export function showApp() {
 		window.landingMatrix = null;
 	}
 
+	// Load images after token is set
+	if (window.loadAvailableImages) {
+		await window.loadAvailableImages();
+	}
+
 	// Auto-load events when app starts
 	if (window.eventsModule && window.eventsModule.loadEvents) {
-		window.eventsModule.loadEvents();
+		await window.eventsModule.loadEvents();
+	}
+
+	// Initialize schedules
+	if (window.schedulesModule && window.schedulesModule.initializeSchedules) {
+		await window.schedulesModule.initializeSchedules();
 	}
 }
 

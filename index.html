@@ -76,9 +76,14 @@
 			</header>
 
 			<nav class="tabs">
-				<button class="tab active" data-tab="view-events">View Events</button>
-				<button class="tab" data-tab="add-event">Add Event</button>
-				<button class="tab" data-tab="schedules">Schedules</button>
+				<div class="tabs-left">
+					<button class="tab active" data-tab="view-events">View Events</button>
+					<button class="tab" data-tab="add-event">Add Event</button>
+					<button class="tab" data-tab="schedules">Schedules</button>
+				</div>
+				<div class="tabs-right">
+					<button class="btn-logout" onclick="window.logout()">🚪 Logout</button>
+				</div>
 			</nav>
 
 			<!-- View Events Tab -->
