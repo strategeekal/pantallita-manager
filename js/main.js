@@ -5,6 +5,7 @@ import { setupTabs, handleTabSwitch } from './ui/tabs.js';
 import { showApp, scrollToAbout, createPixelBackground, handleTokenSubmit, logout } from './ui/landing.js';
 import { setupMobileTextPreview, updateMobileTextPreview } from './ui/mobile-preview.js';
 import { loadAvailableImages } from './ui/rendering.js';
+import { TINYBIT_FONT } from './ui/fonts.js';
 
 // Import events module
 import * as eventsModule from './events/events-manager.js';
