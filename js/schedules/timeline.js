@@ -20,6 +20,7 @@ export function setTimelineViewMode(mode) {
 	const dayFilter = document.getElementById('timeline-day-filter');
 	const dayView = document.getElementById('timeline-view');
 	const weekView = document.getElementById('timeline-week-view');
+	const editorLayout = document.querySelector('.schedule-editor-layout');
 
 	if (mode === 'day') {
 		if (dayBtn) {
@@ -33,6 +34,7 @@ export function setTimelineViewMode(mode) {
 		if (dayFilter) dayFilter.style.display = 'block';
 		if (dayView) dayView.classList.remove('hidden');
 		if (weekView) weekView.classList.add('hidden');
+		if (editorLayout) editorLayout.classList.remove('week-view-active');
 		updateTimelineView();
 	} else if (mode === 'week') {
 		if (dayBtn) {
@@ -46,6 +48,7 @@ export function setTimelineViewMode(mode) {
 		if (dayFilter) dayFilter.style.display = 'none';
 		if (dayView) dayView.classList.add('hidden');
 		if (weekView) weekView.classList.remove('hidden');
+		if (editorLayout) editorLayout.classList.add('week-view-active');
 		updateWeekView();
 	}
 }

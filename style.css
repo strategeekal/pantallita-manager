@@ -1548,9 +1548,11 @@ header p {
 }
 
 .schedule-editor-layout .timeline-view-section {
-	flex: 0 0 30%;
-	max-width: 30%;
+	flex: 0 0 45%;
+	max-width: 45%;
 	margin-top: 0;
+	max-height: 650px;
+	overflow-y: auto;
 }
 
 .schedule-editor-layout .schedule-preview-section {
@@ -1558,6 +1560,16 @@ header p {
 	margin-top: 0;
 	max-height: 650px;
 	overflow: hidden;
+}
+
+/* Hide preview section in week view */
+.schedule-editor-layout.week-view-active .schedule-preview-section {
+	display: none;
+}
+
+.schedule-editor-layout.week-view-active .timeline-view-section {
+	flex: 1;
+	max-width: 100%;
 }
 
 /* Schedule Preview */
