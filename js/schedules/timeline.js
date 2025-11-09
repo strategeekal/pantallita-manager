@@ -241,7 +241,7 @@ export function updateTimelineView() {
 
 		timelineHTML += `
 			<div class="timeline-item ${hasOverlap ? 'overlap' : ''}"
-				 style="min-height: ${itemHeight}px;"
+				 style="height: ${itemHeight}px;"
 				 onclick="window.schedulesModule.selectScheduleItem(${item.index})">
 				<div class="timeline-item-header">${item.name}</div>
 				<div class="timeline-item-time">${startTime} - ${endTime} (${duration} min)</div>

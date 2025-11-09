@@ -537,7 +537,7 @@ header p {
 
 .week-grid {
 	display: grid;
-	grid-template-columns: repeat(7, 125px);
+	grid-template-columns: repeat(7, 132px);
 	gap: 10px;
 	height: 100%;
 }
@@ -1368,6 +1368,7 @@ header p {
 	background: white;
 	border: 3px solid #000;
 	padding: 15px;
+	overflow-x: auto;
 }
 
 .day-filter {
@@ -1422,6 +1423,7 @@ header p {
 	display: flex;
 	flex-direction: column;
 	gap: 4px;
+	flex-shrink: 0;
 }
 
 .timeline-item:hover {
