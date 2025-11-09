@@ -56,6 +56,50 @@ export async function updateSchedulePreview() {
 
 	const SCHEDULE_IMAGE_X = 23;
 	const SCHEDULE_IMAGE_Y = 2;
+	const TIME_X = 2;
+	const TIME_Y = 2;
+
+	// Calculate midpoint time of schedule item
+	const startMinutes = item.startHour * 60 + item.startMin;
+	const endMinutes = item.endHour * 60 + item.endMin;
+	const midMinutes = Math.floor((startMinutes + endMinutes) / 2);
+	const midHour = Math.floor(midMinutes / 60);
+	const midMin = midMinutes % 60;
+	const timeString = `${String(midHour).padStart(2, '0')}:${String(midMin).padStart(2, '0')}`;
+
+	// Draw time at top left
+	if (window.TINYBIT_FONT) {
+		scheduleMatrix.drawTextWithFont(timeString, TIME_X, TIME_Y, '#FFFFFF', window.TINYBIT_FONT);
+	}
+
+	// Load and render weather column (1px below time)
+	const WEATHER_X = 2;
+	const WEATHER_Y = 8; // Time (y=2) + font height (5) + 1px margin
+	if (window.loadWeatherColumnImage) {
+		try {
+			const weatherData = await window.loadWeatherColumnImage('5.bmp');
+			if (weatherData && weatherData.pixels) {
+				const pixels = weatherData.pixels;
+				for (let y = 0; y < pixels.length; y++) {
+					for (let x = 0; x < pixels[y].length; x++) {
+						const color = pixels[y][x];
+						if (color && color !== 'transparent') {
+							scheduleMatrix.setPixel(WEATHER_X + x, WEATHER_Y + y, color);
+						}
+					}
+				}
+			}
+		} catch (error) {
+			console.error('Error loading weather column:', error);
+		}
+	}
+
+	// Draw temperature (2px below weather column)
+	// Weather column is typically 18 pixels tall, so temp starts at y = 8 + 18 + 2 = 28
+	const TEMP_Y = 28;
+	if (window.TINYBIT_FONT) {
+		scheduleMatrix.drawTextWithFont('18°', TIME_X, TEMP_Y, '#FFFFFF', window.TINYBIT_FONT);
+	}
 
 	// Load and render image if specified
 	if (item.image && window.loadScheduleBMPImage) {
@@ -78,27 +122,9 @@ export async function updateSchedulePreview() {
 		}
 	}
 
-	// Draw progress bar if enabled (below the image)
+	// Draw progress bar if enabled (below the image) - always at 50%
 	if (item.progressBar) {
-		const now = new Date();
-		const startTime = new Date();
-		startTime.setHours(item.startHour, item.startMin, 0);
-		const endTime = new Date();
-		endTime.setHours(item.endHour, item.endMin, 0);
-
-		let progressPercent = 74; // Default to 74%
-
-		if (now >= startTime && now <= endTime) {
-			const total = endTime - startTime;
-			const elapsed = now - startTime;
-			progressPercent = Math.floor((elapsed / total) * 100);
-		} else if (now > endTime) {
-			progressPercent = 100;
-		} else {
-			progressPercent = 0;
-		}
-
-		drawProgressBar(scheduleMatrix, progressPercent, SCHEDULE_IMAGE_X, 30);
+		drawProgressBar(scheduleMatrix, 50, SCHEDULE_IMAGE_X, 30);
 	}
 
 	// Render the matrix
