@@ -1588,6 +1588,27 @@ header p {
 	cursor: pointer;
 }
 
+.edit-time-inputs {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	font-family: 'Courier New', monospace;
+	font-size: 0.75em;
+}
+
+.edit-time-inputs .time-input {
+	width: 32px;
+	padding: 3px;
+	border: 2px solid #000;
+	font-family: 'Courier New', monospace;
+	font-size: 0.85em;
+	text-align: center;
+}
+
+.edit-time-inputs span {
+	color: #666;
+}
+
 .edit-panel-actions {
 	display: flex;
 	gap: 6px;

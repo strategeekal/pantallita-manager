@@ -329,6 +329,14 @@ export function showEditPanel(index) {
 	// Populate form fields
 	document.getElementById('edit-item-name').value = item.name || '';
 	document.getElementById('edit-item-image').value = item.image || '';
+	document.getElementById('edit-item-enabled').checked = item.enabled !== false;
+	document.getElementById('edit-item-progressbar').checked = item.progressBar || false;
+
+	// Populate time fields
+	document.getElementById('edit-start-hour').value = item.startHour || 0;
+	document.getElementById('edit-start-min').value = item.startMin || 0;
+	document.getElementById('edit-end-hour').value = item.endHour || 0;
+	document.getElementById('edit-end-min').value = item.endMin || 0;
 
 	// Handle days checkboxes (only for default schedules)
 	const daysGroup = document.getElementById('edit-days-group');
@@ -382,6 +390,14 @@ export function saveItemEdit() {
 	// Update item properties
 	item.name = document.getElementById('edit-item-name').value;
 	item.image = document.getElementById('edit-item-image').value;
+	item.enabled = document.getElementById('edit-item-enabled').checked;
+	item.progressBar = document.getElementById('edit-item-progressbar').checked;
+
+	// Update time fields
+	item.startHour = parseInt(document.getElementById('edit-start-hour').value) || 0;
+	item.startMin = parseInt(document.getElementById('edit-start-min').value) || 0;
+	item.endHour = parseInt(document.getElementById('edit-end-hour').value) || 0;
+	item.endMin = parseInt(document.getElementById('edit-end-min').value) || 0;
 
 	// Update days if default schedule
 	const isDefaultSchedule = !currentScheduleData.date;
