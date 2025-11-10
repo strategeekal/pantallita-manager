@@ -64,8 +64,10 @@ export async function updateSchedulePreview() {
 	const endMinutes = item.endHour * 60 + item.endMin;
 	const midMinutes = Math.floor((startMinutes + endMinutes) / 2);
 	const midHour = Math.floor(midMinutes / 60);
+	const period = midHour >= 12 ? 'PM' : 'AM';
+	const midHour12 = (midHour % 12) || 12;
 	const midMin = midMinutes % 60;
-	const timeString = `${String(midHour)}:${String(midMin).padStart(2, '0')}`;
+	const timeString = `${String(midHour12)}:${String(midMin).padStart(2, '0')}`;
 
 	// Draw time at top left
 	if (window.TINYBIT_FONT) {
