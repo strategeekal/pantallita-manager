@@ -1344,9 +1344,8 @@ header p {
 
 .time-input-long {
 	width: 60px !important;
-	border: 2px solid #000;
-	padding: 4px 6px;
-	font-family: 'Courier New', monospace;
+	border: 2px solid #000 !important;
+	padding: 4px 6px !important;
 	text-align: center;
 }
 
