@@ -72,9 +72,9 @@ export async function updateSchedulePreview() {
 		scheduleMatrix.drawTextWithFont(timeString, TIME_X, TIME_Y, '#FFFFFF', window.TINYBIT_FONT);
 	}
 
-	// Load and render weather column (1px below time)
+	// Load and render weather column (moved down 2 units)
 	const WEATHER_X = 2;
-	const WEATHER_Y = 8; // Time (y=2) + font height (5) + 1px margin
+	const WEATHER_Y = 10; // Time (y=2) + font height (5) + 3px margin
 	if (window.loadWeatherColumnImage) {
 		try {
 			const weatherData = await window.loadWeatherColumnImage('5.bmp');
@@ -94,11 +94,18 @@ export async function updateSchedulePreview() {
 		}
 	}
 
-	// Draw temperature (2px below weather column)
-	// Weather column is typically 18 pixels tall, so temp starts at y = 8 + 18 + 2 = 28
-	const TEMP_Y = 28;
+	// Draw temperature (moved up 5 units)
+	const TEMP_Y = 23;
 	if (window.TINYBIT_FONT) {
-		scheduleMatrix.drawTextWithFont('18°', TIME_X, TEMP_Y, '#FFFFFF', window.TINYBIT_FONT);
+		// Draw "18" first
+		scheduleMatrix.drawTextWithFont('18', TIME_X, TEMP_Y, '#FFFFFF', window.TINYBIT_FONT);
+
+		// Calculate width of "18" to position degree symbol
+		// Each character in TINYBIT_FONT is 3 pixels wide + 1 pixel spacing
+		const numberWidth = (3 * 2) + 1; // Two digits: 3px each + 1px spacing = 7px
+
+		// Draw degree symbol aligned with top of the "8" (1 pixel up from baseline)
+		scheduleMatrix.drawTextWithFont('°', TIME_X + numberWidth, TEMP_Y - 1, '#FFFFFF', window.TINYBIT_FONT);
 	}
 
 	// Load and render image if specified
