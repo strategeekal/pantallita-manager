@@ -1591,14 +1591,16 @@ header p {
 .edit-time-inputs {
 	display: flex;
 	align-items: center;
-	gap: 4px;
+	gap: 6px;
 	font-family: 'Courier New', monospace;
 	font-size: 0.75em;
+	width: 100%;
 }
 
 .edit-time-inputs .time-input {
-	width: 32px;
-	padding: 3px;
+	flex: 1;
+	min-width: 0;
+	padding: 4px;
 	border: 2px solid #000;
 	font-family: 'Courier New', monospace;
 	font-size: 0.85em;
@@ -1607,6 +1609,8 @@ header p {
 
 .edit-time-inputs span {
 	color: #666;
+	white-space: nowrap;
+	flex-shrink: 0;
 }
 
 .edit-panel-actions {

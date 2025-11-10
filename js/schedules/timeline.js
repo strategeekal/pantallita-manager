@@ -328,7 +328,6 @@ export function showEditPanel(index) {
 
 	// Populate form fields
 	document.getElementById('edit-item-name').value = item.name || '';
-	document.getElementById('edit-item-image').value = item.image || '';
 	document.getElementById('edit-item-enabled').checked = item.enabled !== false;
 	document.getElementById('edit-item-progressbar').checked = item.progressBar || false;
 
@@ -355,14 +354,14 @@ export function showEditPanel(index) {
 		daysGroup.style.display = 'none';
 	}
 
-	// Populate image dropdown with available images
-	populateImageDropdown();
+	// Populate image dropdown with available images and select current
+	populateImageDropdown(item.image);
 
 	// Show the panel
 	editPanel.classList.remove('hidden');
 }
 
-function populateImageDropdown() {
+function populateImageDropdown(currentImage) {
 	const imageSelect = document.getElementById('edit-item-image');
 	if (!imageSelect) return;
 
@@ -374,6 +373,9 @@ function populateImageDropdown() {
 			const option = document.createElement('option');
 			option.value = img.name;
 			option.textContent = img.name;
+			if (img.name === currentImage) {
+				option.selected = true;
+			}
 			imageSelect.appendChild(option);
 		});
 	}
