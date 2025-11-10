@@ -72,12 +72,12 @@ export async function updateSchedulePreview() {
 		scheduleMatrix.drawTextWithFont(timeString, TIME_X, TIME_Y, '#FFFFFF', window.TINYBIT_FONT);
 	}
 
-	// Load and render weather column (moved down 2 units)
-	const WEATHER_X = 2;
+	// Load and render weather column (moved right 3 units)
+	const WEATHER_X = 5;
 	const WEATHER_Y = 10; // Time (y=2) + font height (5) + 3px margin
 	if (window.loadWeatherColumnImage) {
 		try {
-			const weatherData = await window.loadWeatherColumnImage('5.bmp');
+			const weatherData = await window.loadWeatherColumnImage('1.bmp');
 			if (weatherData && weatherData.pixels) {
 				const pixels = weatherData.pixels;
 				for (let y = 0; y < pixels.length; y++) {
@@ -94,8 +94,8 @@ export async function updateSchedulePreview() {
 		}
 	}
 
-	// Draw temperature (moved up 5 units)
-	const TEMP_Y = 23;
+	// Draw temperature (moved down 2 units from previous)
+	const TEMP_Y = 25;
 	if (window.TINYBIT_FONT) {
 		// Draw "18" first
 		scheduleMatrix.drawTextWithFont('18', TIME_X, TEMP_Y, '#FFFFFF', window.TINYBIT_FONT);
@@ -104,8 +104,8 @@ export async function updateSchedulePreview() {
 		// Each character in TINYBIT_FONT is 3 pixels wide + 1 pixel spacing
 		const numberWidth = (3 * 2) + 1; // Two digits: 3px each + 1px spacing = 7px
 
-		// Draw degree symbol aligned with top of the "8" (1 pixel up from baseline)
-		scheduleMatrix.drawTextWithFont('°', TIME_X + numberWidth, TEMP_Y - 1, '#FFFFFF', window.TINYBIT_FONT);
+		// Draw degree symbol aligned with top of the "8" (1 pixel up from baseline, 1 unit right)
+		scheduleMatrix.drawTextWithFont('°', TIME_X + numberWidth + 1, TEMP_Y - 1, '#FFFFFF', window.TINYBIT_FONT);
 	}
 
 	// Load and render image if specified
@@ -131,7 +131,7 @@ export async function updateSchedulePreview() {
 
 	// Draw progress bar if enabled (below the image) - always at 50%
 	if (item.progressBar) {
-		drawProgressBar(scheduleMatrix, 50, SCHEDULE_IMAGE_X, 30);
+		drawProgressBar(scheduleMatrix, 50, SCHEDULE_IMAGE_X, 29);
 	}
 
 	// Render the matrix
@@ -159,8 +159,16 @@ function drawProgressBar(matrix, progressPercent, x, y) {
 
 	// Draw white markers at 0%, 25%, 50%, 75%, 100%
 	const markers = [0, 10, 20, 30, 39]; // 0%, 25%, 50%, 75%, 100% of 40 pixels
+	const extendedMarkers = [0, 20, 39]; // First, middle, last markers get extra pixels
+
 	markers.forEach(markerX => {
 		matrix.setPixel(x + markerX, y, WHITE);
 		matrix.setPixel(x + markerX, y + 1, WHITE);
+
+		// Add pixels above and below for first, middle, and last markers
+		if (extendedMarkers.includes(markerX)) {
+			matrix.setPixel(x + markerX, y - 1, WHITE); // Above
+			matrix.setPixel(x + markerX, y + 2, WHITE); // Below
+		}
 	});
 }
