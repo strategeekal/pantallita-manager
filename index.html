@@ -274,57 +274,56 @@
 
 							<!-- Edit Panel -->
 							<div id="timeline-edit-panel" class="timeline-edit-panel hidden">
-								<h5>Edit Item</h5>
+								<div class="edit-panel-header">
+									<h5>Edit Item</h5>
+									<button class="btn-pixel btn-sm btn-danger" onclick="window.schedulesModule.deleteScheduleItemFromPanel()">Delete</button>
+								</div>
 								<div class="edit-panel-content">
 									<div class="form-group">
 										<label for="edit-item-name">Name:</label>
-										<input type="text" id="edit-item-name" class="form-input" placeholder="Item name">
+										<input type="text" id="edit-item-name" class="form-input" placeholder="Item name" onchange="window.schedulesModule.liveUpdateItem('name', this.value)">
 									</div>
 									<div class="form-group">
 										<label>
-											<input type="checkbox" id="edit-item-enabled">
+											<input type="checkbox" id="edit-item-enabled" onchange="window.schedulesModule.liveUpdateItem('enabled', this.checked)">
 											Enabled
 										</label>
 									</div>
 									<div class="form-group" id="edit-days-group">
 										<label>Days:</label>
 										<div class="days-checkboxes">
-											<label><input type="checkbox" id="edit-day-0" value="0"> Mon</label>
-											<label><input type="checkbox" id="edit-day-1" value="1"> Tue</label>
-											<label><input type="checkbox" id="edit-day-2" value="2"> Wed</label>
-											<label><input type="checkbox" id="edit-day-3" value="3"> Thu</label>
-											<label><input type="checkbox" id="edit-day-4" value="4"> Fri</label>
-											<label><input type="checkbox" id="edit-day-5" value="5"> Sat</label>
-											<label><input type="checkbox" id="edit-day-6" value="6"> Sun</label>
+											<label><input type="checkbox" id="edit-day-0" value="0" onchange="window.schedulesModule.liveUpdateDays()"> Mon</label>
+											<label><input type="checkbox" id="edit-day-1" value="1" onchange="window.schedulesModule.liveUpdateDays()"> Tue</label>
+											<label><input type="checkbox" id="edit-day-2" value="2" onchange="window.schedulesModule.liveUpdateDays()"> Wed</label>
+											<label><input type="checkbox" id="edit-day-3" value="3" onchange="window.schedulesModule.liveUpdateDays()"> Thu</label>
+											<label><input type="checkbox" id="edit-day-4" value="4" onchange="window.schedulesModule.liveUpdateDays()"> Fri</label>
+											<label><input type="checkbox" id="edit-day-5" value="5" onchange="window.schedulesModule.liveUpdateDays()"> Sat</label>
+											<label><input type="checkbox" id="edit-day-6" value="6" onchange="window.schedulesModule.liveUpdateDays()"> Sun</label>
 										</div>
 									</div>
 									<div class="form-group">
 										<label>Time:</label>
 										<div class="edit-time-inputs">
-											<input type="number" id="edit-start-hour" class="time-input" min="0" max="23" placeholder="00">
+											<input type="number" id="edit-start-hour" class="time-input" min="0" max="23" placeholder="00" onchange="window.schedulesModule.liveUpdateItem('startHour', parseInt(this.value))">
 											<span>:</span>
-											<input type="number" id="edit-start-min" class="time-input" min="0" max="59" placeholder="00">
+											<input type="number" id="edit-start-min" class="time-input" min="0" max="59" placeholder="00" onchange="window.schedulesModule.liveUpdateItem('startMin', parseInt(this.value))">
 											<span>to</span>
-											<input type="number" id="edit-end-hour" class="time-input" min="0" max="23" placeholder="00">
+											<input type="number" id="edit-end-hour" class="time-input" min="0" max="23" placeholder="00" onchange="window.schedulesModule.liveUpdateItem('endHour', parseInt(this.value))">
 											<span>:</span>
-											<input type="number" id="edit-end-min" class="time-input" min="0" max="59" placeholder="00">
+											<input type="number" id="edit-end-min" class="time-input" min="0" max="59" placeholder="00" onchange="window.schedulesModule.liveUpdateItem('endMin', parseInt(this.value))">
 										</div>
 									</div>
 									<div class="form-group">
 										<label for="edit-item-image">Image:</label>
-										<select id="edit-item-image" class="form-input">
+										<select id="edit-item-image" class="form-input" onchange="window.schedulesModule.liveUpdateItem('image', this.value)">
 											<option value="">Select image...</option>
 										</select>
 									</div>
 									<div class="form-group">
 										<label>
-											<input type="checkbox" id="edit-item-progressbar">
+											<input type="checkbox" id="edit-item-progressbar" onchange="window.schedulesModule.liveUpdateItem('progressBar', this.checked)">
 											Show Progress Bar
 										</label>
-									</div>
-									<div class="edit-panel-actions">
-										<button class="btn-pixel btn-sm btn-primary" onclick="window.schedulesModule.saveItemEdit()">Save</button>
-										<button class="btn-pixel btn-sm btn-danger" onclick="window.schedulesModule.deleteScheduleItemFromPanel()">Delete</button>
 									</div>
 								</div>
 							</div>

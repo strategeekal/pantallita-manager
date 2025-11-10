@@ -1538,8 +1538,15 @@ header p {
 	display: none;
 }
 
-.timeline-edit-panel h5 {
-	margin: 0 0 6px 0;
+.edit-panel-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 8px;
+}
+
+.edit-panel-header h5 {
+	margin: 0;
 	font-family: 'Press Start 2P', monospace;
 	font-size: 0.75em;
 }
@@ -1547,7 +1554,7 @@ header p {
 .edit-panel-content {
 	display: flex;
 	flex-direction: column;
-	gap: 6px;
+	gap: 5px;
 }
 
 .edit-panel-content .form-group {
@@ -1613,11 +1620,6 @@ header p {
 	flex-shrink: 0;
 }
 
-.edit-panel-actions {
-	display: flex;
-	gap: 6px;
-	margin-top: 0;
-}
 
 .btn-danger {
 	background-color: #FF0088;
