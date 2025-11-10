@@ -1579,7 +1579,7 @@ header p {
 
 .days-checkboxes {
 	display: flex;
-	gap: 4px;
+	gap: 9px;
 	flex-wrap: wrap;
 }
 
