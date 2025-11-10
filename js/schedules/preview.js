@@ -74,7 +74,7 @@ export async function updateSchedulePreview() {
 
 	// Load and render weather column (moved right 3 units)
 	const WEATHER_X = 3;
-	const WEATHER_Y = 10; // Time (y=2) + font height (5) + 3px margin
+	const WEATHER_Y = 9; // Time (y=2) + font height (5) + 3px margin
 	if (window.loadWeatherColumnImage) {
 		try {
 			const weatherData = await window.loadWeatherColumnImage('1.bmp');
