@@ -280,6 +280,12 @@
 										<label for="edit-item-name">Name:</label>
 										<input type="text" id="edit-item-name" class="form-input" placeholder="Item name">
 									</div>
+									<div class="form-group">
+										<label>
+											<input type="checkbox" id="edit-item-enabled">
+											Enabled
+										</label>
+									</div>
 									<div class="form-group" id="edit-days-group">
 										<label>Days:</label>
 										<div class="days-checkboxes">
@@ -293,10 +299,28 @@
 										</div>
 									</div>
 									<div class="form-group">
+										<label>Time:</label>
+										<div class="edit-time-inputs">
+											<input type="number" id="edit-start-hour" class="time-input" min="0" max="23" placeholder="00">
+											<span>:</span>
+											<input type="number" id="edit-start-min" class="time-input" min="0" max="59" placeholder="00">
+											<span>to</span>
+											<input type="number" id="edit-end-hour" class="time-input" min="0" max="23" placeholder="00">
+											<span>:</span>
+											<input type="number" id="edit-end-min" class="time-input" min="0" max="59" placeholder="00">
+										</div>
+									</div>
+									<div class="form-group">
 										<label for="edit-item-image">Image:</label>
 										<select id="edit-item-image" class="form-input">
 											<option value="">Select image...</option>
 										</select>
+									</div>
+									<div class="form-group">
+										<label>
+											<input type="checkbox" id="edit-item-progressbar">
+											Show Progress Bar
+										</label>
 									</div>
 									<div class="edit-panel-actions">
 										<button class="btn-pixel btn-sm btn-primary" onclick="window.schedulesModule.saveItemEdit()">Save</button>
