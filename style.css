@@ -1545,8 +1545,15 @@ header p {
 	display: none;
 }
 
-.timeline-edit-panel h5 {
-	margin: 0 0 6px 0;
+.edit-panel-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 8px;
+}
+
+.edit-panel-header h5 {
+	margin: 0;
 	font-family: 'Press Start 2P', monospace;
 	font-size: 0.75em;
 }
@@ -1554,7 +1561,7 @@ header p {
 .edit-panel-content {
 	display: flex;
 	flex-direction: column;
-	gap: 6px;
+	gap: 5px;
 }
 
 .edit-panel-content .form-group {
@@ -1598,14 +1605,16 @@ header p {
 .edit-time-inputs {
 	display: flex;
 	align-items: center;
-	gap: 4px;
+	gap: 6px;
 	font-family: 'Courier New', monospace;
 	font-size: 0.75em;
+	width: 100%;
 }
 
 .edit-time-inputs .time-input {
-	width: 32px;
-	padding: 3px;
+	flex: 1;
+	min-width: 0;
+	padding: 4px;
 	border: 2px solid #000;
 	font-family: 'Courier New', monospace;
 	font-size: 0.85em;
@@ -1614,13 +1623,10 @@ header p {
 
 .edit-time-inputs span {
 	color: #666;
+	white-space: nowrap;
+	flex-shrink: 0;
 }
 
-.edit-panel-actions {
-	display: flex;
-	gap: 6px;
-	margin-top: 0;
-}
 
 .btn-danger {
 	background-color: #FF0088;

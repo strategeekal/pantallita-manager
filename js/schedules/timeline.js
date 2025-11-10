@@ -328,7 +328,6 @@ export function showEditPanel(index) {
 
 	// Populate form fields
 	document.getElementById('edit-item-name').value = item.name || '';
-	document.getElementById('edit-item-image').value = item.image || '';
 	document.getElementById('edit-item-enabled').checked = item.enabled !== false;
 	document.getElementById('edit-item-progressbar').checked = item.progressBar || false;
 
@@ -355,14 +354,14 @@ export function showEditPanel(index) {
 		daysGroup.style.display = 'none';
 	}
 
-	// Populate image dropdown with available images
-	populateImageDropdown();
+	// Populate image dropdown with available images and select current
+	populateImageDropdown(item.image);
 
 	// Show the panel
 	editPanel.classList.remove('hidden');
 }
 
-function populateImageDropdown() {
+function populateImageDropdown(currentImage) {
 	const imageSelect = document.getElementById('edit-item-image');
 	if (!imageSelect) return;
 
@@ -374,12 +373,16 @@ function populateImageDropdown() {
 			const option = document.createElement('option');
 			option.value = img.name;
 			option.textContent = img.name;
+			if (img.name === currentImage) {
+				option.selected = true;
+			}
 			imageSelect.appendChild(option);
 		});
 	}
 }
 
-export function saveItemEdit() {
+// Live update functions for edit panel
+export function liveUpdateItem(property, value) {
 	const editPanel = document.getElementById('timeline-edit-panel');
 	if (!editPanel || !currentScheduleData) return;
 
@@ -387,17 +390,30 @@ export function saveItemEdit() {
 	const item = currentScheduleData.items[index];
 	if (!item) return;
 
-	// Update item properties
-	item.name = document.getElementById('edit-item-name').value;
-	item.image = document.getElementById('edit-item-image').value;
-	item.enabled = document.getElementById('edit-item-enabled').checked;
-	item.progressBar = document.getElementById('edit-item-progressbar').checked;
+	// Update the property
+	item[property] = value;
 
-	// Update time fields
-	item.startHour = parseInt(document.getElementById('edit-start-hour').value) || 0;
-	item.startMin = parseInt(document.getElementById('edit-start-min').value) || 0;
-	item.endHour = parseInt(document.getElementById('edit-end-hour').value) || 0;
-	item.endMin = parseInt(document.getElementById('edit-end-min').value) || 0;
+	// Refresh timeline views
+	refreshTimelineViews();
+
+	// Update schedule editor if available
+	if (window.schedulesModule && window.schedulesModule.renderScheduleEditor) {
+		window.schedulesModule.renderScheduleEditor();
+	}
+
+	// Update preview
+	if (window.schedulesModule && window.schedulesModule.updateSchedulePreview) {
+		window.schedulesModule.updateSchedulePreview();
+	}
+}
+
+export function liveUpdateDays() {
+	const editPanel = document.getElementById('timeline-edit-panel');
+	if (!editPanel || !currentScheduleData) return;
+
+	const index = parseInt(editPanel.dataset.editingIndex);
+	const item = currentScheduleData.items[index];
+	if (!item) return;
 
 	// Update days if default schedule
 	const isDefaultSchedule = !currentScheduleData.date;
