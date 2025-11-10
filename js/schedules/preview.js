@@ -55,9 +55,9 @@ export async function updateSchedulePreview() {
 	scheduleMatrix.clear();
 
 	const SCHEDULE_IMAGE_X = 23;
-	const SCHEDULE_IMAGE_Y = 2;
+	const SCHEDULE_IMAGE_Y = 1;
 	const TIME_X = 2;
-	const TIME_Y = 2;
+	const TIME_Y = 1;
 
 	// Calculate midpoint time of schedule item
 	const startMinutes = item.startHour * 60 + item.startMin;
@@ -65,7 +65,7 @@ export async function updateSchedulePreview() {
 	const midMinutes = Math.floor((startMinutes + endMinutes) / 2);
 	const midHour = Math.floor(midMinutes / 60);
 	const midMin = midMinutes % 60;
-	const timeString = `${String(midHour).padStart(2, '0')}:${String(midMin).padStart(2, '0')}`;
+	const timeString = `${String(midHour)}:${String(midMin).padStart(2, '0')}`;
 
 	// Draw time at top left
 	if (window.TINYBIT_FONT) {
@@ -73,7 +73,7 @@ export async function updateSchedulePreview() {
 	}
 
 	// Load and render weather column (moved right 3 units)
-	const WEATHER_X = 5;
+	const WEATHER_X = 3;
 	const WEATHER_Y = 10; // Time (y=2) + font height (5) + 3px margin
 	if (window.loadWeatherColumnImage) {
 		try {
@@ -105,7 +105,7 @@ export async function updateSchedulePreview() {
 		const numberWidth = (3 * 2) + 1; // Two digits: 3px each + 1px spacing = 7px
 
 		// Draw degree symbol aligned with top of the "8" (1 pixel up from baseline, 1 unit right)
-		scheduleMatrix.drawTextWithFont('°', TIME_X + numberWidth + 1, TEMP_Y - 1, '#FFFFFF', window.TINYBIT_FONT);
+		scheduleMatrix.drawTextWithFont('°', TIME_X + numberWidth + 1, TEMP_Y - 3, '#FFFFFF', window.TINYBIT_FONT);
 	}
 
 	// Load and render image if specified
