@@ -1,4 +1,4 @@
-* {
+x* {
 	margin: 0;
 	padding: 0;
 	box-sizing: border-box;
@@ -1342,6 +1342,13 @@ header p {
 	font-size: 1em;
 }
 
+.time-input-long {
+	width: 60px !important;
+	border: 2px solid #000 !important;
+	padding: 4px 6px !important;
+	text-align: center;
+}
+
 .time-separator {
 	font-weight: bold;
 	padding: 0 5px;
@@ -1578,7 +1585,7 @@ header p {
 
 .days-checkboxes {
 	display: flex;
-	gap: 4px;
+	gap: 9px;
 	flex-wrap: wrap;
 }
 

@@ -508,19 +508,19 @@ function renderScheduleItems() {
 					<div class="schedule-item-row">
 						<span class="item-label">Time:</span>
 						<div class="time-inputs">
-							<input type="number" class="time-input" min="0" max="23"
+							<input type="number" class="time-input-large min="0" max="23"
 								value="${item.startHour}"
 								onchange="window.schedulesModule.updateScheduleItem(${index}, 'startHour', parseInt(this.value))">
 							<span class="time-separator">:</span>
-							<input type="number" class="time-input" min="0" max="59"
+							<input type="number" class="time-input-large min="0" max="59"
 								value="${item.startMin}"
 								onchange="window.schedulesModule.updateScheduleItem(${index}, 'startMin', parseInt(this.value))">
 							<span class="time-separator">to</span>
-							<input type="number" class="time-input" min="0" max="23"
+							<input type="number" class="time-input-large min="0" max="23"
 								value="${item.endHour}"
 								onchange="window.schedulesModule.updateScheduleItem(${index}, 'endHour', parseInt(this.value))">
 							<span class="time-separator">:</span>
-							<input type="number" class="time-input" min="0" max="59"
+							<input type="number" class="time-input-large min="0" max="59"
 								value="${item.endMin}"
 								onchange="window.schedulesModule.updateScheduleItem(${index}, 'endMin', parseInt(this.value))">
 						</div>
