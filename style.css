@@ -1342,6 +1342,14 @@ header p {
 	font-size: 1em;
 }
 
+.time-input-long {
+	width: 60px;
+	border: 2px solid #000;
+	padding: 4px 6px;
+	font-family: 'Courier New', monospace;
+	text-align: center;
+}
+
 .time-separator {
 	font-weight: bold;
 	padding: 0 5px;
