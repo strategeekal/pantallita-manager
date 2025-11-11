@@ -2071,7 +2071,7 @@ header p {
 	}
 
 	.schedule-info-form {
-		grid-template-columns: 1fr;
+		display: block;
 	}
 
 	/* Show mobile day indicator only on mobile */
@@ -2106,8 +2106,19 @@ header p {
 		width: 100%;
 	}
 
-	#schedule-info-form input[type="date"],
+	#schedule-info-form input:not([type="checkbox"]):not([type="date"]),
 	#schedule-info-form select {
+		max-width: 100%;
+		box-sizing: border-box !important;
+		width: 100% !important;
+		padding: 8px !important;
+		border: 2px solid #000 !important;
+		display: block !important;
+		min-width: 0 !important;
+		margin: 0 !important;
+	}
+
+	#schedule-info-form input[type="date"] {
 		max-width: 100%;
 		box-sizing: border-box !important;
 		width: 100% !important;
@@ -2149,7 +2160,7 @@ header p {
 		width: 100%;
 	}
 
-	.schedule-item input,
+	.schedule-item input:not([type="checkbox"]),
 	.schedule-item select {
 		width: 100% !important;
 		max-width: 100%;
@@ -2159,6 +2170,14 @@ header p {
 		display: block !important;
 		min-width: 0 !important;
 		margin: 0 !important;
+	}
+
+	/* Ensure checkboxes don't get full width in schedule editor */
+	.schedule-item input[type="checkbox"] {
+		width: auto !important;
+		display: inline-block !important;
+		margin: 0 !important;
+		padding: 0 !important;
 	}
 
 	.schedule-item-row {
