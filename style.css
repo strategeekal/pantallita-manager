@@ -2070,6 +2070,10 @@ header p {
 		border-width: 2px;
 	}
 
+	.schedule-editor-content {
+		display: block;
+	}
+
 	.schedule-info-form {
 		display: block;
 	}
