@@ -410,6 +410,11 @@ header p {
 	transition: box-shadow 0.1s;
 }
 
+/* Override width for checkbox inputs inside checkbox-option labels */
+.form-group label.checkbox-option input[type="checkbox"] {
+	width: auto;
+}
+
 .form-group input:focus,
 .form-group select:focus {
 	outline: none;
