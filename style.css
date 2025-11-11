@@ -457,14 +457,11 @@ header p {
 	user-select: none;
 	text-transform: none;
 	margin-bottom: 0;
+	width: auto;
 }
 
 .form-group label.checkbox-option:hover {
 	background: #d0d0d0;
-}
-
-.form-group label.checkbox-option input[type="checkbox"]:checked + * {
-	color: #000;
 }
 
 .form-group label.checkbox-option:has(input[type="checkbox"]:checked) {
@@ -475,6 +472,11 @@ header p {
 .form-group label.checkbox-option input[type="checkbox"] {
 	margin: 0;
 	cursor: pointer;
+	flex-shrink: 0;
+}
+
+.form-group label.checkbox-option span {
+	white-space: nowrap;
 }
 
 /* Pixel-style Buttons */
