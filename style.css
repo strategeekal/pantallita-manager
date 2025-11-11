@@ -1034,7 +1034,7 @@ header p {
 		width: 100%;
 	}
 
-	.event-form input,
+	.event-form input:not([type="checkbox"]),
 	.event-form select {
 		width: 100% !important;
 		display: block !important;
@@ -1047,7 +1047,7 @@ header p {
 		font-size: 1em !important;
 	}
 
-	.form-group input,
+	.form-group input:not([type="checkbox"]),
 	.form-group select {
 		width: 100% !important;
 		display: block !important;
@@ -1056,6 +1056,15 @@ header p {
 		max-width: 100% !important;
 		padding: 10px !important;
 		border: 2px solid #000 !important;
+	}
+
+	/* Ensure checkboxes don't get full width */
+	.event-form input[type="checkbox"],
+	.form-group input[type="checkbox"] {
+		width: auto !important;
+		display: inline-block !important;
+		margin: 0 !important;
+		padding: 0 !important;
 	}
 
 	.time-fields input[type="number"] {
