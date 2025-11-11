@@ -360,11 +360,17 @@ export function showEditPanel(index) {
 
 	if (isDefaultSchedule) {
 		daysGroup.style.display = 'flex';
-		// Clear all checkboxes
+		// Clear all checkboxes and update label classes
 		for (let i = 0; i < 7; i++) {
 			const checkbox = document.getElementById(`edit-day-${i}`);
 			if (checkbox) {
-				checkbox.checked = item.days && item.days.includes(i.toString());
+				const isChecked = item.days && item.days.includes(i.toString());
+				checkbox.checked = isChecked;
+				// Toggle checked class on the label
+				const label = checkbox.parentElement;
+				if (label) {
+					label.classList.toggle('checked', isChecked);
+				}
 			}
 		}
 	} else {
@@ -440,11 +446,20 @@ export function liveUpdateDays() {
 		const selectedDays = [];
 		for (let i = 0; i < 7; i++) {
 			const checkbox = document.getElementById(`edit-day-${i}`);
-			if (checkbox && checkbox.checked) {
-				selectedDays.push(i.toString());
+			if (checkbox) {
+				// Update label checked class
+				const label = checkbox.parentElement;
+				if (label) {
+					label.classList.toggle('checked', checkbox.checked);
+				}
+				// Add to selected days if checked
+				if (checkbox.checked) {
+					selectedDays.push(i.toString());
+				}
 			}
 		}
-		item.days = selectedDays;
+		// Store days as a string (not array) to match CSV format
+		item.days = selectedDays.join('');
 	}
 
 	// Refresh timeline views
