@@ -732,7 +732,7 @@ header p {
 
 .event-form-container {
 	display: grid;
-	grid-template-columns: 1fr 1fr;
+	grid-template-columns: 0.85fr 1.15fr;
 	gap: 30px;
 }
 
@@ -781,7 +781,7 @@ header p {
 }
 
 .time-fields input[type="number"] {
-	max-width: 120px;
+	max-width: 100px;
 }
 
 .form-actions {
@@ -989,25 +989,37 @@ header p {
 
 /* Responsive Design for Events */
 @media (max-width: 768px) {
+	/* Reduce padding on mobile to prevent overflow */
+	.event-editor {
+		padding: 15px;
+	}
+
 	.event-form-container {
 		grid-template-columns: 1fr;
+		gap: 15px;
 	}
 
 	.time-fields {
 		grid-template-columns: 1fr;
+		padding: 10px;
+		gap: 10px;
 	}
 
 	/* Fix event editor input overflows */
 	.event-form input,
-	.event-form select {
+	.event-form select,
+	.form-group input,
+	.form-group select {
 		max-width: 100%;
 		box-sizing: border-box;
 		width: 100% !important;
+		min-width: 0 !important;
 	}
 
 	.time-fields input[type="number"] {
 		max-width: 100%;
 		box-sizing: border-box;
+		min-width: 0 !important;
 	}
 
 	/* Split color and icon to two lines on mobile */
@@ -1779,8 +1791,8 @@ header p {
 }
 
 .schedule-editor-layout .timeline-view-section {
-	flex: 0 0 45%;
-	max-width: 45%;
+	flex: 0 0 40%;
+	max-width: 40%;
 	margin-top: 0;
 	max-height: 760px;
 	overflow-y: auto;
