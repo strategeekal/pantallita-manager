@@ -46,6 +46,7 @@ window.schedulesModule = {
 	liveUpdateItem: timeline.liveUpdateItem,
 	liveUpdateDays: timeline.liveUpdateDays,
 	deleteScheduleItemFromPanel: timeline.deleteScheduleItemFromPanel,
+	updateMobileDayIndicator: timeline.updateMobileDayIndicator,
 	duplicateSchedule: scheduleManager.duplicateSchedule,
 	deleteSchedule: scheduleManager.deleteSchedule,
 	updateSchedulePreview: preview.updateSchedulePreview,

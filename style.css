@@ -997,6 +997,17 @@ header p {
 		grid-template-columns: 1fr;
 	}
 
+	/* Fix event editor input overflows */
+	.event-form input,
+	.event-form select {
+		max-width: 100%;
+		box-sizing: border-box;
+	}
+
+	.time-fields input[type="number"] {
+		max-width: 100%;
+	}
+
 	.event-card {
 		grid-template-columns: 1fr;
 		padding: 15px;
@@ -1886,10 +1897,71 @@ header p {
 	text-align: center;
 }
 
+/* Mobile day indicator - hidden by default, shown only on mobile */
+.mobile-day-indicator {
+	display: none;
+}
+
+.mobile-day-item {
+	padding: 8px;
+	background: #e0e0e0;
+	border: 2px solid #000;
+	text-align: center;
+	font-weight: bold;
+	font-family: 'Courier New', monospace;
+	font-size: 0.85em;
+	cursor: pointer;
+	transition: all 0.1s;
+}
+
+.mobile-day-item.has-items {
+	background: #00FF88;
+	color: #000;
+}
+
+.mobile-day-item.selected {
+	border-color: #FF0088;
+	border-width: 3px;
+}
+
+.mobile-day-short {
+	display: none;
+}
+
+.mobile-day-full {
+	display: inline;
+}
+
 /* Mobile Responsive for Schedules */
 @media (max-width: 768px) {
 	.schedule-info-form {
 		grid-template-columns: 1fr;
+	}
+
+	/* Show mobile day indicator only on mobile */
+	.mobile-day-indicator {
+		display: grid;
+		grid-template-columns: repeat(7, 1fr);
+		gap: 4px;
+		margin-bottom: 15px;
+		padding: 10px;
+		background: #f9f9f9;
+		border: 2px solid #000;
+	}
+
+	/* Show short day names on mobile */
+	.mobile-day-short {
+		display: inline;
+	}
+
+	.mobile-day-full {
+		display: none;
+	}
+
+	/* Fix schedule editor input overflows */
+	#schedule-info-form input[type="date"] {
+		max-width: 100%;
+		box-sizing: border-box;
 	}
 
 	.schedule-item-header {
@@ -1898,7 +1970,9 @@ header p {
 	}
 
 	.item-name-input {
-		width: 100%;
+		width: 100% !important;
+		max-width: 100%;
+		box-sizing: border-box;
 	}
 
 	.item-enabled {
@@ -1912,7 +1986,9 @@ header p {
 
 	.schedule-item input,
 	.schedule-item select {
-		width: 100%;
+		width: 100% !important;
+		max-width: 100%;
+		box-sizing: border-box;
 	}
 
 	.schedule-item-row {
@@ -1936,15 +2012,46 @@ header p {
 
 	.time-inputs {
 		flex-wrap: wrap;
-		justify-content: center;
+		justify-content: flex-start;
+		gap: 8px;
+	}
+
+	.time-input-large {
+		width: 70px !important;
+		max-width: 70px;
 	}
 
 	.image-select {
 		width: 100%;
 	}
 
+	/* Fix schedule card button overflows */
+	.schedule-card {
+		flex-direction: column;
+		align-items: stretch;
+	}
+
+	.schedule-actions {
+		width: 100%;
+		flex-direction: row;
+		gap: 5px;
+	}
+
+	.schedule-actions .btn-pixel {
+		flex: 1;
+		padding: 8px;
+		font-size: 0.85em;
+	}
+
+	/* Fix timeline overflow - make it scrollable */
+	.timeline-view {
+		max-width: 100%;
+		overflow-x: auto;
+	}
+
 	.timeline-item {
 		font-size: 0.85em;
+		min-width: 0;
 	}
 
 	.timeline-item-content {
@@ -1958,6 +2065,27 @@ header p {
 	.gap-time,
 	.gap-duration {
 		font-size: 0.6em;
+	}
+
+	/* Stack schedule editor layout vertically on mobile */
+	.schedule-editor-layout {
+		flex-direction: column;
+	}
+
+	.schedule-editor-layout .timeline-view-section,
+	.schedule-editor-layout .schedule-preview-section {
+		flex: 1;
+		max-width: 100%;
+		margin-top: 20px;
+	}
+
+	/* Hide week view on mobile - too wide */
+	.timeline-week-view {
+		display: none !important;
+	}
+
+	#timeline-view-week {
+		display: none !important;
 	}
 
 	.schedule-preview-section {
