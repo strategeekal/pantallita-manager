@@ -15,6 +15,7 @@ import * as scheduleManager from './schedules/schedule-manager.js';
 import * as scheduleEditor from './schedules/schedule-editor.js';
 import * as timeline from './schedules/timeline.js';
 import * as preview from './schedules/preview.js';
+import * as templateManager from './schedules/template-manager.js';
 
 // Detect mobile at startup
 const IS_MOBILE = isMobileDevice();
@@ -79,6 +80,14 @@ window.updateSchedulePreview = preview.updateSchedulePreview;
 window.loadEvents = eventsModule.loadEvents;
 window.saveEvent = eventsModule.saveEvent;
 window.clearPastEvents = eventsModule.clearPastEvents;
+
+// Expose template manager functions globally
+window.templateManager = {
+	openTemplateManager: templateManager.openTemplateManager,
+	closeTemplateManager: templateManager.closeTemplateManager,
+	editTemplate: templateManager.editTemplate,
+	deleteTemplate: templateManager.deleteTemplate
+};
 
 // Initialize app on page load
 document.addEventListener('DOMContentLoaded', async () => {
