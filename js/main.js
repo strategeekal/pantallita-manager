@@ -91,7 +91,8 @@ window.templateManager = {
 	updateTemplateDays: templateManager.updateTemplateDays,
 	deleteTemplateItem: templateManager.deleteTemplateItem,
 	addTemplateItem: templateManager.addTemplateItem,
-	getCurrentTemplateData: templateManager.getCurrentTemplateData
+	getCurrentTemplateData: templateManager.getCurrentTemplateData,
+	saveAsNewTemplate: templateManager.saveAsNewTemplate
 };
 
 // Initialize app on page load
