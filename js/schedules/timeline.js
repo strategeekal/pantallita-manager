@@ -425,7 +425,8 @@ export function liveUpdateDays() {
 				selectedDays.push(i.toString());
 			}
 		}
-		item.days = selectedDays;
+		// Store days as a string (not array) to match CSV format
+		item.days = selectedDays.join('');
 	}
 
 	// Refresh timeline views
