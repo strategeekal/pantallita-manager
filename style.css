@@ -1568,7 +1568,7 @@ header p {
 .edit-panel-content {
 	display: flex;
 	flex-direction: column;
-	gap: 5px;
+	gap: 8px;
 }
 
 .edit-panel-content .form-group {
@@ -1577,10 +1577,22 @@ header p {
 	gap: 2px;
 }
 
+.edit-panel-content .form-group-small {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	margin-bottom: 0;
+}
+
 .edit-panel-content label {
 	font-family: 'Courier New', monospace;
 	font-weight: bold;
 	font-size: 0.75em;
+}
+
+/* Checkbox labels should have normal weight */
+.edit-panel-content label:has(input[type="checkbox"]) {
+	font-weight: normal;
 }
 
 .edit-panel-content .form-input {
@@ -1592,21 +1604,35 @@ header p {
 
 .days-checkboxes {
 	display: flex;
-	gap: 9px;
+	gap: 5px;
 	flex-wrap: wrap;
 }
 
 .days-checkboxes label {
 	display: flex;
 	align-items: center;
-	gap: 2px;
+	gap: 4px;
 	font-weight: normal;
 	cursor: pointer;
 	font-size: 0.75em;
+	background: #e0e0e0;
+	border: 2px solid #000;
+	padding: 4px 8px;
+	transition: background 0.2s;
+}
+
+.days-checkboxes label:hover {
+	background: #d0d0d0;
+}
+
+.days-checkboxes label.checked {
+	background: #00FF88;
+	color: #000;
 }
 
 .days-checkboxes input[type="checkbox"] {
 	cursor: pointer;
+	margin: 0;
 }
 
 .edit-time-inputs {
