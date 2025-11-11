@@ -178,6 +178,9 @@ export async function editTemplate(templateName) {
 		// Manually populate the schedule items list using the template data
 		populateTemplateItems(templateData);
 
+		// Update the button labels for template editing
+		updateButtonsForTemplateMode();
+
 		// Import timeline and preview modules
 		const { refreshTimelineViews } = await import('./timeline.js');
 		const { updateSchedulePreview } = await import('./preview.js');
@@ -411,6 +414,25 @@ export function addTemplateItem() {
 	});
 }
 
+function updateButtonsForTemplateMode() {
+	// Find the save button and change its text
+	const saveButtons = document.querySelectorAll('.schedule-actions .btn-primary');
+	saveButtons.forEach(btn => {
+		if (btn.textContent.includes('Save Schedule')) {
+			btn.innerHTML = '💾 Save Template';
+		}
+	});
+
+	// Find the "Save as Template" button and change it to "Save as New Template"
+	const saveAsButtons = document.querySelectorAll('.schedule-actions .btn-secondary');
+	saveAsButtons.forEach(btn => {
+		if (btn.textContent.includes('Save as Template')) {
+			btn.innerHTML = '📄 Save as New Template';
+			btn.onclick = () => saveAsNewTemplate();
+		}
+	});
+}
+
 async function saveTemplateFromEditor() {
 	if (!window.__currentTemplateData) return;
 
@@ -432,8 +454,91 @@ async function saveTemplateFromEditor() {
 		// Reload templates
 		await loadScheduleTemplates();
 
+		// Close editor and go back to schedules list after a short delay
+		setTimeout(() => {
+			closeTemplateEditor();
+		}, 1000);
+
 	} catch (error) {
 		showStatus('Failed to save template: ' + error.message, 'error');
+	}
+}
+
+export async function saveAsNewTemplate() {
+	if (!window.__currentTemplateData) return;
+
+	const templateData = window.__currentTemplateData;
+
+	const newTemplateName = prompt('Enter new template name (will be saved as schedules/templates/[name].csv):');
+	if (!newTemplateName) return;
+
+	// Clean up the name (remove .csv if user added it, replace spaces with dashes)
+	const cleanName = newTemplateName.replace('.csv', '').replace(/\s+/g, '-').toLowerCase();
+	if (!cleanName) {
+		showStatus('Invalid template name', 'error');
+		return;
+	}
+
+	try {
+		// Check if template already exists
+		let sha = null;
+		try {
+			const response = await fetchGitHubFile(`schedules/templates/${cleanName}.csv`);
+			sha = response.sha;
+			if (!confirm(`Template "${cleanName}" already exists. Overwrite?`)) {
+				return;
+			}
+		} catch (e) {
+			// Template doesn't exist yet - that's fine
+		}
+
+		const csvContent = generateTemplateCSV(templateData);
+		await saveGitHubFile(`schedules/templates/${cleanName}.csv`, csvContent, sha);
+
+		showStatus('Template saved successfully!', 'success');
+
+		// Reload templates
+		await loadScheduleTemplates();
+
+		// Close editor and go back to schedules list after a short delay
+		setTimeout(() => {
+			closeTemplateEditor();
+		}, 1000);
+
+	} catch (error) {
+		showStatus('Failed to save template: ' + error.message, 'error');
+	}
+}
+
+function closeTemplateEditor() {
+	const editorEl = document.getElementById('schedule-editor');
+	if (editorEl) {
+		editorEl.classList.add('hidden');
+	}
+
+	const listSection = document.querySelector('.schedule-list-section');
+	if (listSection) {
+		listSection.classList.remove('hidden');
+	}
+
+	// Reset template mode
+	window.__currentTemplateData = null;
+	window.__editingTemplate = null;
+
+	// Restore original save function
+	if (window.__originalSaveSchedule) {
+		window.saveSchedule = window.__originalSaveSchedule;
+		window.__originalSaveSchedule = null;
+	}
+
+	// Clean up schedule matrix
+	if (window.scheduleMatrix) {
+		window.scheduleMatrix.clear();
+		const container = document.getElementById('matrix-container-schedule');
+		if (container) {
+			container.innerHTML = '';
+		}
+		window.scheduleMatrix = null;
 	}
 }
 
