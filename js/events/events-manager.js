@@ -91,7 +91,7 @@ function displayEvents() {
 					<h4>${event.topLine} - ${event.bottomLine}</h4>
 					<p class="event-time">${event.startHour !== 0 || event.endHour !== 23 ? `${String(event.startHour).padStart(2,'0')}:00 - ${String(event.endHour).padStart(2,'0')}:00` : 'All Day'}</p>
 					<p>${formattedDate}</p>
-					<p>Color: ${event.colorName} | Icon: ${event.iconName || 'None'}</p>
+					<p class="event-meta"><span class="event-color">Color: ${event.colorName}</span><span class="event-separator"> | </span><span class="event-icon">Icon: ${event.iconName || 'None'}</span></p>
 				</div>
 				<div class="event-actions">
 					<button class="btn-pixel btn-primary btn-sm" onclick="window.eventsModule.editEvent(${event.index})">Edit</button>
