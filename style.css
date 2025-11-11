@@ -443,7 +443,7 @@ header p {
 
 /* Checkbox option styling (matches day-checkbox design) */
 .form-group label.checkbox-option {
-	display: inline-flex !important;
+	display: flex;
 	align-items: center;
 	gap: 8px;
 	background: #e0e0e0;
@@ -457,7 +457,6 @@ header p {
 	user-select: none;
 	text-transform: none;
 	margin-bottom: 0;
-	width: auto;
 }
 
 .form-group label.checkbox-option:hover {
@@ -477,6 +476,7 @@ header p {
 
 .form-group label.checkbox-option span {
 	white-space: nowrap;
+	flex: 0 1 auto;
 }
 
 /* Pixel-style Buttons */
