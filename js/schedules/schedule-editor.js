@@ -109,6 +109,12 @@ export function closeScheduleEditor() {
 
 	currentScheduleData = null;
 
+	// Remove make default button if it exists
+	const makeDefaultBtn = document.querySelector('.make-default-btn');
+	if (makeDefaultBtn) {
+		makeDefaultBtn.remove();
+	}
+
 	// Clean up schedule matrix
 	if (window.scheduleMatrix) {
 		window.scheduleMatrix.clear();
@@ -125,6 +131,12 @@ function populateScheduleEditor() {
 
 	const scheduleInfoForm = document.getElementById('schedule-info-form');
 	if (!scheduleInfoForm) return;
+
+	// Remove make default button if it exists (in case switching modes)
+	const makeDefaultBtn = document.querySelector('.make-default-btn');
+	if (makeDefaultBtn) {
+		makeDefaultBtn.remove();
+	}
 
 	try {
 		if (currentScheduleData.type === 'default') {
@@ -151,12 +163,21 @@ function populateScheduleEditor() {
 							<input type="date" id="schedule-date" value="${currentScheduleData.date}" onchange="window.schedulesModule.handleDateChange()">
 							<small>This schedule is for ${dayOfWeek}</small>
 						</div>
-						<div class="form-group">
-							<button type="button" class="btn-pixel btn-secondary" onclick="window.schedulesModule.makeThisDefault()">
-								💾 Make This the Default Schedule
-							</button>
-						</div>
 					`;
+
+					// Add default schedule button to actions section
+					const actionsDiv = document.querySelector('.schedule-actions');
+					if (actionsDiv) {
+						// Check if button doesn't already exist
+						if (!actionsDiv.querySelector('.make-default-btn')) {
+							const defaultBtn = document.createElement('button');
+							defaultBtn.className = 'btn-pixel btn-secondary make-default-btn';
+							defaultBtn.onclick = () => window.schedulesModule.makeThisDefault();
+							defaultBtn.innerHTML = '💾 Make This the Default Schedule';
+							// Insert before the first button
+							actionsDiv.insertBefore(defaultBtn, actionsDiv.firstChild);
+						}
+					}
 				} catch (dateError) {
 					scheduleInfoForm.innerHTML = `
 						<div class="form-group">

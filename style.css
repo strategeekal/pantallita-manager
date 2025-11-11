@@ -1988,6 +1988,28 @@ header p {
 	margin: 0;
 }
 
+/* Schedule Actions */
+.schedule-actions {
+	display: flex;
+	gap: 10px;
+	flex-wrap: wrap;
+	margin-top: 20px;
+	padding: 20px;
+	background: #f0f0f0;
+	border-top: 3px solid #000;
+}
+
+.schedule-actions .btn-pixel {
+	flex: 1;
+	margin: 0;
+	min-width: 150px;
+}
+
+/* Mobile Schedule Preview - hidden on desktop */
+.mobile-schedule-preview {
+	display: none;
+}
+
 /* Empty, Loading, Error States */
 .loading-message {
 	text-align: center;
@@ -2203,15 +2225,21 @@ header p {
 		min-width: 40px;
 	}
 
+	/* Group time inputs side by side on mobile */
 	.time-inputs {
-		flex-wrap: wrap;
-		justify-content: flex-start;
+		display: grid;
+		grid-template-columns: 1fr 1fr;
 		gap: 8px;
+		align-items: center;
+	}
+
+	.time-inputs .item-label {
+		grid-column: 1 / -1;
 	}
 
 	.time-input-large {
-		width: 70px !important;
-		max-width: 70px;
+		width: 100% !important;
+		max-width: 100%;
 	}
 
 	.image-select {
@@ -2287,6 +2315,34 @@ header p {
 
 	#schedule-info-form {
 		padding: 15px;
+	}
+
+	/* Show mobile preview square */
+	.mobile-schedule-preview {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		padding: 15px;
+		background: #f0f0f0;
+		margin-top: 20px;
+	}
+
+	#mobile-schedule-preview-matrix {
+		width: 256px;
+		height: 128px;
+		background: #000;
+		border: 2px solid #000;
+	}
+
+	/* Adjust schedule actions for mobile */
+	.schedule-actions {
+		flex-direction: column;
+		padding: 15px;
+	}
+
+	.schedule-actions .btn-pixel {
+		width: 100%;
+		min-width: 0;
 	}
 }
 
