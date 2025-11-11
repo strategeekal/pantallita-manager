@@ -441,6 +441,40 @@ header p {
 	box-shadow: 2px 2px 0px rgba(0, 0, 0, 0.3);
 }
 
+/* Checkbox option styling (matches day-checkbox design) */
+.checkbox-option {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	background: #e0e0e0;
+	border: 2px solid #000;
+	padding: 8px 12px;
+	cursor: pointer;
+	font-size: 0.9em;
+	font-weight: bold;
+	font-family: 'Courier New', monospace;
+	transition: all 0.1s;
+	user-select: none;
+}
+
+.checkbox-option:hover {
+	background: #d0d0d0;
+}
+
+.checkbox-option input[type="checkbox"]:checked + * {
+	color: #000;
+}
+
+.checkbox-option:has(input[type="checkbox"]:checked) {
+	background: #00FF88;
+	color: #000;
+}
+
+.checkbox-option input[type="checkbox"] {
+	margin: 0;
+	cursor: pointer;
+}
+
 /* Pixel-style Buttons */
 .btn-pixel {
 	padding: 12px 24px;
