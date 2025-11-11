@@ -1,11 +1,10 @@
 // Template Manager Module - Manage schedule templates
 import { fetchGitHubFile, deleteGitHubFile, saveGitHubFile } from '../core/api.js';
-import { showStatus } from '../core/utils.js';
-import { loadConfig } from '../core/config.js';
+import { showStatus, parseCSV } from '../core/utils.js';
 import { loadScheduleTemplates, scheduleTemplates } from './schedule-manager.js';
-import { currentScheduleData, scheduleMatrix } from './schedule-editor.js';
 
-let isTemplateMode = false;
+// Import schedule editor to get access to its internal functions
+import * as scheduleEditorModule from './schedule-editor.js';
 
 export function openTemplateManager() {
 	const modal = document.getElementById('template-manager-modal');
@@ -87,31 +86,58 @@ export async function editTemplate(templateName) {
 		// Close template manager modal
 		closeTemplateManager();
 
-		// Load the template file
+		// Load the template file using the same approach as editSchedule
 		const templatePath = `schedules/templates/${templateName}`;
 		const { content, sha } = await fetchGitHubFile(templatePath);
 
-		// Parse the CSV content
-		const parsedItems = parseTemplateCSV(content);
+		// Parse using the same CSV parser
+		const lines = parseCSV(content);
+		const parsedItems = lines.map((line, index) => {
+			const parts = line.split(',');
+			if (parts.length < 9) return null;
 
-		// Create a special schedule data object for template editing
+			return {
+				name: parts[0].trim(),
+				enabled: parts[1].trim() === '1',
+				days: parts[2].trim(),
+				startHour: parseInt(parts[3].trim()),
+				startMin: parseInt(parts[4].trim()),
+				endHour: parseInt(parts[5].trim()),
+				endMin: parseInt(parts[6].trim()),
+				image: parts[7].trim(),
+				progressBar: parts[8].trim() === '1',
+				index: index
+			};
+		}).filter(item => item !== null);
+
+		// Call the internal function to set currentScheduleData
+		// We need to use a special approach here since we can't directly set the module variable
+		// Instead, we'll use the window object to communicate with schedule-editor
+		window.__editingTemplate = {
+			templateName: templateName,
+			sha: sha
+		};
+
+		// Set up the schedule data similar to how editSchedule does it
+		// We'll use type 'template' to distinguish from regular schedules
 		const templateData = {
 			type: 'template',
 			templateName: templateName,
 			filename: templateName,
 			sha: sha,
 			items: parsedItems,
-			isNew: false,
-			isTemplate: true
+			isNew: false
 		};
 
-		// Store in window for global access (similar to other schedule data)
-		window.currentTemplateData = templateData;
+		// Import and call the schedule editor's internal setup
+		const scheduleEditorInternal = await import('./schedule-editor.js');
 
-		// Store template mode flag
-		isTemplateMode = true;
+		// We need to directly manipulate the module's internal state
+		// Since we can't export a setter, we'll use a workaround
+		// Store the template data globally for the save override to access
+		window.__currentTemplateData = templateData;
 
-		// Show schedule editor
+		// Show the schedule editor UI
 		const editorEl = document.getElementById('schedule-editor');
 		if (editorEl) {
 			editorEl.classList.remove('hidden');
@@ -129,8 +155,36 @@ export async function editTemplate(templateName) {
 			titleEl.textContent = `Edit Template: ${templateName.replace('.csv', '')}`;
 		}
 
-		// Populate the editor
-		await populateTemplateEditor(templateData);
+		// Populate the editor form
+		const scheduleInfoForm = document.getElementById('schedule-info-form');
+		if (scheduleInfoForm) {
+			scheduleInfoForm.innerHTML = `
+				<div class="form-group">
+					<p class="schedule-mode-info">Editing Template: ${templateName.replace('.csv', '')}</p>
+					<small>Templates support multiple days of the week</small>
+				</div>
+			`;
+		}
+
+		// Use the existing renderScheduleItems by temporarily setting currentScheduleData
+		// This is a hack, but necessary given the module structure
+		const originalSaveSchedule = window.saveSchedule;
+
+		// Override the save function to save to templates directory
+		window.saveSchedule = async function() {
+			await saveTemplateFromEditor();
+		};
+
+		// Manually populate the schedule items list using the template data
+		populateTemplateItems(templateData);
+
+		// Import timeline and preview modules
+		const { refreshTimelineViews } = await import('./timeline.js');
+		const { updateSchedulePreview } = await import('./preview.js');
+
+		// Update timeline and preview
+		refreshTimelineViews();
+		setTimeout(() => updateSchedulePreview(), 50);
 
 		// Switch to Schedules tab if not already there
 		const schedulesTab = document.querySelector('[data-tab="schedules"]');
@@ -138,66 +192,15 @@ export async function editTemplate(templateName) {
 			schedulesTab.click();
 		}
 
+		// Store original save function for cleanup
+		window.__originalSaveSchedule = originalSaveSchedule;
+
 	} catch (error) {
 		showStatus('Failed to load template: ' + error.message, 'error');
 	}
 }
 
-function parseTemplateCSV(content) {
-	const lines = content.split('\n').filter(line => {
-		const trimmed = line.trim();
-		return trimmed && !trimmed.startsWith('#');
-	});
-
-	return lines.map((line, index) => {
-		const parts = line.split(',');
-		if (parts.length < 9) return null;
-
-		return {
-			name: parts[0].trim(),
-			enabled: parts[1].trim() === '1',
-			days: parts[2].trim(),
-			startHour: parseInt(parts[3].trim()),
-			startMin: parseInt(parts[4].trim()),
-			endHour: parseInt(parts[5].trim()),
-			endMin: parseInt(parts[6].trim()),
-			image: parts[7].trim(),
-			progressBar: parts[8].trim() === '1',
-			index: index
-		};
-	}).filter(item => item !== null);
-}
-
-async function populateTemplateEditor(templateData) {
-	if (!templateData) return;
-
-	const scheduleInfoForm = document.getElementById('schedule-info-form');
-	if (!scheduleInfoForm) return;
-
-	// Show template info (no date selector, just template name)
-	scheduleInfoForm.innerHTML = `
-		<div class="form-group">
-			<p class="schedule-mode-info">Editing Template: ${templateData.templateName.replace('.csv', '')}</p>
-			<small>Templates are day-agnostic schedules that can be applied to any date</small>
-		</div>
-	`;
-
-	// Render schedule items
-	renderTemplateItems(templateData);
-
-	// Update timeline views
-	const timelineModule = await import('./timeline.js');
-	timelineModule.refreshTimelineViews();
-
-	// Update preview
-	const previewModule = await import('./preview.js');
-	setTimeout(() => previewModule.updateSchedulePreview(), 50);
-
-	// Override save button behavior for template mode
-	updateSaveButtonForTemplate(templateData);
-}
-
-function renderTemplateItems(templateData) {
+function populateTemplateItems(templateData) {
 	const container = document.getElementById('schedule-items-list');
 	if (!container || !templateData) return;
 
@@ -215,14 +218,14 @@ function renderTemplateItems(templateData) {
 				`<option value="${img.name}" ${item.image === img.name ? 'selected' : ''}>${img.name}</option>`
 			).join('');
 
-			// For templates, show day checkboxes
+			// For templates, show day checkboxes (templates support multiple days)
 			const daysHTML = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, dayIndex) => {
 				const isChecked = item.days.includes(dayIndex.toString());
 				return `
 					<label class="day-checkbox ${isChecked ? 'checked' : ''}">
 						<input type="checkbox"
 							${isChecked ? 'checked' : ''}
-							onchange="window.schedulesModule.updateScheduleDays(${index}, this)">
+							onchange="window.templateManager.updateTemplateDays(${index}, this)">
 						${day}
 					</label>
 				`;
@@ -234,12 +237,12 @@ function renderTemplateItems(templateData) {
 						<input type="text"
 							class="item-name-input"
 							value="${item.name}"
-							onchange="window.schedulesModule.updateScheduleItem(${index}, 'name', this.value)"
+							onchange="window.templateManager.updateTemplateItem(${index}, 'name', this.value)"
 							placeholder="Item name">
 						<label class="item-enabled">
 							<input type="checkbox"
 								${item.enabled ? 'checked' : ''}
-								onchange="window.schedulesModule.updateScheduleItem(${index}, 'enabled', this.checked)">
+								onchange="window.templateManager.updateTemplateItem(${index}, 'enabled', this.checked)">
 							Enabled
 						</label>
 					</div>
@@ -253,24 +256,24 @@ function renderTemplateItems(templateData) {
 							<div class="time-inputs">
 								<input type="number" class="time-input-large" min="0" max="23"
 									value="${item.startHour}"
-									onchange="window.schedulesModule.updateScheduleItem(${index}, 'startHour', parseInt(this.value))">
+									onchange="window.templateManager.updateTemplateItem(${index}, 'startHour', parseInt(this.value))">
 								<span class="time-separator">:</span>
 								<input type="number" class="time-input-large" min="0" max="59"
 									value="${item.startMin}"
-									onchange="window.schedulesModule.updateScheduleItem(${index}, 'startMin', parseInt(this.value))">
+									onchange="window.templateManager.updateTemplateItem(${index}, 'startMin', parseInt(this.value))">
 								<span class="time-separator">to</span>
 								<input type="number" class="time-input-large" min="0" max="23"
 									value="${item.endHour}"
-									onchange="window.schedulesModule.updateScheduleItem(${index}, 'endHour', parseInt(this.value))">
+									onchange="window.templateManager.updateTemplateItem(${index}, 'endHour', parseInt(this.value))">
 								<span class="time-separator">:</span>
 								<input type="number" class="time-input-large" min="0" max="59"
 									value="${item.endMin}"
-									onchange="window.schedulesModule.updateScheduleItem(${index}, 'endMin', parseInt(this.value))">
+									onchange="window.templateManager.updateTemplateItem(${index}, 'endMin', parseInt(this.value))">
 							</div>
 						</div>
 						<div class="schedule-item-row">
 							<span class="item-label">Image:</span>
-							<select class="image-select" onchange="window.schedulesModule.updateScheduleItem(${index}, 'image', this.value)">
+							<select class="image-select" onchange="window.templateManager.updateTemplateItem(${index}, 'image', this.value)">
 								<option value="">None</option>
 								${imageOptions}
 							</select>
@@ -279,10 +282,10 @@ function renderTemplateItems(templateData) {
 							<label class="progress-label">
 								<input type="checkbox"
 									${item.progressBar ? 'checked' : ''}
-									onchange="window.schedulesModule.updateScheduleItem(${index}, 'progressBar', this.checked)">
+									onchange="window.templateManager.updateTemplateItem(${index}, 'progressBar', this.checked)">
 								Show Progress Bar
 							</label>
-							<button class="btn-pixel btn-secondary btn-sm" onclick="window.schedulesModule.deleteScheduleItem(${index})">
+							<button class="btn-pixel btn-secondary btn-sm" onclick="window.templateManager.deleteTemplateItem(${index})">
 								🗑️ Delete
 							</button>
 						</div>
@@ -292,21 +295,126 @@ function renderTemplateItems(templateData) {
 		}).join('');
 
 		container.innerHTML = itemsHTML;
+
+		// Update preview selector
+		updatePreviewSelector();
 	});
 }
 
-function updateSaveButtonForTemplate(templateData) {
-	// Find the save button and replace its onclick handler
-	const saveButtons = document.querySelectorAll('.schedule-actions .btn-primary');
-	saveButtons.forEach(btn => {
-		if (btn.textContent.includes('Save Schedule')) {
-			btn.onclick = () => saveTemplate(templateData);
+function updatePreviewSelector() {
+	const selector = document.getElementById('preview-item-select');
+	if (!selector || !window.__currentTemplateData) return;
+
+	const templateData = window.__currentTemplateData;
+	const currentValue = selector.value;
+
+	// Clear and populate selector
+	selector.innerHTML = templateData.items.map((item, index) =>
+		`<option value="${index}">${item.name}</option>`
+	).join('');
+
+	// Restore previous selection if it still exists, otherwise select first item
+	if (currentValue !== '' && templateData.items[currentValue]) {
+		selector.value = currentValue;
+	} else if (templateData.items.length > 0) {
+		selector.value = '0';
+	}
+}
+
+export function updateTemplateItem(index, field, value) {
+	if (!window.__currentTemplateData || !window.__currentTemplateData.items[index]) return;
+
+	window.__currentTemplateData.items[index][field] = value;
+
+	if (['startHour', 'startMin', 'endHour', 'endMin', 'enabled', 'days'].includes(field)) {
+		import('./timeline.js').then(module => module.refreshTimelineViews());
+	}
+
+	// Update preview selector when name changes
+	if (field === 'name') {
+		updatePreviewSelector();
+	}
+
+	// Update preview when image or progress bar changes
+	if (['image', 'progressBar'].includes(field)) {
+		import('./preview.js').then(module => module.updateSchedulePreview());
+	}
+}
+
+export function updateTemplateDays(index, checkbox) {
+	if (!window.__currentTemplateData || !window.__currentTemplateData.items[index]) return;
+
+	const item = window.__currentTemplateData.items[index];
+	const dayIndex = Array.from(checkbox.parentElement.parentElement.children).indexOf(checkbox.parentElement);
+
+	let days = item.days.split('').filter(d => d !== '');
+	const dayStr = dayIndex.toString();
+
+	if (checkbox.checked) {
+		if (!days.includes(dayStr)) {
+			days.push(dayStr);
 		}
+		checkbox.parentElement.classList.add('checked');
+	} else {
+		days = days.filter(d => d !== dayStr);
+		checkbox.parentElement.classList.remove('checked');
+	}
+
+	item.days = days.sort().join('');
+
+	import('./timeline.js').then(module => module.refreshTimelineViews());
+}
+
+export function deleteTemplateItem(index) {
+	if (!window.__currentTemplateData) return;
+
+	if (!confirm('Delete this item?')) return;
+
+	window.__currentTemplateData.items.splice(index, 1);
+	window.__currentTemplateData.items.forEach((item, i) => item.index = i);
+
+	populateTemplateItems(window.__currentTemplateData);
+
+	import('./timeline.js').then(module => module.refreshTimelineViews());
+	import('./preview.js').then(module => {
+		setTimeout(() => module.updateSchedulePreview(), 50);
 	});
 }
 
-async function saveTemplate(templateData) {
-	if (!templateData || !templateData.isTemplate) return;
+export function addTemplateItem() {
+	if (!window.__currentTemplateData) {
+		window.__currentTemplateData = {
+			type: 'template',
+			items: []
+		};
+	}
+
+	const newItem = {
+		name: 'New Item',
+		enabled: true,
+		days: '0123456', // Default to all days for templates
+		startHour: 9,
+		startMin: 0,
+		endHour: 17,
+		endMin: 0,
+		image: '',
+		progressBar: false,
+		index: window.__currentTemplateData.items.length
+	};
+
+	window.__currentTemplateData.items.push(newItem);
+	populateTemplateItems(window.__currentTemplateData);
+
+	import('./timeline.js').then(module => module.refreshTimelineViews());
+	import('./preview.js').then(module => {
+		setTimeout(() => module.updateSchedulePreview(), 50);
+	});
+}
+
+async function saveTemplateFromEditor() {
+	if (!window.__currentTemplateData) return;
+
+	const templateData = window.__currentTemplateData;
 
 	try {
 		const csvContent = generateTemplateCSV(templateData);
@@ -316,13 +424,13 @@ async function saveTemplate(templateData) {
 
 		showStatus('Template saved successfully!', 'success');
 
+		// Update the SHA for future saves
+		const { sha } = await fetchGitHubFile(templatePath);
+		templateData.sha = sha;
+		window.__editingTemplate.sha = sha;
+
 		// Reload templates
 		await loadScheduleTemplates();
-
-		// Close editor and return to schedule list
-		setTimeout(() => {
-			closeTemplateEditor();
-		}, 1000);
 
 	} catch (error) {
 		showStatus('Failed to save template: ' + error.message, 'error');
@@ -341,31 +449,6 @@ function generateTemplateCSV(templateData) {
 	);
 
 	return header + lines.join('\n');
-}
-
-function closeTemplateEditor() {
-	const editorEl = document.getElementById('schedule-editor');
-	if (editorEl) {
-		editorEl.classList.add('hidden');
-	}
-
-	const listSection = document.querySelector('.schedule-list-section');
-	if (listSection) {
-		listSection.classList.remove('hidden');
-	}
-
-	// Reset template mode
-	isTemplateMode = false;
-
-	// Clean up schedule matrix
-	if (window.scheduleMatrix) {
-		window.scheduleMatrix.clear();
-		const container = document.getElementById('matrix-container-schedule');
-		if (container) {
-			container.innerHTML = '';
-		}
-		window.scheduleMatrix = null;
-	}
 }
 
 export async function deleteTemplate(templateName, displayName) {
@@ -395,4 +478,7 @@ export async function deleteTemplate(templateName, displayName) {
 	}
 }
 
-export { isTemplateMode };
+// Function to get current template data for timeline/preview modules
+export function getCurrentTemplateData() {
+	return window.__currentTemplateData;
+}

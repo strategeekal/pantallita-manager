@@ -3,6 +3,11 @@ import { isMobileDevice } from '../core/utils.js';
 
 // Get schedule data and matrix from editor module
 function getScheduleData() {
+	// Check if we're editing a template first
+	if (window.__currentTemplateData) {
+		return window.__currentTemplateData;
+	}
+	// Otherwise use regular schedule data
 	return window.schedulesModule?.currentScheduleData || null;
 }
 
