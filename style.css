@@ -1002,10 +1002,28 @@ header p {
 	.event-form select {
 		max-width: 100%;
 		box-sizing: border-box;
+		width: 100% !important;
 	}
 
 	.time-fields input[type="number"] {
 		max-width: 100%;
+		box-sizing: border-box;
+	}
+
+	/* Split color and icon to two lines on mobile */
+	.event-meta {
+		display: flex;
+		flex-direction: column;
+		gap: 4px;
+	}
+
+	.event-separator {
+		display: none;
+	}
+
+	.event-color,
+	.event-icon {
+		display: block;
 	}
 
 	.event-card {
@@ -1371,6 +1389,8 @@ header p {
 
 .day-checkbox input[type="checkbox"] {
 	margin: 0;
+	width: auto;
+	flex-shrink: 0;
 }
 
 .day-badge {
