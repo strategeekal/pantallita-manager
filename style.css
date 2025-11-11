@@ -1003,21 +1003,28 @@ header p {
 	}
 
 	.event-form-container {
-		grid-template-columns: 1fr;
-		gap: 15px;
+		display: block;
 		box-sizing: border-box;
 	}
 
 	.event-form {
 		box-sizing: border-box;
+		width: 100%;
 	}
 
 	.time-fields {
-		grid-template-columns: 1fr;
+		display: block;
 		padding: 8px;
-		gap: 8px;
 		border-width: 2px;
 		box-sizing: border-box;
+	}
+
+	.time-fields .form-group {
+		margin-bottom: 10px;
+	}
+
+	.time-fields .form-group:last-child {
+		margin-bottom: 0;
 	}
 
 	/* Fix event editor input overflows - use token input approach */
