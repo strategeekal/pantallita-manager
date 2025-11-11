@@ -331,11 +331,28 @@
 			</div>
 		</section>
 
+		<!-- Template Manager Modal -->
+		<div id="template-manager-modal" class="modal hidden">
+			<div class="modal-content template-manager-content">
+				<div class="modal-header">
+					<h3>Template Manager</h3>
+					<button class="modal-close" onclick="window.templateManager.closeTemplateManager()">×</button>
+				</div>
+				<div class="modal-body">
+					<div id="template-manager-loading" class="loading-message hidden">Loading templates...</div>
+					<div id="template-manager-error" class="error-message hidden"></div>
+					<div id="template-manager-empty" class="empty-message hidden">No templates found. Save a schedule as a template to get started!</div>
+					<div id="template-list" class="template-list"></div>
+				</div>
+			</div>
+		</div>
+
 		<footer class="app-footer">
 			<div class="footer-left">
 				<span class="footer-version">SCREENY Manager v1.0</span>
 				<a href="https://github.com/strategeekal/pantallita-events" target="_blank" class="footer-link">Data</a>
 				<a href="https://github.com/strategeekal/pantallita-manager" target="_blank" class="footer-link">Code</a>
+				<a href="#" class="footer-link" onclick="window.templateManager.openTemplateManager(); return false;">Manage Templates</a>
 			</div>
 			<div class="footer-right">
 				<button class="btn-logout-footer" onclick="window.logout()">Logout</button>
