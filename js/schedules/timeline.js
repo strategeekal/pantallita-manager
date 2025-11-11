@@ -19,6 +19,7 @@ export function refreshTimelineViews() {
 		updateWeekView();
 	}
 	updateTimelineView();
+	updateMobileDayIndicator();
 }
 
 export function setTimelineViewMode(mode) {
@@ -305,6 +306,9 @@ export function updateTimelineView() {
 			${timelineHTML}
 		</div>
 	`;
+
+	// Update mobile day indicator
+	updateMobileDayIndicator();
 }
 
 export async function selectScheduleItem(index) {
@@ -486,4 +490,55 @@ export function deleteScheduleItemFromPanel() {
 	if (window.schedulesModule && window.schedulesModule.deleteScheduleItem) {
 		window.schedulesModule.deleteScheduleItem(index);
 	}
+}
+
+// Mobile day indicator functions
+export function updateMobileDayIndicator() {
+	const indicator = document.getElementById('mobile-day-indicator');
+	if (!indicator) return;
+
+	const currentData = getCurrentData();
+	if (!currentData || !currentData.items) return;
+
+	// Count items per day
+	const dayHasItems = new Array(7).fill(false);
+	currentData.items.forEach(item => {
+		if (item.enabled && item.days) {
+			for (let i = 0; i < item.days.length; i++) {
+				const dayNum = parseInt(item.days[i]);
+				if (dayNum >= 0 && dayNum < 7) {
+					dayHasItems[dayNum] = true;
+				}
+			}
+		}
+	});
+
+	// Update UI
+	const dayItems = indicator.querySelectorAll('.mobile-day-item');
+	const selectedDay = parseInt(document.getElementById('timeline-day-filter')?.value || '0');
+
+	dayItems.forEach((item, index) => {
+		// Add/remove has-items class
+		if (dayHasItems[index]) {
+			item.classList.add('has-items');
+		} else {
+			item.classList.remove('has-items');
+		}
+
+		// Add/remove selected class
+		if (index === selectedDay) {
+			item.classList.add('selected');
+		} else {
+			item.classList.remove('selected');
+		}
+
+		// Add click handler
+		item.onclick = () => {
+			const dayFilter = document.getElementById('timeline-day-filter');
+			if (dayFilter) {
+				dayFilter.value = index.toString();
+				updateTimelineView();
+			}
+		};
+	});
 }
