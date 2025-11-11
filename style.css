@@ -322,6 +322,12 @@ header p {
 	text-decoration: underline;
 }
 
+.footer-separator {
+	color: #666;
+	font-family: 'Courier New', monospace;
+	font-size: 0.85em;
+}
+
 .footer-right {
 	display: flex;
 }

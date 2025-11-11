@@ -1,7 +1,17 @@
 // Timeline Module - Render schedule timeline view with gaps and overlap detection
-import { currentScheduleData } from './schedule-editor.js';
+import * as scheduleEditorModule from './schedule-editor.js';
 
 let timelineViewMode = 'day'; // 'day' or 'week'
+
+// Helper to get current schedule data from either regular schedule or template
+function getCurrentData() {
+	// Check if we're editing a template
+	if (window.__currentTemplateData) {
+		return window.__currentTemplateData;
+	}
+	// Otherwise use regular schedule data
+	return scheduleEditorModule.currentScheduleData;
+}
 
 // Helper function to update both views
 export function refreshTimelineViews() {
@@ -55,15 +65,16 @@ export function setTimelineViewMode(mode) {
 
 export function updateWeekView() {
 	const container = document.getElementById('timeline-week-view');
+	const currentData = getCurrentData();
 
-	if (!currentScheduleData || currentScheduleData.items.length === 0) {
+	if (!currentData || currentData.items.length === 0) {
 		container.innerHTML = '<p class="empty-message">No items to display</p>';
 		return;
 	}
 
-	// Week view only makes sense for default schedules
-	if (currentScheduleData.type !== 'default') {
-		container.innerHTML = '<p class="empty-message">Week view is only available for default schedules</p>';
+	// Week view only makes sense for default schedules and templates
+	if (currentData.type !== 'default' && currentData.type !== 'template') {
+		container.innerHTML = '<p class="empty-message">Week view is only available for default schedules and templates</p>';
 		return;
 	}
 
@@ -74,7 +85,7 @@ export function updateWeekView() {
 
 	// Generate each day column
 	for (let dayNum = 0; dayNum < 7; dayNum++) {
-		const dayItems = currentScheduleData.items.filter(item =>
+		const dayItems = currentData.items.filter(item =>
 			item.enabled && item.days.includes(dayNum.toString())
 		).sort((a, b) => {
 			const aStart = a.startHour * 60 + a.startMin;
@@ -123,15 +134,16 @@ export function updateTimelineView() {
 	const container = document.getElementById('timeline-view');
 	const dayFilterSelect = document.getElementById('timeline-day-filter');
 	const dateDisplay = document.getElementById('timeline-date-display');
+	const currentData = getCurrentData();
 
-	if (!currentScheduleData || currentScheduleData.items.length === 0) {
+	if (!currentData || currentData.items.length === 0) {
 		container.innerHTML = '<p class="empty-message">No items to display</p>';
 		return;
 	}
 
 	// Determine day filter based on schedule type
 	let dayFilter;
-	if (currentScheduleData.type !== 'default' && currentScheduleData.date) {
+	if (currentData.type !== 'default' && currentData.date) {
 		// Date-specific schedule: show only for that date's day
 		if (dayFilterSelect) {
 			dayFilterSelect.style.display = 'none';
@@ -140,7 +152,7 @@ export function updateTimelineView() {
 			dateDisplay.style.display = 'block';
 			dateDisplay.classList.remove('hidden');
 
-			const scheduleDate = new Date(currentScheduleData.date + 'T00:00:00');
+			const scheduleDate = new Date(currentData.date + 'T00:00:00');
 			const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 			const month = months[scheduleDate.getMonth()];
 			const day = scheduleDate.getDate();
@@ -148,7 +160,7 @@ export function updateTimelineView() {
 			dateDisplay.textContent = `${month} ${day}, ${year}`;
 		}
 
-		const scheduleDate = new Date(currentScheduleData.date + 'T00:00:00');
+		const scheduleDate = new Date(currentData.date + 'T00:00:00');
 		dayFilter = (scheduleDate.getDay() + 6) % 7; // Convert Sunday=0 to Monday=0
 	} else {
 		// Default schedule: allow day selection
@@ -163,7 +175,7 @@ export function updateTimelineView() {
 	}
 
 	// Filter items for selected day
-	const dayItems = currentScheduleData.items.filter(item =>
+	const dayItems = currentData.items.filter(item =>
 		item.enabled && item.days.includes(dayFilter.toString())
 	);
 
@@ -307,9 +319,10 @@ export async function selectScheduleItem(index) {
 
 export function showEditPanel(index) {
 	const editPanel = document.getElementById('timeline-edit-panel');
-	if (!editPanel || !currentScheduleData) return;
+	const currentData = getCurrentData();
+	if (!editPanel || !currentData) return;
 
-	const item = currentScheduleData.items[index];
+	const item = currentData.items[index];
 	if (!item) return;
 
 	// Store current editing index
@@ -339,7 +352,7 @@ export function showEditPanel(index) {
 
 	// Handle days checkboxes (only for default schedules)
 	const daysGroup = document.getElementById('edit-days-group');
-	const isDefaultSchedule = !currentScheduleData.date;
+	const isDefaultSchedule = !currentData.date;
 
 	if (isDefaultSchedule) {
 		daysGroup.style.display = 'flex';
@@ -390,10 +403,11 @@ function populateImageDropdown(currentImage) {
 // Live update functions for edit panel
 export function liveUpdateItem(property, value) {
 	const editPanel = document.getElementById('timeline-edit-panel');
-	if (!editPanel || !currentScheduleData) return;
+	const currentData = getCurrentData();
+	if (!editPanel || !currentData) return;
 
 	const index = parseInt(editPanel.dataset.editingIndex);
-	const item = currentScheduleData.items[index];
+	const item = currentData.items[index];
 	if (!item) return;
 
 	// Update the property
@@ -415,14 +429,15 @@ export function liveUpdateItem(property, value) {
 
 export function liveUpdateDays() {
 	const editPanel = document.getElementById('timeline-edit-panel');
-	if (!editPanel || !currentScheduleData) return;
+	const currentData = getCurrentData();
+	if (!editPanel || !currentData) return;
 
 	const index = parseInt(editPanel.dataset.editingIndex);
-	const item = currentScheduleData.items[index];
+	const item = currentData.items[index];
 	if (!item) return;
 
 	// Update days if default schedule
-	const isDefaultSchedule = !currentScheduleData.date;
+	const isDefaultSchedule = !currentData.date;
 	if (isDefaultSchedule) {
 		const selectedDays = [];
 		for (let i = 0; i < 7; i++) {
@@ -459,7 +474,8 @@ export function liveUpdateDays() {
 
 export function deleteScheduleItemFromPanel() {
 	const editPanel = document.getElementById('timeline-edit-panel');
-	if (!editPanel || !currentScheduleData) return;
+	const currentData = getCurrentData();
+	if (!editPanel || !currentData) return;
 
 	const index = parseInt(editPanel.dataset.editingIndex);
 

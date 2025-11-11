@@ -86,7 +86,12 @@ window.templateManager = {
 	openTemplateManager: templateManager.openTemplateManager,
 	closeTemplateManager: templateManager.closeTemplateManager,
 	editTemplate: templateManager.editTemplate,
-	deleteTemplate: templateManager.deleteTemplate
+	deleteTemplate: templateManager.deleteTemplate,
+	updateTemplateItem: templateManager.updateTemplateItem,
+	updateTemplateDays: templateManager.updateTemplateDays,
+	deleteTemplateItem: templateManager.deleteTemplateItem,
+	addTemplateItem: templateManager.addTemplateItem,
+	getCurrentTemplateData: templateManager.getCurrentTemplateData
 };
 
 // Initialize app on page load
