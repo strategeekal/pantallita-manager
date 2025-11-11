@@ -1556,13 +1556,19 @@ header p {
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
-	margin-bottom: 8px;
+	margin-bottom: 7px;
 }
 
 .edit-panel-header h5 {
 	margin: 0;
 	font-family: 'Press Start 2P', monospace;
 	font-size: 0.75em;
+}
+
+.edit-panel-header label {
+	margin: 0;
+	font-family: 'Courier New', monospace;
+	font-size: 0.8em;
 }
 
 .edit-panel-content {
@@ -1577,17 +1583,24 @@ header p {
 	gap: 2px;
 }
 
-.edit-panel-content .form-group-small {
+.edit-panel-content {
 	display: flex;
 	flex-direction: column;
 	gap: 2px;
 	margin-bottom: 0;
 }
 
+.form-group-small {
+	display: flex;
+	gap: 2px;
+	margin-top: 10px;
+	margin-bottom: 10px;
+}
+
 .edit-panel-content label {
 	font-family: 'Courier New', monospace;
 	font-weight: bold;
-	font-size: 0.75em;
+	font-size: 0.8em;
 }
 
 /* Checkbox labels should have normal weight */
