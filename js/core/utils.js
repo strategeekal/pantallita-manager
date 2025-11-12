@@ -47,8 +47,8 @@ export function formatImageName(filename) {
 	// Remove .bmp extension
 	let name = filename.replace(/\.bmp$/i, '');
 
-	// Replace underscores with spaces
-	name = name.replace(/_/g, ' ');
+	// Replace underscores and dashes with spaces
+	name = name.replace(/[_-]/g, ' ');
 
 	// Capitalize each word
 	name = name.split(' ')
