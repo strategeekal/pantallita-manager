@@ -402,14 +402,185 @@ export function initializeColorPreview() {
 
 // Update event preview on emulator
 async function updateEventPreview() {
+	console.log('📱 updateEventPreview called in events-manager.js');
+
 	const topLine = document.getElementById('editor-event-top')?.value || '';
 	const bottomLine = document.getElementById('editor-event-bottom')?.value || '';
 	const colorName = document.getElementById('editor-event-color')?.value || 'MINT';
 	const iconName = document.getElementById('editor-event-image')?.value || '';
 
-	// Update matrix emulator if available
-	if (window.editorMatrix && window.renderEventOnMatrix) {
-		await window.renderEventOnMatrix(window.editorMatrix, topLine, bottomLine, colorName, iconName);
+	console.log('Preview values:', { topLine, bottomLine, colorName, iconName });
+
+	// Check if mobile
+	const isMobile = window.innerWidth <= 768;
+	console.log('isMobile:', isMobile);
+
+	if (isMobile) {
+		// Mobile: Render on canvas
+		await renderMobileEventPreview(topLine, bottomLine, colorName, iconName);
+	} else {
+		// Desktop: Update matrix emulator if available
+		if (window.editorMatrix && window.renderEventOnMatrix) {
+			await window.renderEventOnMatrix(window.editorMatrix, topLine, bottomLine, colorName, iconName);
+		}
+	}
+}
+
+// Render mobile event preview with canvas (256x128, 4x scale)
+async function renderMobileEventPreview(topLine, bottomLine, colorName, iconName) {
+	console.log('🎨 renderMobileEventPreview called');
+
+	const previewSquare = document.querySelector('.mobile-event-preview-square');
+	if (!previewSquare) {
+		console.error('mobile-event-preview-square not found');
+		return;
+	}
+
+	// Create canvas if it doesn't exist
+	let canvas = previewSquare.querySelector('canvas');
+	if (!canvas) {
+		console.log('Creating canvas element');
+		canvas = document.createElement('canvas');
+		canvas.width = 256;
+		canvas.height = 128;
+		canvas.style.width = '256px';
+		canvas.style.height = '128px';
+		canvas.style.imageRendering = 'pixelated';
+		previewSquare.appendChild(canvas);
+	}
+
+	const ctx = canvas.getContext('2d');
+	ctx.fillStyle = '#000000';
+	ctx.fillRect(0, 0, 256, 128);
+
+	console.log('Canvas cleared');
+
+	// Scale factor from desktop (64x32) to mobile (256x128)
+	const SCALE = 4;
+
+	// Desktop positions
+	const TEXT_MARGIN = 2;
+	const EVENT_IMAGE_X = 37;
+	const EVENT_IMAGE_Y = 2;
+
+	// Get colors from COLOR_MAP
+	if (!window.COLOR_MAP) {
+		console.error('COLOR_MAP not available on window');
+		return;
+	}
+
+	const bottomColor = window.COLOR_MAP[colorName] || window.COLOR_MAP['MINT'];
+	const topColor = window.COLOR_MAP['WHITE'];
+
+	console.log('Colors:', { topColor, bottomColor, colorName });
+
+	// Calculate bottom-aligned text positions
+	const positions = calculateBottomAlignedPositionsMobile(topLine || '', bottomLine || '', 32);
+	console.log('Text positions:', positions);
+
+	// Draw top line text at scaled position
+	if (topLine) {
+		console.log('Drawing top line:', topLine);
+		drawTextMobile(ctx, topLine, TEXT_MARGIN * SCALE, positions.line1Y * SCALE, topColor, SCALE);
+	}
+
+	// Draw bottom line text in selected color at scaled position
+	if (bottomLine) {
+		console.log('Drawing bottom line:', bottomLine);
+		drawTextMobile(ctx, bottomLine, TEXT_MARGIN * SCALE, positions.line2Y * SCALE, bottomColor, SCALE);
+	}
+
+	// Load and draw event image
+	if (iconName && iconName.endsWith('.bmp') && window.loadBMPImage) {
+		try {
+			console.log('Loading event image:', iconName);
+			const imageData = await window.loadBMPImage(iconName);
+			console.log('Image loaded:', imageData);
+			if (imageData && imageData.pixels) {
+				console.log('Drawing image at:', EVENT_IMAGE_X * SCALE, EVENT_IMAGE_Y * SCALE);
+				drawBMPMobile(ctx, imageData.pixels, EVENT_IMAGE_X * SCALE, EVENT_IMAGE_Y * SCALE, SCALE);
+			}
+		} catch (error) {
+			console.error('Error loading event image:', error);
+		}
+	}
+
+	console.log('✅ Rendering complete');
+}
+
+// Calculate bottom-aligned text positions for mobile
+function calculateBottomAlignedPositionsMobile(line1Text, line2Text, displayHeight = 32) {
+	const BOTTOM_MARGIN = 2;
+	const LINE_SPACING = 1;
+	const DESCENDER_EXTRA_MARGIN = 3;
+	const DESCENDER_CHARS = ['g', 'j', 'p', 'q', 'y'];
+	const fontHeight = 6; // TINYBIT_FONT height
+
+	const bottomLineHasDescenders = line2Text.toLowerCase().split('').some(char =>
+		DESCENDER_CHARS.includes(char)
+	);
+	const topLineHasDescenders = line1Text.toLowerCase().split('').some(char =>
+		DESCENDER_CHARS.includes(char)
+	);
+
+	const adjustedBottomMargin = BOTTOM_MARGIN + (bottomLineHasDescenders ? DESCENDER_EXTRA_MARGIN : 0);
+	const adjustedLineSpacing = LINE_SPACING + (topLineHasDescenders ? DESCENDER_EXTRA_MARGIN : 0);
+
+	const bottomEdge = displayHeight - adjustedBottomMargin;
+	const line2Y = bottomEdge - fontHeight;
+	const line1Y = line2Y - fontHeight - adjustedLineSpacing;
+
+	return {
+		line1Y: Math.round(line1Y),
+		line2Y: Math.round(line2Y)
+	};
+}
+
+// Draw text using TINYBIT_FONT on mobile canvas
+function drawTextMobile(ctx, text, x, y, color, scale) {
+	if (!window.TINYBIT_FONT || !window.TINYBIT_FONT.glyphs) {
+		console.error('TINYBIT_FONT not available');
+		return;
+	}
+
+	let currentX = x;
+
+	for (let i = 0; i < text.length; i++) {
+		const char = text[i];
+		const glyph = window.TINYBIT_FONT.glyphs[char];
+
+		if (!glyph) {
+			currentX += 3 * scale;
+			continue;
+		}
+
+		const { width, height, bitmap } = glyph;
+
+		for (let row = 0; row < height; row++) {
+			const byte = bitmap[row];
+			for (let col = 0; col < width; col++) {
+				const bitMask = 0x80 >> col;
+				if (byte & bitMask) {
+					ctx.fillStyle = color;
+					ctx.fillRect(currentX + (col * scale), y + (row * scale), scale, scale);
+				}
+			}
+		}
+
+		currentX += (width + 1) * scale;
+	}
+}
+
+// Draw BMP image data on mobile canvas
+function drawBMPMobile(ctx, pixels, x, y, scale) {
+	for (let row = 0; row < pixels.length; row++) {
+		for (let col = 0; col < pixels[row].length; col++) {
+			const color = pixels[row][col];
+			if (color && color !== 'transparent') {
+				ctx.fillStyle = color;
+				ctx.fillRect(x + (col * scale), y + (row * scale), scale, scale);
+			}
+		}
 	}
 }
 
