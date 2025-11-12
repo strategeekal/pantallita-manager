@@ -145,7 +145,7 @@ export async function saveEvent() {
 		showStatus('Event saved successfully!', 'success');
 		await loadEvents();
 
-		// Close the inline editor after save
+		// Switch back to events tab after save
 		closeEventEditor();
 	} catch (error) {
 		showStatus('Failed to save event: ' + error.message, 'error');
@@ -157,14 +157,16 @@ export function createNewEvent() {
 	editingEventIndex = null;
 	clearEventForm();
 
-	// Show the inline event editor
-	showEventEditor();
-
 	// Update form title
 	const formTitle = document.getElementById('editor-form-title');
 	if (formTitle) formTitle.textContent = 'Add New Event';
 
-	// Focus on the date input after a delay to ensure editor is shown
+	// Switch to add-event tab using the tab system
+	if (window.handleTabSwitch) {
+		window.handleTabSwitch('add-event');
+	}
+
+	// Focus on the date input after a delay to ensure tab is switched
 	setTimeout(() => {
 		document.getElementById('editor-event-date')?.focus();
 	}, 300);
@@ -174,14 +176,16 @@ export function editEvent(index) {
 	editingEventIndex = index;
 	populateEditForm();
 
-	// Show the inline event editor
-	showEventEditor();
-
 	// Update form title
 	const formTitle = document.getElementById('editor-form-title');
 	if (formTitle) formTitle.textContent = 'Edit Event';
 
-	// Focus on the top line input and update preview after a delay to ensure editor is shown
+	// Switch to add-event tab using the tab system
+	if (window.handleTabSwitch) {
+		window.handleTabSwitch('add-event');
+	}
+
+	// Focus on the top line input and update preview after a delay
 	setTimeout(() => {
 		document.getElementById('editor-event-top')?.focus();
 		// Trigger preview update for existing event
@@ -189,39 +193,10 @@ export function editEvent(index) {
 	}, 300);
 }
 
-function showEventEditor() {
-	const editor = document.getElementById('event-editor');
-	if (editor) {
-		editor.classList.remove('hidden');
-
-		// Initialize editor tab (create matrix/preview)
-		if (window.initializeEditorTab) {
-			window.initializeEditorTab();
-		}
-
-		// Scroll to editor
-		editor.scrollIntoView({ behavior: 'smooth', block: 'start' });
-	}
-}
-
 export function closeEventEditor() {
-	const editor = document.getElementById('event-editor');
-	if (editor) {
-		editor.classList.add('hidden');
-
-		// Clear form and reset state
-		clearEventForm();
-		editingEventIndex = null;
-
-		// Clean up matrix if it exists
-		if (window.editorMatrix) {
-			window.editorMatrix.clear();
-			const editorContainer = document.getElementById('matrix-container-editor');
-			if (editorContainer) {
-				editorContainer.innerHTML = '';
-			}
-			window.editorMatrix = null;
-		}
+	// Switch back to events tab
+	if (window.handleTabSwitch) {
+		window.handleTabSwitch('events');
 	}
 }
 
