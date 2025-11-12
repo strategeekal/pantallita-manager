@@ -288,48 +288,88 @@
 							<div id="mobile-edit-panel" class="mobile-edit-panel">
 								<div class="edit-panel-header">
 									<h5>Edit Item</h5>
-									<input type="text" id="mobile-edit-item-name" class="form-input" placeholder="Item name" onchange="window.schedulesModule.liveUpdateItemMobile('name', this.value)">
-									<label>
-										<input type="checkbox" id="mobile-edit-item-enabled" onchange="window.schedulesModule.liveUpdateItemMobile('enabled', this.checked)">
-										Enabled
-									</label>
-									<button class="btn-pixel btn-sm btn-danger" onclick="window.schedulesModule.deleteScheduleItemFromPanelMobile()">Delete</button>
 								</div>
 								<div class="edit-panel-content">
-									<div class="form-group-small" id="mobile-edit-days-group">
-										<label>Days of Week:</label>
-										<div class="days-checkboxes">
-											<label class="day-checkbox-sm"><input type="checkbox" id="mobile-edit-day-0" value="0" onchange="window.schedulesModule.liveUpdateDaysMobile()"> Mon</label>
-											<label class="day-checkbox-sm"><input type="checkbox" id="mobile-edit-day-1" value="1" onchange="window.schedulesModule.liveUpdateDaysMobile()"> Tue</label>
-											<label class="day-checkbox-sm"><input type="checkbox" id="mobile-edit-day-2" value="2" onchange="window.schedulesModule.liveUpdateDaysMobile()"> Wed</label>
-											<label class="day-checkbox-sm"><input type="checkbox" id="mobile-edit-day-3" value="3" onchange="window.schedulesModule.liveUpdateDaysMobile()"> Thu</label>
-											<label class="day-checkbox-sm"><input type="checkbox" id="mobile-edit-day-4" value="4" onchange="window.schedulesModule.liveUpdateDaysMobile()"> Fri</label>
-											<label class="day-checkbox-sm"><input type="checkbox" id="mobile-edit-day-5" value="5" onchange="window.schedulesModule.liveUpdateDaysMobile()"> Sat</label>
-											<label class="day-checkbox-sm"><input type="checkbox" id="mobile-edit-day-6" value="6" onchange="window.schedulesModule.liveUpdateDaysMobile()"> Sun</label>
-										</div>
+									<div class="form-group">
+										<label for="mobile-edit-item-name">Item Name</label>
+										<input type="text" id="mobile-edit-item-name" placeholder="Item name" onchange="window.schedulesModule.liveUpdateItemMobile('name', this.value)">
 									</div>
-									<div class="form-group-small">
-										<label>Time Range:</label>
-										<label for="mobile-edit-start-hour">Start Hour:</label>
-										<input type="number" id="mobile-edit-start-hour" class="time-input" min="0" max="23" placeholder="00" onchange="window.schedulesModule.liveUpdateItemMobile('startHour', parseInt(this.value))">
-										<label for="mobile-edit-start-min">Start Minute:</label>
-										<input type="number" id="mobile-edit-start-min" class="time-input" min="0" max="59" placeholder="00" onchange="window.schedulesModule.liveUpdateItemMobile('startMin', parseInt(this.value))">
-										<label for="mobile-edit-end-hour">End Hour:</label>
-										<input type="number" id="mobile-edit-end-hour" class="time-input" min="0" max="23" placeholder="00" onchange="window.schedulesModule.liveUpdateItemMobile('endHour', parseInt(this.value))">
-										<label for="mobile-edit-end-min">End Minute:</label>
-										<input type="number" id="mobile-edit-end-min" class="time-input" min="0" max="59" placeholder="00" onchange="window.schedulesModule.liveUpdateItemMobile('endMin', parseInt(this.value))">
+
+									<div class="form-group">
+										<label class="checkbox-option">
+											<input type="checkbox" id="mobile-edit-item-enabled" onchange="window.schedulesModule.liveUpdateItemMobile('enabled', this.checked)">
+											<span>Enabled</span>
+										</label>
 									</div>
-									<div class="form-group-small">
-										<label for="mobile-edit-item-image">Image:</label>
-										<select id="mobile-edit-item-image" class="form-input" onchange="window.schedulesModule.liveUpdateItemMobile('image', this.value)">
+
+									<div class="form-group" id="mobile-edit-days-group">
+										<label>Days of Week</label>
+										<label class="checkbox-option">
+											<input type="checkbox" id="mobile-edit-day-0" value="0" onchange="window.schedulesModule.liveUpdateDaysMobile()">
+											<span>Monday</span>
+										</label>
+										<label class="checkbox-option">
+											<input type="checkbox" id="mobile-edit-day-1" value="1" onchange="window.schedulesModule.liveUpdateDaysMobile()">
+											<span>Tuesday</span>
+										</label>
+										<label class="checkbox-option">
+											<input type="checkbox" id="mobile-edit-day-2" value="2" onchange="window.schedulesModule.liveUpdateDaysMobile()">
+											<span>Wednesday</span>
+										</label>
+										<label class="checkbox-option">
+											<input type="checkbox" id="mobile-edit-day-3" value="3" onchange="window.schedulesModule.liveUpdateDaysMobile()">
+											<span>Thursday</span>
+										</label>
+										<label class="checkbox-option">
+											<input type="checkbox" id="mobile-edit-day-4" value="4" onchange="window.schedulesModule.liveUpdateDaysMobile()">
+											<span>Friday</span>
+										</label>
+										<label class="checkbox-option">
+											<input type="checkbox" id="mobile-edit-day-5" value="5" onchange="window.schedulesModule.liveUpdateDaysMobile()">
+											<span>Saturday</span>
+										</label>
+										<label class="checkbox-option">
+											<input type="checkbox" id="mobile-edit-day-6" value="6" onchange="window.schedulesModule.liveUpdateDaysMobile()">
+											<span>Sunday</span>
+										</label>
+									</div>
+
+									<div class="form-group">
+										<label for="mobile-edit-start-hour">Start Hour (0-23)</label>
+										<input type="number" id="mobile-edit-start-hour" min="0" max="23" placeholder="00" onchange="window.schedulesModule.liveUpdateItemMobile('startHour', parseInt(this.value))">
+									</div>
+
+									<div class="form-group">
+										<label for="mobile-edit-start-min">Start Minute (0-59)</label>
+										<input type="number" id="mobile-edit-start-min" min="0" max="59" placeholder="00" onchange="window.schedulesModule.liveUpdateItemMobile('startMin', parseInt(this.value))">
+									</div>
+
+									<div class="form-group">
+										<label for="mobile-edit-end-hour">End Hour (0-23)</label>
+										<input type="number" id="mobile-edit-end-hour" min="0" max="23" placeholder="00" onchange="window.schedulesModule.liveUpdateItemMobile('endHour', parseInt(this.value))">
+									</div>
+
+									<div class="form-group">
+										<label for="mobile-edit-end-min">End Minute (0-59)</label>
+										<input type="number" id="mobile-edit-end-min" min="0" max="59" placeholder="00" onchange="window.schedulesModule.liveUpdateItemMobile('endMin', parseInt(this.value))">
+									</div>
+
+									<div class="form-group">
+										<label for="mobile-edit-item-image">Image</label>
+										<select id="mobile-edit-item-image" onchange="window.schedulesModule.liveUpdateItemMobile('image', this.value)">
 											<option value="">Select image...</option>
 										</select>
 									</div>
-									<div class="form-group-small">
-										<label>
+
+									<div class="form-group">
+										<label class="checkbox-option">
 											<input type="checkbox" id="mobile-edit-item-progressbar" onchange="window.schedulesModule.liveUpdateItemMobile('progressBar', this.checked)">
-											Show Progress Bar
+											<span>Show Progress Bar</span>
 										</label>
+									</div>
+
+									<div class="form-group">
+										<button class="btn-pixel btn-danger" onclick="window.schedulesModule.deleteScheduleItemFromPanelMobile()">Delete Item</button>
 									</div>
 								</div>
 							</div>
