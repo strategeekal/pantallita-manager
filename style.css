@@ -2470,6 +2470,39 @@ header p {
 		font-weight: normal;
 	}
 
+	.mobile-edit-panel .days-row {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 8px;
+		margin-top: 8px;
+	}
+
+	.mobile-edit-panel .days-row .checkbox-option {
+		padding: 4px 0;
+		flex: 0 0 auto;
+	}
+
+	.mobile-edit-panel .time-row {
+		display: flex;
+		gap: 10px;
+		margin-top: 8px;
+	}
+
+	.mobile-edit-panel .time-field {
+		flex: 1;
+	}
+
+	.mobile-edit-panel .time-field label {
+		display: block;
+		font-size: 0.85em;
+		margin-bottom: 5px;
+		color: #666;
+	}
+
+	.mobile-edit-panel .time-field input {
+		width: 100%;
+	}
+
 	.mobile-edit-panel .btn-pixel {
 		width: 100%;
 		padding: 12px;
