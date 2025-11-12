@@ -554,15 +554,23 @@ function drawTextMobile(ctx, text, x, y, color, scale) {
 			continue;
 		}
 
-		const { width, height, bitmap } = glyph;
+		const { width, height, bitmap, xoffset, yoffset } = glyph;
+		const xOffset = (xoffset || 0) * scale;
+		const yOffset = (yoffset || 0) * scale;
 
+		// Draw character bitmap with proper offsets for alignment
 		for (let row = 0; row < height; row++) {
 			const byte = bitmap[row];
 			for (let col = 0; col < width; col++) {
 				const bitMask = 0x80 >> col;
 				if (byte & bitMask) {
 					ctx.fillStyle = color;
-					ctx.fillRect(currentX + (col * scale), y + (row * scale), scale, scale);
+					ctx.fillRect(
+						currentX + xOffset + (col * scale),
+						y + yOffset + (row * scale),
+						scale,
+						scale
+					);
 				}
 			}
 		}
