@@ -93,7 +93,6 @@ window.templateManager = {
 	editTemplate: templateManager.editTemplate,
 	deleteTemplate: templateManager.deleteTemplate,
 	updateTemplateItem: templateManager.updateTemplateItem,
-	updateTemplateDays: templateManager.updateTemplateDays,
 	deleteTemplateItem: templateManager.deleteTemplateItem,
 	addTemplateItem: templateManager.addTemplateItem,
 	getCurrentTemplateData: templateManager.getCurrentTemplateData,
