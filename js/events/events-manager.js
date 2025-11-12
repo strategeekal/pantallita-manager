@@ -143,14 +143,10 @@ export async function saveEvent() {
 	try {
 		await saveEventsToGitHub();
 		showStatus('Event saved successfully!', 'success');
-		clearEventForm();
 		await loadEvents();
 
-		// Redirect to events tab after save
-		const eventsTab = document.querySelector('[data-tab="events"]');
-		if (eventsTab) {
-			setTimeout(() => eventsTab.click(), 500);
-		}
+		// Close the inline editor after save
+		closeEventEditor();
 	} catch (error) {
 		showStatus('Failed to save event: ' + error.message, 'error');
 	}
@@ -161,11 +157,14 @@ export function createNewEvent() {
 	editingEventIndex = null;
 	clearEventForm();
 
-	// Switch to add-event tab
-	const tabButton = document.querySelector('[data-tab="add-event"]');
-	if (tabButton) tabButton.click();
+	// Show the inline event editor
+	showEventEditor();
 
-	// Focus on the date input after a delay to ensure tab is switched
+	// Update form title
+	const formTitle = document.getElementById('editor-form-title');
+	if (formTitle) formTitle.textContent = 'Add New Event';
+
+	// Focus on the date input after a delay to ensure editor is shown
 	setTimeout(() => {
 		document.getElementById('editor-event-date')?.focus();
 	}, 300);
@@ -175,16 +174,55 @@ export function editEvent(index) {
 	editingEventIndex = index;
 	populateEditForm();
 
-	// Switch to add-event tab
-	const tabButton = document.querySelector('[data-tab="add-event"]');
-	if (tabButton) tabButton.click();
+	// Show the inline event editor
+	showEventEditor();
 
-	// Focus on the top line input and update preview after a delay to ensure matrix is created
+	// Update form title
+	const formTitle = document.getElementById('editor-form-title');
+	if (formTitle) formTitle.textContent = 'Edit Event';
+
+	// Focus on the top line input and update preview after a delay to ensure editor is shown
 	setTimeout(() => {
 		document.getElementById('editor-event-top')?.focus();
 		// Trigger preview update for existing event
 		updateEventPreview();
 	}, 300);
+}
+
+function showEventEditor() {
+	const editor = document.getElementById('event-editor');
+	if (editor) {
+		editor.classList.remove('hidden');
+
+		// Initialize editor tab (create matrix/preview)
+		if (window.initializeEditorTab) {
+			window.initializeEditorTab();
+		}
+
+		// Scroll to editor
+		editor.scrollIntoView({ behavior: 'smooth', block: 'start' });
+	}
+}
+
+export function closeEventEditor() {
+	const editor = document.getElementById('event-editor');
+	if (editor) {
+		editor.classList.add('hidden');
+
+		// Clear form and reset state
+		clearEventForm();
+		editingEventIndex = null;
+
+		// Clean up matrix if it exists
+		if (window.editorMatrix) {
+			window.editorMatrix.clear();
+			const editorContainer = document.getElementById('matrix-container-editor');
+			if (editorContainer) {
+				editorContainer.innerHTML = '';
+			}
+			window.editorMatrix = null;
+		}
+	}
 }
 
 // Check if currently editing
@@ -638,6 +676,7 @@ window.eventsModule = {
 	clearPastEvents,
 	saveEvent,
 	clearEventForm,
+	closeEventEditor,
 	isEditing,
 	initializeColorPreview
 };
@@ -645,3 +684,4 @@ window.eventsModule = {
 // Also expose directly for HTML onclick
 window.createNewEvent = createNewEvent;
 window.clearEventForm = clearEventForm;
+window.closeEventEditor = closeEventEditor;

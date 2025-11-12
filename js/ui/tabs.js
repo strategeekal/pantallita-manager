@@ -100,3 +100,6 @@ export async function initializeEditorTab() {
 }
 
 // Event form handlers are now managed in events-manager.js
+
+// Expose initializeEditorTab globally for inline editor
+window.initializeEditorTab = initializeEditorTab;
