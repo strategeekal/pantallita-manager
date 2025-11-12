@@ -2470,18 +2470,6 @@ header p {
 		font-weight: normal;
 	}
 
-	.mobile-edit-panel .days-row {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 8px;
-		margin-top: 8px;
-	}
-
-	.mobile-edit-panel .days-row .checkbox-option {
-		padding: 4px 0;
-		flex: 0 0 auto;
-	}
-
 	.mobile-edit-panel .time-row {
 		display: flex;
 		gap: 10px;
