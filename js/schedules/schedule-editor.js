@@ -104,10 +104,16 @@ function showScheduleEditor() {
 }
 
 export function closeScheduleEditor() {
-	document.getElementById('schedule-editor').classList.add('hidden');
+	const scheduleEditor = document.getElementById('schedule-editor');
+	scheduleEditor.classList.add('hidden');
 	document.querySelector('.schedule-list-section').classList.remove('hidden');
 
 	currentScheduleData = null;
+
+	// Remove data attribute
+	if (scheduleEditor) {
+		scheduleEditor.removeAttribute('data-schedule-type');
+	}
 
 	// Remove make default button if it exists
 	const makeDefaultBtn = document.querySelector('.make-default-btn');
@@ -131,6 +137,12 @@ function populateScheduleEditor() {
 
 	const scheduleInfoForm = document.getElementById('schedule-info-form');
 	if (!scheduleInfoForm) return;
+
+	// Set data attribute on schedule editor for CSS targeting
+	const scheduleEditor = document.getElementById('schedule-editor');
+	if (scheduleEditor) {
+		scheduleEditor.setAttribute('data-schedule-type', currentScheduleData.type);
+	}
 
 	// Remove make default button if it exists (in case switching modes)
 	const makeDefaultBtn = document.querySelector('.make-default-btn');
@@ -175,8 +187,11 @@ function populateScheduleEditor() {
 								defaultBtn.className = 'btn-pixel btn-secondary make-default-btn';
 								defaultBtn.onclick = () => window.schedulesModule.makeThisDefault();
 								defaultBtn.innerHTML = '💾 Make This the Default Schedule';
-								// Insert before the first button
-								actionsDiv.insertBefore(defaultBtn, actionsDiv.firstChild);
+								// Insert before the Cancel button (last button)
+								const cancelBtn = actionsDiv.querySelector('button:last-child');
+								if (cancelBtn) {
+									actionsDiv.insertBefore(defaultBtn, cancelBtn);
+								}
 							}
 						}
 					}, 50);
