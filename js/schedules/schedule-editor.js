@@ -21,13 +21,16 @@ export async function renderMobilePreview() {
 	const previewSquare = document.querySelector('.mobile-preview-square');
 	if (!previewSquare) return;
 
+	// Get current schedule data (check template first, then regular schedule)
+	const scheduleData = window.__currentTemplateData || currentScheduleData;
+
 	// Get selected schedule item
 	const itemIndex = document.getElementById('preview-item-select')?.value;
-	if (!currentScheduleData || itemIndex === '' || !currentScheduleData.items[itemIndex]) {
+	if (!scheduleData || itemIndex === '' || !scheduleData.items[itemIndex]) {
 		return;
 	}
 
-	const item = currentScheduleData.items[itemIndex];
+	const item = scheduleData.items[itemIndex];
 
 	// Create canvas if it doesn't exist
 	let canvas = previewSquare.querySelector('canvas');
