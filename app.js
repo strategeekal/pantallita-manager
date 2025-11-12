@@ -551,10 +551,10 @@ async function updateEditorPreview() {
 	const bottomLine = document.getElementById('editor-event-bottom').value || '';
 	const colorName = document.getElementById('editor-event-color').value;
 	const iconName = document.getElementById('editor-event-image').value;
-	
+
 	if (isMobile) {
-		// Update mobile text preview (lightweight, no rendering)
-		updateMobileTextPreview(topLine, bottomLine, colorName, iconName);
+		// Update mobile canvas preview with pixel-perfect rendering
+		await renderMobileEventPreview(topLine, bottomLine, colorName, iconName);
 	} else {
 		// Update desktop matrix emulator
 		if (editorMatrix) {
@@ -639,6 +639,147 @@ async function renderEventOnMatrix(matrix, topLine, bottomLine, colorName, iconN
 	}
 	
 	matrix.render();
+}
+
+// Render mobile event preview with canvas (256x128, 4x scale)
+async function renderMobileEventPreview(topLine, bottomLine, colorName, iconName) {
+	// Only render on mobile
+	if (window.innerWidth > 768) return;
+
+	const previewSquare = document.querySelector('.mobile-event-preview-square');
+	if (!previewSquare) return;
+
+	// Create canvas if it doesn't exist
+	let canvas = previewSquare.querySelector('canvas');
+	if (!canvas) {
+		canvas = document.createElement('canvas');
+		canvas.width = 256;
+		canvas.height = 128;
+		canvas.style.width = '256px';
+		canvas.style.height = '128px';
+		canvas.style.imageRendering = 'pixelated';
+		previewSquare.appendChild(canvas);
+	}
+
+	const ctx = canvas.getContext('2d');
+	ctx.fillStyle = '#000000';
+	ctx.fillRect(0, 0, 256, 128);
+
+	// Scale factor from desktop (64x32) to mobile (256x128)
+	const SCALE = 4;
+
+	// Desktop positions
+	const TEXT_MARGIN = 2;
+	const EVENT_IMAGE_X = 37;
+	const EVENT_IMAGE_Y = 2;
+
+	// Get colors from COLOR_MAP
+	const bottomColor = COLOR_MAP[colorName] || COLOR_MAP['MINT'];
+	const topColor = COLOR_MAP['WHITE'];
+
+	// Calculate bottom-aligned text positions
+	const positions = calculateBottomAlignedPositionsMobile(topLine || '', bottomLine || '', 32);
+
+	// Draw top line text at scaled position
+	if (topLine) {
+		drawTextMobile(ctx, topLine, TEXT_MARGIN * SCALE, positions.line1Y * SCALE, topColor, SCALE);
+	}
+
+	// Draw bottom line text in selected color at scaled position
+	if (bottomLine) {
+		drawTextMobile(ctx, bottomLine, TEXT_MARGIN * SCALE, positions.line2Y * SCALE, bottomColor, SCALE);
+	}
+
+	// Load and draw event image
+	if (iconName && iconName.endsWith('.bmp')) {
+		try {
+			const imageData = await loadBMPImage(iconName);
+			if (imageData && imageData.pixels) {
+				drawBMPMobile(ctx, imageData.pixels, EVENT_IMAGE_X * SCALE, EVENT_IMAGE_Y * SCALE, SCALE);
+			}
+		} catch (error) {
+			console.error('Error loading event image:', error);
+		}
+	}
+}
+
+// Calculate bottom-aligned text positions for mobile (replicates matrix-emulator logic)
+function calculateBottomAlignedPositionsMobile(line1Text, line2Text, displayHeight = 32) {
+	const BOTTOM_MARGIN = 2;
+	const LINE_SPACING = 1;
+	const DESCENDER_EXTRA_MARGIN = 3;
+	const DESCENDER_CHARS = ['g', 'j', 'p', 'q', 'y'];
+	const fontHeight = 6; // TINYBIT_FONT height
+
+	// Check for descenders in bottom line (affects bottom margin)
+	const bottomLineHasDescenders = line2Text.toLowerCase().split('').some(char =>
+		DESCENDER_CHARS.includes(char)
+	);
+
+	// Check for descenders in top line (affects line spacing)
+	const topLineHasDescenders = line1Text.toLowerCase().split('').some(char =>
+		DESCENDER_CHARS.includes(char)
+	);
+
+	// Adjust margins for descenders
+	const adjustedBottomMargin = BOTTOM_MARGIN + (bottomLineHasDescenders ? DESCENDER_EXTRA_MARGIN : 0);
+	const adjustedLineSpacing = LINE_SPACING + (topLineHasDescenders ? DESCENDER_EXTRA_MARGIN : 0);
+
+	// Calculate positions from bottom up
+	const bottomEdge = displayHeight - adjustedBottomMargin;
+	const line2Y = bottomEdge - fontHeight;
+	const line1Y = line2Y - fontHeight - adjustedLineSpacing;
+
+	return {
+		line1Y: Math.round(line1Y),
+		line2Y: Math.round(line2Y)
+	};
+}
+
+// Draw text using TINYBIT_FONT on mobile canvas
+function drawTextMobile(ctx, text, x, y, color, scale) {
+	if (!window.TINYBIT_FONT || !window.TINYBIT_FONT.glyphs) return;
+
+	let currentX = x;
+
+	for (let i = 0; i < text.length; i++) {
+		const char = text[i];
+		const glyph = window.TINYBIT_FONT.glyphs[char];
+
+		if (!glyph) {
+			currentX += 3 * scale; // Default spacing
+			continue;
+		}
+
+		const { width, height, bitmap } = glyph;
+
+		// Draw each pixel of the character
+		for (let row = 0; row < height; row++) {
+			const byte = bitmap[row];
+			for (let col = 0; col < width; col++) {
+				const bitMask = 0x80 >> col;
+				if (byte & bitMask) {
+					ctx.fillStyle = color;
+					ctx.fillRect(currentX + (col * scale), y + (row * scale), scale, scale);
+				}
+			}
+		}
+
+		currentX += (width + 1) * scale; // Character width + 1px spacing, scaled
+	}
+}
+
+// Draw BMP image data on mobile canvas
+function drawBMPMobile(ctx, pixels, x, y, scale) {
+	for (let row = 0; row < pixels.length; row++) {
+		for (let col = 0; col < pixels[row].length; col++) {
+			const color = pixels[row][col];
+			if (color && color !== 'transparent') {
+				ctx.fillStyle = color;
+				ctx.fillRect(x + (col * scale), y + (row * scale), scale, scale);
+			}
+		}
+	}
 }
 
 // Settings management
