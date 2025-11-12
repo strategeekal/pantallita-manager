@@ -2389,18 +2389,21 @@ header p {
 
 	/* Hide the actual matrix canvas on mobile */
 	.schedule-emulator #matrix-container-schedule {
+		display: none !important;
+	}
+
+	/* Hide mobile preview square on desktop */
+	.mobile-preview-square {
 		display: none;
 	}
 
-	/* Show 256x128 black square in emulator instead */
-	.schedule-emulator::before {
-		content: '';
+	/* Show mobile preview square on mobile */
+	.schedule-emulator .mobile-preview-square {
 		display: block;
 		width: 256px;
 		height: 128px;
 		background: #000;
 		border: 2px solid #000;
-		background-image: url('img/weather/columns/1.bmp');
 		background-repeat: no-repeat;
 		background-position: 5px 44px;
 		background-size: 52px 52px;
@@ -2421,16 +2424,20 @@ header p {
 	/* Adjust schedule editor actions for mobile */
 	.schedule-editor .schedule-actions {
 		flex-direction: column;
-		padding: 10px;
-		gap: 8px;
+		padding: 5px;
+		gap: 5px;
 		align-items: stretch;
 		box-sizing: border-box;
+		width: 100%;
+		max-width: 100%;
 	}
 
 	.schedule-editor .schedule-actions .btn-pixel {
 		min-width: 0;
 		box-sizing: border-box;
-		margin: 0;
+		margin: 0 !important;
+		padding: 8px 10px !important;
+		max-width: 100%;
 	}
 }
 

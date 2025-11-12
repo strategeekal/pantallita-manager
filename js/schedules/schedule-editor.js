@@ -11,6 +11,44 @@ let scheduleMatrix = null;
 
 export { currentScheduleData, scheduleMatrix };
 
+// Load mobile preview image from GitHub
+async function loadMobilePreviewImage() {
+	// Only load on mobile
+	if (window.innerWidth > 768) return;
+
+	const config = loadConfig();
+	if (!config.token || !config.owner || !config.repo) {
+		console.log('GitHub not configured - mobile preview unavailable');
+		return;
+	}
+
+	try {
+		const url = `https://api.github.com/repos/${config.owner}/${config.repo}/contents/img/weather/columns/1.bmp`;
+		const response = await fetch(url, {
+			headers: {
+				'Authorization': `Bearer ${config.token}`,
+				'Accept': 'application/vnd.github.v3+json'
+			}
+		});
+
+		if (!response.ok) {
+			console.error('Failed to fetch mobile preview image:', response.status);
+			return;
+		}
+
+		const data = await response.json();
+		const downloadUrl = data.download_url;
+
+		// Set the image as background
+		const previewSquare = document.querySelector('.mobile-preview-square');
+		if (previewSquare && downloadUrl) {
+			previewSquare.style.backgroundImage = `url('${downloadUrl}')`;
+		}
+	} catch (error) {
+		console.error('Error loading mobile preview image:', error);
+	}
+}
+
 export function createNewSchedule() {
 	currentScheduleData = {
 		type: 'new-date',
@@ -241,6 +279,9 @@ function populateScheduleEditor() {
 
 		// Update preview after rendering with a short delay
 		setTimeout(() => updateSchedulePreview(), 50);
+
+		// Load mobile preview image
+		loadMobilePreviewImage();
 
 	} catch (error) {
 		scheduleInfoForm.innerHTML = `
