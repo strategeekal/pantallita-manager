@@ -19,9 +19,12 @@ export function setupTabs() {
 }
 
 export async function handleTabSwitch(targetTab) {
-	// Update tab buttons
+	// Update tab buttons (only if the button exists in nav)
 	document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-	document.querySelector(`[data-tab="${targetTab}"]`).classList.add('active');
+	const targetButton = document.querySelector(`[data-tab="${targetTab}"]`);
+	if (targetButton) {
+		targetButton.classList.add('active');
+	}
 
 	// Update tab content
 	document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
