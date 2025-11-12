@@ -307,6 +307,35 @@ export function closeScheduleEditor() {
 
 	currentScheduleData = null;
 
+	// Check if we're closing a template editor
+	if (window.__currentTemplateData || window.__editingTemplate) {
+		// Reset template mode
+		window.__currentTemplateData = null;
+		window.__editingTemplate = null;
+
+		// Restore original save function
+		if (window.__originalSaveSchedule) {
+			window.saveSchedule = window.__originalSaveSchedule;
+			window.__originalSaveSchedule = null;
+		}
+
+		// Restore button labels to defaults
+		const saveButtons = document.querySelectorAll('.schedule-actions .btn-primary');
+		saveButtons.forEach(btn => {
+			if (btn.textContent.includes('Save Template')) {
+				btn.innerHTML = '💾 Save Schedule';
+			}
+		});
+
+		const saveAsButtons = document.querySelectorAll('.schedule-actions .btn-secondary');
+		saveAsButtons.forEach(btn => {
+			if (btn.textContent.includes('Save as New Template')) {
+				btn.innerHTML = '📄 Save as Template';
+				btn.onclick = () => window.schedulesModule.saveAsTemplate();
+			}
+		});
+	}
+
 	// Remove data attribute
 	if (scheduleEditor) {
 		scheduleEditor.removeAttribute('data-schedule-type');
