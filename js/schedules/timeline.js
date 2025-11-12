@@ -571,18 +571,13 @@ export function populateMobileEditPanel(index) {
 	const isDefaultSchedule = !currentData.date;
 
 	if (isDefaultSchedule) {
-		daysGroup.style.display = 'flex';
-		// Clear all checkboxes and update label classes
+		daysGroup.style.display = 'block';
+		// Clear all checkboxes
 		for (let i = 0; i < 7; i++) {
 			const checkbox = document.getElementById(`mobile-edit-day-${i}`);
 			if (checkbox) {
 				const isChecked = item.days && item.days.includes(i.toString());
 				checkbox.checked = isChecked;
-				// Toggle checked class on the label
-				const label = checkbox.parentElement;
-				if (label) {
-					label.classList.toggle('checked', isChecked);
-				}
 			}
 		}
 	} else {
@@ -658,16 +653,8 @@ export function liveUpdateDaysMobile() {
 		const selectedDays = [];
 		for (let i = 0; i < 7; i++) {
 			const checkbox = document.getElementById(`mobile-edit-day-${i}`);
-			if (checkbox) {
-				// Update label checked class
-				const label = checkbox.parentElement;
-				if (label) {
-					label.classList.toggle('checked', checkbox.checked);
-				}
-				// Add to selected days if checked
-				if (checkbox.checked) {
-					selectedDays.push(i.toString());
-				}
+			if (checkbox && checkbox.checked) {
+				selectedDays.push(i.toString());
 			}
 		}
 		// Store days as a string (not array) to match CSV format
