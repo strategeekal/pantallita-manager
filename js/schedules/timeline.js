@@ -1,5 +1,6 @@
 // Timeline Module - Render schedule timeline view with gaps and overlap detection
 import * as scheduleEditorModule from './schedule-editor.js';
+import { formatImageName } from '../core/utils.js';
 
 let timelineViewMode = 'day'; // 'day' or 'week'
 
@@ -395,7 +396,7 @@ function populateImageDropdown(currentImage) {
 		images.forEach(img => {
 			const option = document.createElement('option');
 			option.value = img.name;
-			option.textContent = img.name;
+			option.textContent = formatImageName(img.name);
 			if (img.name === currentImage) {
 				option.selected = true;
 			}
@@ -607,7 +608,7 @@ function populateMobileImageDropdown(currentImage) {
 		images.forEach(img => {
 			const option = document.createElement('option');
 			option.value = img.name;
-			option.textContent = img.name;
+			option.textContent = formatImageName(img.name);
 			if (img.name === currentImage) {
 				option.selected = true;
 			}

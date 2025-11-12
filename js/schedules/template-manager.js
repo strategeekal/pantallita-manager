@@ -1,6 +1,6 @@
 // Template Manager Module - Manage schedule templates
 import { fetchGitHubFile, deleteGitHubFile, saveGitHubFile } from '../core/api.js';
-import { showStatus, parseCSV } from '../core/utils.js';
+import { showStatus, parseCSV, formatImageName } from '../core/utils.js';
 import { loadScheduleTemplates, scheduleTemplates } from './schedule-manager.js';
 
 // Import schedule editor to get access to its internal functions
@@ -218,7 +218,7 @@ function populateTemplateItems(templateData) {
 
 		const itemsHTML = templateData.items.map((item, index) => {
 			const imageOptions = scheduleImages.map(img =>
-				`<option value="${img.name}" ${item.image === img.name ? 'selected' : ''}>${img.name}</option>`
+				`<option value="${img.name}" ${item.image === img.name ? 'selected' : ''}>${formatImageName(img.name)}</option>`
 			).join('');
 
 			// For templates, show day checkboxes (templates support multiple days)
