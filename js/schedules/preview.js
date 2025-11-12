@@ -1,5 +1,6 @@
 // Schedule Preview Module - Preview schedule items on matrix (desktop only)
 import { isMobileDevice } from '../core/utils.js';
+import { renderMobilePreview } from './schedule-editor.js';
 
 // Get schedule data and matrix from editor module
 function getScheduleData() {
@@ -25,11 +26,6 @@ export async function selectScheduleItem(index) {
 }
 
 export async function updateSchedulePreview() {
-	// Skip preview on mobile to save performance
-	if (isMobileDevice()) {
-		return;
-	}
-
 	const currentScheduleData = getScheduleData();
 	const itemIndex = document.getElementById('preview-item-select')?.value;
 
@@ -40,6 +36,12 @@ export async function updateSchedulePreview() {
 	// Update edit panel when dropdown changes
 	if (window.schedulesModule?.showEditPanel && itemIndex !== '') {
 		window.schedulesModule.showEditPanel(parseInt(itemIndex));
+	}
+
+	// Use mobile canvas preview on mobile devices
+	if (isMobileDevice()) {
+		await renderMobilePreview();
+		return;
 	}
 
 	const item = currentScheduleData.items[itemIndex];
