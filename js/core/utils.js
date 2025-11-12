@@ -41,6 +41,23 @@ export function getDayOfWeek(dateStr) {
 	return dayNames[scheduleDayOfWeek];
 }
 
+export function formatImageName(filename) {
+	if (!filename) return '';
+
+	// Remove .bmp extension
+	let name = filename.replace(/\.bmp$/i, '');
+
+	// Replace underscores with spaces
+	name = name.replace(/_/g, ' ');
+
+	// Capitalize each word
+	name = name.split(' ')
+		.map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+		.join(' ');
+
+	return name;
+}
+
 export function debounce(func, wait) {
 	let timeout;
 	return function executedFunction(...args) {

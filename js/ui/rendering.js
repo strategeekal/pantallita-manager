@@ -1,5 +1,6 @@
 // Rendering Utilities Module - Image loading and event rendering
 import { loadConfig } from '../core/config.js';
+import { formatImageName } from '../core/utils.js';
 import { COLOR_MAP, SIMPLE_ICONS } from './matrix-emulator.js';
 import { TINYBIT_FONT } from './fonts.js';
 
@@ -101,7 +102,7 @@ function populateImageDropdowns() {
 		availableImages.forEach(img => {
 			const option = document.createElement('option');
 			option.value = img.name;
-			option.textContent = img.name;
+			option.textContent = formatImageName(img.name);
 			imageSelect.appendChild(option);
 		});
 	}
