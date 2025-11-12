@@ -146,14 +146,29 @@ export async function saveEvent() {
 		clearEventForm();
 		await loadEvents();
 
-		// Redirect to view-events tab after save
-		const viewEventsTab = document.querySelector('[data-tab="view-events"]');
-		if (viewEventsTab) {
-			setTimeout(() => viewEventsTab.click(), 500);
+		// Redirect to events tab after save
+		const eventsTab = document.querySelector('[data-tab="events"]');
+		if (eventsTab) {
+			setTimeout(() => eventsTab.click(), 500);
 		}
 	} catch (error) {
 		showStatus('Failed to save event: ' + error.message, 'error');
 	}
+}
+
+export function createNewEvent() {
+	// Clear the form and reset editing state
+	editingEventIndex = null;
+	clearEventForm();
+
+	// Switch to add-event tab
+	const tabButton = document.querySelector('[data-tab="add-event"]');
+	if (tabButton) tabButton.click();
+
+	// Focus on the date input after a delay to ensure tab is switched
+	setTimeout(() => {
+		document.getElementById('editor-event-date')?.focus();
+	}, 300);
 }
 
 export function editEvent(index) {
@@ -617,6 +632,7 @@ function hideEventsMessages() {
 window.eventsModule = {
 	initializeEvents,
 	loadEvents,
+	createNewEvent,
 	editEvent,
 	deleteEvent,
 	clearPastEvents,
@@ -627,4 +643,5 @@ window.eventsModule = {
 };
 
 // Also expose directly for HTML onclick
+window.createNewEvent = createNewEvent;
 window.clearEventForm = clearEventForm;
