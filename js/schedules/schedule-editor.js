@@ -165,19 +165,21 @@ function populateScheduleEditor() {
 						</div>
 					`;
 
-					// Add default schedule button to actions section
-					const actionsDiv = document.querySelector('.schedule-actions');
-					if (actionsDiv) {
-						// Check if button doesn't already exist
-						if (!actionsDiv.querySelector('.make-default-btn')) {
-							const defaultBtn = document.createElement('button');
-							defaultBtn.className = 'btn-pixel btn-secondary make-default-btn';
-							defaultBtn.onclick = () => window.schedulesModule.makeThisDefault();
-							defaultBtn.innerHTML = '💾 Make This the Default Schedule';
-							// Insert before the first button
-							actionsDiv.insertBefore(defaultBtn, actionsDiv.firstChild);
+					// Add default schedule button to actions section - use setTimeout to ensure DOM is ready
+					setTimeout(() => {
+						const actionsDiv = document.querySelector('.schedule-editor .schedule-actions');
+						if (actionsDiv) {
+							// Check if button doesn't already exist
+							if (!actionsDiv.querySelector('.make-default-btn')) {
+								const defaultBtn = document.createElement('button');
+								defaultBtn.className = 'btn-pixel btn-secondary make-default-btn';
+								defaultBtn.onclick = () => window.schedulesModule.makeThisDefault();
+								defaultBtn.innerHTML = '💾 Make This the Default Schedule';
+								// Insert before the first button
+								actionsDiv.insertBefore(defaultBtn, actionsDiv.firstChild);
+							}
 						}
-					}
+					}, 50);
 				} catch (dateError) {
 					scheduleInfoForm.innerHTML = `
 						<div class="form-group">
