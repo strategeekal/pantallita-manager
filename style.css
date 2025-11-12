@@ -2334,10 +2334,12 @@ header p {
 		font-size: 0.9em;
 	}
 
-	/* Fix timeline overflow - make it scrollable */
+	/* Fix timeline overflow - remove vertical scrolling on mobile */
 	.timeline-view {
 		max-width: 100%;
 		overflow-x: auto;
+		max-height: none;
+		overflow-y: visible;
 	}
 
 	.timeline-item {
@@ -2368,6 +2370,8 @@ header p {
 		flex: 1;
 		max-width: 100%;
 		margin-top: 20px;
+		max-height: none;
+		overflow-y: visible;
 	}
 
 	/* Hide week view on mobile - too wide */
