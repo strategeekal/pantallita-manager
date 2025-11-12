@@ -64,7 +64,6 @@ function renderTemplateList() {
 			<div class="template-card">
 				<div class="template-info">
 					<h4 class="template-name">${template.displayName}</h4>
-					<p class="template-path">${template.path}</p>
 				</div>
 				<div class="template-actions">
 					<button class="btn-pixel btn-primary btn-sm" onclick="window.templateManager.editTemplate('${template.name}')">
@@ -519,6 +518,22 @@ function closeTemplateEditor() {
 		window.saveSchedule = window.__originalSaveSchedule;
 		window.__originalSaveSchedule = null;
 	}
+
+	// Restore button labels to defaults
+	const saveButtons = document.querySelectorAll('.schedule-actions .btn-primary');
+	saveButtons.forEach(btn => {
+		if (btn.textContent.includes('Save Template')) {
+			btn.innerHTML = '💾 Save Schedule';
+		}
+	});
+
+	const saveAsButtons = document.querySelectorAll('.schedule-actions .btn-secondary');
+	saveAsButtons.forEach(btn => {
+		if (btn.textContent.includes('Save as New Template')) {
+			btn.innerHTML = '📄 Save as Template';
+			btn.onclick = () => window.schedulesModule.saveAsTemplate();
+		}
+	});
 
 	// Clean up schedule matrix
 	if (window.scheduleMatrix) {
