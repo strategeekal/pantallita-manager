@@ -547,16 +547,22 @@ function populateImageDropdown() {
 
 // Update editor preview
 async function updateEditorPreview() {
+	console.log('updateEditorPreview called, isMobile:', isMobile);
+
 	const topLine = document.getElementById('editor-event-top').value || '';
 	const bottomLine = document.getElementById('editor-event-bottom').value || '';
 	const colorName = document.getElementById('editor-event-color').value;
 	const iconName = document.getElementById('editor-event-image').value;
 
+	console.log('Preview values:', { topLine, bottomLine, colorName, iconName });
+
 	if (isMobile) {
 		// Update mobile canvas preview with pixel-perfect rendering
+		console.log('Calling renderMobileEventPreview...');
 		await renderMobileEventPreview(topLine, bottomLine, colorName, iconName);
 	} else {
 		// Update desktop matrix emulator
+		console.log('Calling renderEventOnMatrix...');
 		if (editorMatrix) {
 			await renderEventOnMatrix(editorMatrix, topLine, bottomLine, colorName, iconName);
 		}
