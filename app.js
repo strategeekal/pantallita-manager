@@ -665,6 +665,8 @@ async function renderMobileEventPreview(topLine, bottomLine, colorName, iconName
 	ctx.fillStyle = '#000000';
 	ctx.fillRect(0, 0, 256, 128);
 
+	console.log('Rendering mobile event preview:', { topLine, bottomLine, colorName, iconName });
+
 	// Scale factor from desktop (64x32) to mobile (256x128)
 	const SCALE = 4;
 
@@ -673,29 +675,44 @@ async function renderMobileEventPreview(topLine, bottomLine, colorName, iconName
 	const EVENT_IMAGE_X = 37;
 	const EVENT_IMAGE_Y = 2;
 
-	// Get colors from COLOR_MAP
-	const bottomColor = COLOR_MAP[colorName] || COLOR_MAP['MINT'];
-	const topColor = COLOR_MAP['WHITE'];
+	// Get colors from COLOR_MAP (window.COLOR_MAP)
+	if (!window.COLOR_MAP) {
+		console.error('COLOR_MAP not available on window');
+		return;
+	}
+
+	const bottomColor = window.COLOR_MAP[colorName] || window.COLOR_MAP['MINT'];
+	const topColor = window.COLOR_MAP['WHITE'];
+
+	console.log('Colors:', { topColor, bottomColor, colorName });
 
 	// Calculate bottom-aligned text positions
 	const positions = calculateBottomAlignedPositionsMobile(topLine || '', bottomLine || '', 32);
+	console.log('Text positions:', positions);
 
 	// Draw top line text at scaled position
 	if (topLine) {
+		console.log('Drawing top line:', topLine, 'at', TEXT_MARGIN * SCALE, positions.line1Y * SCALE);
 		drawTextMobile(ctx, topLine, TEXT_MARGIN * SCALE, positions.line1Y * SCALE, topColor, SCALE);
 	}
 
 	// Draw bottom line text in selected color at scaled position
 	if (bottomLine) {
+		console.log('Drawing bottom line:', bottomLine, 'at', TEXT_MARGIN * SCALE, positions.line2Y * SCALE);
 		drawTextMobile(ctx, bottomLine, TEXT_MARGIN * SCALE, positions.line2Y * SCALE, bottomColor, SCALE);
 	}
 
 	// Load and draw event image
 	if (iconName && iconName.endsWith('.bmp')) {
 		try {
+			console.log('Loading event image:', iconName);
 			const imageData = await loadBMPImage(iconName);
+			console.log('Image data loaded:', imageData);
 			if (imageData && imageData.pixels) {
+				console.log('Drawing image at:', EVENT_IMAGE_X * SCALE, EVENT_IMAGE_Y * SCALE, 'size:', imageData.pixels.length, 'x', imageData.pixels[0]?.length);
 				drawBMPMobile(ctx, imageData.pixels, EVENT_IMAGE_X * SCALE, EVENT_IMAGE_Y * SCALE, SCALE);
+			} else {
+				console.log('No pixel data in image');
 			}
 		} catch (error) {
 			console.error('Error loading event image:', error);
@@ -738,7 +755,15 @@ function calculateBottomAlignedPositionsMobile(line1Text, line2Text, displayHeig
 
 // Draw text using TINYBIT_FONT on mobile canvas
 function drawTextMobile(ctx, text, x, y, color, scale) {
-	if (!window.TINYBIT_FONT || !window.TINYBIT_FONT.glyphs) return;
+	if (!window.TINYBIT_FONT || !window.TINYBIT_FONT.glyphs) {
+		console.error('TINYBIT_FONT not available:', {
+			hasTINYBIT_FONT: !!window.TINYBIT_FONT,
+			hasGlyphs: !!window.TINYBIT_FONT?.glyphs
+		});
+		return;
+	}
+
+	console.log('drawTextMobile called:', { text, x, y, color, scale });
 
 	let currentX = x;
 
@@ -747,6 +772,7 @@ function drawTextMobile(ctx, text, x, y, color, scale) {
 		const glyph = window.TINYBIT_FONT.glyphs[char];
 
 		if (!glyph) {
+			console.log('No glyph for character:', char);
 			currentX += 3 * scale; // Default spacing
 			continue;
 		}
