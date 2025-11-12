@@ -106,6 +106,12 @@ export async function renderMobilePreview() {
 	if (item.progressBar) {
 		drawProgressBarMobile(ctx, 50, SCHEDULE_IMAGE_X * SCALE, PROGRESS_BAR_Y * SCALE, SCALE);
 	}
+
+	// Populate mobile edit panel with the selected item
+	const index = parseInt(itemIndex);
+	if (window.schedulesModule && window.schedulesModule.populateMobileEditPanel) {
+		window.schedulesModule.populateMobileEditPanel(index);
+	}
 }
 
 // Draw text using TINYBIT_FONT on mobile canvas

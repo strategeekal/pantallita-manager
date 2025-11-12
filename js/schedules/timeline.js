@@ -542,3 +542,164 @@ export function updateMobileDayIndicator() {
 		};
 	});
 }
+
+// Mobile edit panel functions
+export function populateMobileEditPanel(index) {
+	const mobileEditPanel = document.getElementById('mobile-edit-panel');
+	const currentData = getCurrentData();
+	if (!mobileEditPanel || !currentData) return;
+
+	const item = currentData.items[index];
+	if (!item) return;
+
+	// Store current editing index
+	mobileEditPanel.dataset.editingIndex = index;
+
+	// Populate form fields
+	document.getElementById('mobile-edit-item-name').value = item.name || '';
+	document.getElementById('mobile-edit-item-enabled').checked = item.enabled !== false;
+	document.getElementById('mobile-edit-item-progressbar').checked = item.progressBar || false;
+
+	// Populate time fields
+	document.getElementById('mobile-edit-start-hour').value = item.startHour || 0;
+	document.getElementById('mobile-edit-start-min').value = item.startMin || 0;
+	document.getElementById('mobile-edit-end-hour').value = item.endHour || 0;
+	document.getElementById('mobile-edit-end-min').value = item.endMin || 0;
+
+	// Handle days checkboxes (only for default schedules)
+	const daysGroup = document.getElementById('mobile-edit-days-group');
+	const isDefaultSchedule = !currentData.date;
+
+	if (isDefaultSchedule) {
+		daysGroup.style.display = 'flex';
+		// Clear all checkboxes and update label classes
+		for (let i = 0; i < 7; i++) {
+			const checkbox = document.getElementById(`mobile-edit-day-${i}`);
+			if (checkbox) {
+				const isChecked = item.days && item.days.includes(i.toString());
+				checkbox.checked = isChecked;
+				// Toggle checked class on the label
+				const label = checkbox.parentElement;
+				if (label) {
+					label.classList.toggle('checked', isChecked);
+				}
+			}
+		}
+	} else {
+		daysGroup.style.display = 'none';
+	}
+
+	// Populate image dropdown with available images and select current
+	populateMobileImageDropdown(item.image);
+
+	// Show the panel
+	mobileEditPanel.style.display = 'block';
+}
+
+function populateMobileImageDropdown(currentImage) {
+	const imageSelect = document.getElementById('mobile-edit-item-image');
+	if (!imageSelect) return;
+
+	// Get images from window.schedulesModule if available
+	if (window.schedulesModule && window.schedulesModule.availableImages) {
+		const images = window.schedulesModule.availableImages;
+		imageSelect.innerHTML = '<option value="">Select image...</option>';
+		images.forEach(img => {
+			const option = document.createElement('option');
+			option.value = img.name;
+			option.textContent = img.name;
+			if (img.name === currentImage) {
+				option.selected = true;
+			}
+			imageSelect.appendChild(option);
+		});
+	}
+}
+
+// Live update functions for mobile edit panel
+export function liveUpdateItemMobile(property, value) {
+	const mobileEditPanel = document.getElementById('mobile-edit-panel');
+	const currentData = getCurrentData();
+	if (!mobileEditPanel || !currentData) return;
+
+	const index = parseInt(mobileEditPanel.dataset.editingIndex);
+	const item = currentData.items[index];
+	if (!item) return;
+
+	// Update the property
+	item[property] = value;
+
+	// Refresh timeline views
+	refreshTimelineViews();
+
+	// Update schedule editor if available
+	if (window.schedulesModule && window.schedulesModule.renderScheduleEditor) {
+		window.schedulesModule.renderScheduleEditor();
+	}
+
+	// Update preview
+	if (window.schedulesModule && window.schedulesModule.updateSchedulePreview) {
+		window.schedulesModule.updateSchedulePreview();
+	}
+}
+
+export function liveUpdateDaysMobile() {
+	const mobileEditPanel = document.getElementById('mobile-edit-panel');
+	const currentData = getCurrentData();
+	if (!mobileEditPanel || !currentData) return;
+
+	const index = parseInt(mobileEditPanel.dataset.editingIndex);
+	const item = currentData.items[index];
+	if (!item) return;
+
+	// Update days if default schedule
+	const isDefaultSchedule = !currentData.date;
+	if (isDefaultSchedule) {
+		const selectedDays = [];
+		for (let i = 0; i < 7; i++) {
+			const checkbox = document.getElementById(`mobile-edit-day-${i}`);
+			if (checkbox) {
+				// Update label checked class
+				const label = checkbox.parentElement;
+				if (label) {
+					label.classList.toggle('checked', checkbox.checked);
+				}
+				// Add to selected days if checked
+				if (checkbox.checked) {
+					selectedDays.push(i.toString());
+				}
+			}
+		}
+		// Store days as a string (not array) to match CSV format
+		item.days = selectedDays.join('');
+	}
+
+	// Refresh timeline views
+	refreshTimelineViews();
+
+	// Update schedule editor if available
+	if (window.schedulesModule && window.schedulesModule.renderScheduleEditor) {
+		window.schedulesModule.renderScheduleEditor();
+	}
+
+	// Update preview
+	if (window.schedulesModule && window.schedulesModule.updateSchedulePreview) {
+		window.schedulesModule.updateSchedulePreview();
+	}
+}
+
+export function deleteScheduleItemFromPanelMobile() {
+	const mobileEditPanel = document.getElementById('mobile-edit-panel');
+	const currentData = getCurrentData();
+	if (!mobileEditPanel || !currentData) return;
+
+	const index = parseInt(mobileEditPanel.dataset.editingIndex);
+
+	// Hide edit panel first
+	mobileEditPanel.style.display = 'none';
+
+	// Delete the item
+	if (window.schedulesModule && window.schedulesModule.deleteScheduleItem) {
+		window.schedulesModule.deleteScheduleItem(index);
+	}
+}
