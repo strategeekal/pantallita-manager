@@ -12,6 +12,8 @@ let scheduleMatrix = null;
 export { currentScheduleData, scheduleMatrix };
 
 // Load mobile preview image from GitHub
+// Note: Similar to loadWeatherColumnImage in rendering.js, but simplified
+// to just get the download URL for CSS background-image instead of parsing BMP
 async function loadMobilePreviewImage() {
 	// Only load on mobile
 	if (window.innerWidth > 768) return;
@@ -23,6 +25,7 @@ async function loadMobilePreviewImage() {
 	}
 
 	try {
+		// Same path structure as loadWeatherColumnImage in rendering.js
 		const url = `https://api.github.com/repos/${config.owner}/${config.repo}/contents/img/weather/columns/1.bmp`;
 		const response = await fetch(url, {
 			headers: {
@@ -39,7 +42,7 @@ async function loadMobilePreviewImage() {
 		const data = await response.json();
 		const downloadUrl = data.download_url;
 
-		// Set the image as background
+		// Set the image as background for CSS display
 		const previewSquare = document.querySelector('.mobile-preview-square');
 		if (previewSquare && downloadUrl) {
 			previewSquare.style.backgroundImage = `url('${downloadUrl}')`;
