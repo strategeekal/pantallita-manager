@@ -359,7 +359,7 @@ function handleTabSwitch(targetTab) {
 	// Initialize tab-specific content
 	if (targetTab === 'add-event') {
 		initializeEditorTab();
-	} else if (targetTab === 'view-events') {
+	} else if (targetTab === 'events') {
 		// Refresh events list if needed
 		if (currentEvents.length === 0) {
 			loadEvents();
@@ -1336,8 +1336,8 @@ async function saveEvent() {
 		
 		showStatus(isEditMode ? 'Event updated successfully!' : 'Event added successfully!', 'success');
 		
-		// Switch to view events tab
-		document.querySelector('[data-tab="view-events"]').click();
+		// Switch to events tab
+		document.querySelector('[data-tab="events"]').click();
 		
 	} catch (error) {
 		console.error('Error saving event:', error);

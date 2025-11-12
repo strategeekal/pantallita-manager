@@ -38,7 +38,7 @@ export async function handleTabSwitch(targetTab) {
 		if (window.schedulesModule && window.schedulesModule.initializeSchedules) {
 			await window.schedulesModule.initializeSchedules();
 		}
-	} else if (targetTab === 'view-events') {
+	} else if (targetTab === 'events') {
 		if (window.eventsModule && window.eventsModule.initializeEvents) {
 			await window.eventsModule.initializeEvents();
 		}

@@ -73,13 +73,12 @@
 			</header>
 
 			<nav class="tabs">
-				<button class="tab active" data-tab="view-events">View Events</button>
-				<button class="tab" data-tab="add-event">Add Event</button>
+				<button class="tab active" data-tab="events">Events</button>
 				<button class="tab" data-tab="schedules">Schedules</button>
 			</nav>
 
-			<!-- View Events Tab -->
-			<section id="view-events-tab" class="tab-content active">
+			<!-- Events Tab -->
+			<section id="events-tab" class="tab-content active">
 				<h2>Your Events</h2>
 				
 				<!-- Event List Section -->
@@ -87,6 +86,7 @@
 					<div class="event-list-header">
 						<h3>Current Events</h3>
 						<div class="list-actions">
+							<button class="btn-pixel btn-primary" onclick="createNewEvent()">➕ New</button>
 							<button class="btn-pixel btn-secondary" onclick="loadEvents()">🔄 Refresh</button>
 							<button class="btn-pixel btn-secondary" onclick="clearPastEvents()">🗑️ Clear Past Events</button>
 						</div>
