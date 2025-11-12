@@ -2400,7 +2400,7 @@ header p {
 		height: 128px;
 		background: #000;
 		border: 2px solid #000;
-		background-image: url('../img/weather/columns/1.bmp');
+		background-image: url('img/weather/columns/1.bmp');
 		background-repeat: no-repeat;
 		background-position: 5px 44px;
 		background-size: 52px 52px;
@@ -2421,13 +2421,16 @@ header p {
 	/* Adjust schedule editor actions for mobile */
 	.schedule-editor .schedule-actions {
 		flex-direction: column;
-		padding: 15px;
-		gap: 10px;
+		padding: 10px;
+		gap: 8px;
 		align-items: stretch;
+		box-sizing: border-box;
 	}
 
 	.schedule-editor .schedule-actions .btn-pixel {
 		min-width: 0;
+		box-sizing: border-box;
+		margin: 0;
 	}
 }
 
