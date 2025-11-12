@@ -1,6 +1,6 @@
 // Schedule Editor Module - Edit schedule items, add/delete, save
 import { fetchGitHubFile, saveGitHubFile, deleteGitHubFile } from '../core/api.js';
-import { showStatus, parseCSV, getDayOfWeek } from '../core/utils.js';
+import { showStatus, parseCSV, getDayOfWeek, formatImageName } from '../core/utils.js';
 import { loadConfig } from '../core/config.js';
 import { loadSchedules, scheduleImages, scheduleTemplates } from './schedule-manager.js';
 import { updateTimelineView, refreshTimelineViews } from './timeline.js';
@@ -694,7 +694,7 @@ function renderScheduleItems() {
 
 	const itemsHTML = currentScheduleData.items.map((item, index) => {
 		const imageOptions = scheduleImages.map(img =>
-			`<option value="${img.name}" ${item.image === img.name ? 'selected' : ''}>${img.name}</option>`
+			`<option value="${img.name}" ${item.image === img.name ? 'selected' : ''}>${formatImageName(img.name)}</option>`
 		).join('');
 
 		// For date-specific schedules, show read-only day instead of checkboxes
