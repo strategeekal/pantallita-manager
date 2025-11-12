@@ -33,6 +33,22 @@ export function setTimelineViewMode(mode) {
 	const dayView = document.getElementById('timeline-view');
 	const weekView = document.getElementById('timeline-week-view');
 	const editorLayout = document.querySelector('.schedule-editor-layout');
+	const currentData = getCurrentData();
+
+	// Hide week view and controls for templates
+	if (currentData && currentData.type === 'template') {
+		if (dayBtn) dayBtn.style.display = 'none';
+		if (weekBtn) weekBtn.style.display = 'none';
+		if (dayFilter) dayFilter.style.display = 'none';
+		if (dayView) dayView.classList.remove('hidden');
+		if (weekView) weekView.classList.add('hidden');
+		updateTimelineView();
+		return;
+	}
+
+	// Show controls for non-template schedules
+	if (dayBtn) dayBtn.style.display = 'inline-block';
+	if (weekBtn) weekBtn.style.display = 'inline-block';
 
 	if (mode === 'day') {
 		if (dayBtn) {
@@ -145,7 +161,19 @@ export function updateTimelineView() {
 
 	// Determine day filter based on schedule type
 	let dayFilter;
-	if (currentData.type !== 'default' && currentData.date) {
+	let isTemplate = currentData.type === 'template';
+
+	if (isTemplate) {
+		// Templates: show all items regardless of days
+		if (dayFilterSelect) {
+			dayFilterSelect.style.display = 'none';
+		}
+		if (dateDisplay) {
+			dateDisplay.style.display = 'none';
+			dateDisplay.classList.add('hidden');
+		}
+		dayFilter = null; // No filtering for templates
+	} else if (currentData.type !== 'default' && currentData.date) {
 		// Date-specific schedule: show only for that date's day
 		if (dayFilterSelect) {
 			dayFilterSelect.style.display = 'none';
@@ -176,10 +204,10 @@ export function updateTimelineView() {
 		dayFilter = parseInt(dayFilterSelect?.value || 0);
 	}
 
-	// Filter items for selected day
-	const dayItems = currentData.items.filter(item =>
-		item.enabled && item.days.includes(dayFilter.toString())
-	);
+	// Filter items for selected day (or all items for templates)
+	const dayItems = isTemplate
+		? currentData.items.filter(item => item.enabled)
+		: currentData.items.filter(item => item.enabled && item.days.includes(dayFilter.toString()));
 
 	if (dayItems.length === 0) {
 		container.innerHTML = '<p class="empty-message">No items for this day</p>';
@@ -355,9 +383,9 @@ export function showEditPanel(index) {
 	document.getElementById('edit-end-hour').value = item.endHour || 0;
 	document.getElementById('edit-end-min').value = item.endMin || 0;
 
-	// Handle days checkboxes (only for default schedules)
+	// Handle days checkboxes (only for default schedules, not for templates or date-specific schedules)
 	const daysGroup = document.getElementById('edit-days-group');
-	const isDefaultSchedule = !currentData.date;
+	const isDefaultSchedule = !currentData.date && currentData.type !== 'template';
 
 	if (isDefaultSchedule) {
 		daysGroup.style.display = 'flex';
@@ -567,9 +595,9 @@ export function populateMobileEditPanel(index) {
 	document.getElementById('mobile-edit-end-hour').value = item.endHour || 0;
 	document.getElementById('mobile-edit-end-min').value = item.endMin || 0;
 
-	// Handle days checkboxes (only for default schedules)
+	// Handle days checkboxes (only for default schedules, not for templates or date-specific schedules)
 	const daysGroup = document.getElementById('mobile-edit-days-group');
-	const isDefaultSchedule = !currentData.date;
+	const isDefaultSchedule = !currentData.date && currentData.type !== 'template';
 
 	if (isDefaultSchedule) {
 		daysGroup.style.display = 'block';

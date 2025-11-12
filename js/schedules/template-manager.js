@@ -149,19 +149,21 @@ export async function editTemplate(templateName) {
 			listSection.classList.add('hidden');
 		}
 
-		// Update title
+		// Update title with formatted name
 		const titleEl = document.getElementById('schedule-editor-title');
 		if (titleEl) {
-			titleEl.textContent = `Edit Template: ${templateName.replace('.csv', '')}`;
+			const formattedName = formatImageName(templateName.replace('.csv', ''));
+			titleEl.textContent = `Edit Template: ${formattedName}`;
 		}
 
 		// Populate the editor form
 		const scheduleInfoForm = document.getElementById('schedule-info-form');
 		if (scheduleInfoForm) {
+			const formattedName = formatImageName(templateName.replace('.csv', ''));
 			scheduleInfoForm.innerHTML = `
 				<div class="form-group">
-					<p class="schedule-mode-info">Editing Template: ${templateName.replace('.csv', '')}</p>
-					<small>Templates support multiple days of the week</small>
+					<p class="schedule-mode-info">Editing Template: ${formattedName}</p>
+					<small>Templates are day-agnostic and can be loaded into any schedule</small>
 				</div>
 			`;
 		}

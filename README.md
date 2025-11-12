@@ -1,10 +1,10 @@
 # SCREENY Manager
 
-**Version 1.1.0**
+**Version 1.2.0**
 
 A web-based management interface for SCREENY RGB matrix displays. Manage ephemeral events and daily schedules remotely through GitHub, with full support for desktop and mobile devices.
 
-![SCREENY Manager](https://img.shields.io/badge/status-active-brightgreen) ![Version](https://img.shields.io/badge/version-1.1.0-blue)
+![SCREENY Manager](https://img.shields.io/badge/status-active-brightgreen) ![Version](https://img.shields.io/badge/version-1.2.0-blue)
 
 ## Features
 
@@ -29,11 +29,14 @@ A web-based management interface for SCREENY RGB matrix displays. Manage ephemer
 - Live preview with emulator
 - Drag-and-drop item reordering
 
-### 📋 Template System
-- Save schedules as reusable templates
-- Load templates into new schedules
+### 📋 Template System (Day-Agnostic)
+- **Day-agnostic templates**: Templates store only schedule patterns (times, names, images, progress bars)
+- Save any schedule as a reusable template
+- Load templates into date-specific schedules (auto-inherits the date's day-of-week)
+- Load templates into default schedules (assign days via existing UI)
 - Template preview before loading
 - Template library management
+- Cleaner timeline view for templates (no day/week selector)
 
 ### 📱 Mobile Optimization
 - Fully responsive design
@@ -102,9 +105,26 @@ Bedtime,1,0123456,21,0,21,30,sleep.bmp,1
 Weekend Fun,1,56,10,0,12,0,play.bmp,0
 ```
 
-### Template CSV (`template_NAME.csv`)
+### Template CSV (`templates/NAME.csv`)
 
-Same format as schedule CSV files. Templates are stored in the repository and can be loaded into any schedule.
+**Format:**
+```
+name,enabled,days,start_hour,start_min,end_hour,end_min,image,progressbar
+```
+
+**Note:** Templates are **day-agnostic** and store empty `days` field. When loaded:
+- Into date-specific schedules: automatically inherits the date's day-of-week
+- Into default schedules: user assigns days via the UI
+
+**Example:**
+```csv
+# Template: morning-routine.csv
+Wake Up,1,,7,0,7,30,wake_up.bmp,1
+Breakfast,1,,7,30,8,0,breakfast.bmp,0
+Get Dressed,1,,8,0,8,30,get_dressed.bmp,1
+```
+
+Templates are stored in `schedules/templates/` directory and can be loaded into any schedule type.
 
 ## GitHub Repository Structure
 
@@ -255,6 +275,24 @@ Available colors for event text:
 - All operations are client-side only
 - Use fine-grained tokens when possible
 - Never commit tokens to version control
+
+## Version History
+
+### Version 1.2.0 (Current)
+- **Day-Agnostic Templates**: Templates no longer store day-of-week information
+  - Templates focus solely on schedule patterns (times, names, images, progress bars)
+  - Auto-inherit day-of-week when loaded into date-specific schedules
+  - Cleaner template editor UI (removed day checkboxes)
+  - Simplified timeline view for templates (no day/week selector)
+- **Improved Formatting**: Template names use `formatImageName` utility for better readability
+- **Enhanced Edit Panel**: Day-of-week checkboxes automatically hidden when editing templates
+- **Updated Documentation**: README now includes detailed template CSV format and examples
+
+### Version 1.1.0
+- Mobile optimization with canvas previews
+- Touch-friendly interface
+- Responsive forms and layouts
+- Stacked footer for mobile devices
 
 ## Roadmap
 
