@@ -14,12 +14,20 @@ export { currentScheduleData, scheduleMatrix };
 
 // Render mobile preview with text and images
 // Replicates desktop emulator layout at 4x scale (64x32 -> 256x128)
-async function renderMobilePreview() {
+export async function renderMobilePreview() {
 	// Only render on mobile
 	if (window.innerWidth > 768) return;
 
 	const previewSquare = document.querySelector('.mobile-preview-square');
 	if (!previewSquare) return;
+
+	// Get selected schedule item
+	const itemIndex = document.getElementById('preview-item-select')?.value;
+	if (!currentScheduleData || itemIndex === '' || !currentScheduleData.items[itemIndex]) {
+		return;
+	}
+
+	const item = currentScheduleData.items[itemIndex];
 
 	// Create canvas if it doesn't exist
 	let canvas = previewSquare.querySelector('canvas');
@@ -49,9 +57,19 @@ async function renderMobilePreview() {
 	const TEMP_Y = 25;
 	const SCHEDULE_IMAGE_X = 23;
 	const SCHEDULE_IMAGE_Y = 1;
+	const PROGRESS_BAR_Y = 29;
 
-	// Draw time "10:10" at scaled position
-	drawTextMobile(ctx, '10:10', TIME_X * SCALE, TIME_Y * SCALE, '#FFFFFF', SCALE);
+	// Calculate midpoint time of schedule item (like desktop version)
+	const startMinutes = item.startHour * 60 + item.startMin;
+	const endMinutes = item.endHour * 60 + item.endMin;
+	const midMinutes = Math.floor((startMinutes + endMinutes) / 2);
+	const midHour = Math.floor(midMinutes / 60);
+	const midHour12 = (midHour % 12) || 12;
+	const midMin = midMinutes % 60;
+	const timeString = `${String(midHour12)}:${String(midMin).padStart(2, '0')}`;
+
+	// Draw dynamic time at scaled position
+	drawTextMobile(ctx, timeString, TIME_X * SCALE, TIME_Y * SCALE, '#FFFFFF', SCALE);
 
 	// Draw temperature "18°" at scaled position
 	const tempText = '18';
@@ -72,16 +90,21 @@ async function renderMobilePreview() {
 		}
 	}
 
-	// Load and draw schedule image
-	if (window.loadScheduleBMPImage) {
+	// Load and draw schedule image dynamically
+	if (item.image && window.loadScheduleBMPImage) {
 		try {
-			const scheduleImageData = await window.loadScheduleBMPImage('go_to_school.bmp');
+			const scheduleImageData = await window.loadScheduleBMPImage(item.image);
 			if (scheduleImageData && scheduleImageData.pixels) {
 				drawBMPMobile(ctx, scheduleImageData.pixels, SCHEDULE_IMAGE_X * SCALE, SCHEDULE_IMAGE_Y * SCALE, SCALE);
 			}
 		} catch (error) {
 			console.error('Error loading schedule image:', error);
 		}
+	}
+
+	// Draw progress bar if enabled
+	if (item.progressBar) {
+		drawProgressBarMobile(ctx, 50, SCHEDULE_IMAGE_X * SCALE, PROGRESS_BAR_Y * SCALE, SCALE);
 	}
 }
 
@@ -127,6 +150,56 @@ function drawBMPMobile(ctx, pixels, x, y, scale) {
 			}
 		}
 	}
+}
+
+// Draw progress bar on mobile canvas (160x8 pixels = 40x2 at 4x scale)
+function drawProgressBarMobile(ctx, progressPercent, x, y, scale) {
+	const MINT = '#00FFAA';
+	const LILAC = '#AA00FF';
+	const WHITE = '#FFFFFF';
+
+	// Desktop dimensions
+	const barWidth = 40;
+	const barHeight = 2;
+
+	// Scaled dimensions
+	const scaledWidth = barWidth * scale; // 160px
+	const scaledHeight = barHeight * scale; // 8px
+	const filledWidth = Math.floor((progressPercent / 100) * barWidth);
+
+	// Draw mint background (full bar) - right 50%
+	ctx.fillStyle = MINT;
+	for (let row = 0; row < barHeight; row++) {
+		for (let col = 0; col < barWidth; col++) {
+			ctx.fillRect(x + (col * scale), y + (row * scale), scale, scale);
+		}
+	}
+
+	// Draw lilac progress (filled portion) - left 50%
+	ctx.fillStyle = LILAC;
+	for (let row = 0; row < barHeight; row++) {
+		for (let col = 0; col < filledWidth; col++) {
+			ctx.fillRect(x + (col * scale), y + (row * scale), scale, scale);
+		}
+	}
+
+	// Draw white markers at 0%, 25%, 50%, 75%, 100%
+	const markers = [0, 10, 20, 30, 39]; // Desktop pixel positions
+	const extendedMarkers = [0, 20, 39]; // First, middle, last get extra pixels
+
+	ctx.fillStyle = WHITE;
+	markers.forEach(markerX => {
+		// Draw main 2-pixel tall marker
+		for (let row = 0; row < barHeight; row++) {
+			ctx.fillRect(x + (markerX * scale), y + (row * scale), scale, scale);
+		}
+
+		// Add pixels above and below for extended markers
+		if (extendedMarkers.includes(markerX)) {
+			ctx.fillRect(x + (markerX * scale), y - scale, scale, scale); // Above
+			ctx.fillRect(x + (markerX * scale), y + (barHeight * scale), scale, scale); // Below
+		}
+	});
 }
 
 export function createNewSchedule() {
