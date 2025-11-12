@@ -392,14 +392,39 @@ export function addTemplateItem() {
 		};
 	}
 
+	// Calculate default times based on existing items
+	let startHour = 8;
+	let startMin = 0;
+
+	if (window.__currentTemplateData.items.length > 0) {
+		// Find the latest end time from existing items
+		const latestItem = window.__currentTemplateData.items.reduce((latest, item) => {
+			const latestTime = latest.endHour * 60 + latest.endMin;
+			const currentTime = item.endHour * 60 + item.endMin;
+			return currentTime > latestTime ? item : latest;
+		});
+
+		startHour = latestItem.endHour;
+		startMin = latestItem.endMin;
+	}
+
+	// Calculate end time (15 minutes after start)
+	let endMin = startMin + 15;
+	let endHour = startHour;
+
+	if (endMin >= 60) {
+		endMin -= 60;
+		endHour += 1;
+	}
+
 	const newItem = {
 		name: 'New Item',
 		enabled: true,
 		days: '0123456', // Default to all days for templates
-		startHour: 9,
-		startMin: 0,
-		endHour: 17,
-		endMin: 0,
+		startHour: startHour,
+		startMin: startMin,
+		endHour: endHour,
+		endMin: endMin,
 		image: '',
 		progressBar: false,
 		index: window.__currentTemplateData.items.length
