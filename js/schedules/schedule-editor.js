@@ -662,14 +662,39 @@ export function addScheduleItem() {
 		defaultDays = scheduleDayOfWeek.toString();
 	}
 
+	// Calculate default times based on existing items
+	let startHour = 8;
+	let startMin = 0;
+
+	if (currentScheduleData.items.length > 0) {
+		// Find the latest end time from existing items
+		const latestItem = currentScheduleData.items.reduce((latest, item) => {
+			const latestTime = latest.endHour * 60 + latest.endMin;
+			const currentTime = item.endHour * 60 + item.endMin;
+			return currentTime > latestTime ? item : latest;
+		});
+
+		startHour = latestItem.endHour;
+		startMin = latestItem.endMin;
+	}
+
+	// Calculate end time (15 minutes after start)
+	let endMin = startMin + 15;
+	let endHour = startHour;
+
+	if (endMin >= 60) {
+		endMin -= 60;
+		endHour += 1;
+	}
+
 	const newItem = {
 		name: 'New Item',
 		enabled: true,
 		days: defaultDays,
-		startHour: 9,
-		startMin: 0,
-		endHour: 17,
-		endMin: 0,
+		startHour: startHour,
+		startMin: startMin,
+		endHour: endHour,
+		endMin: endMin,
 		image: '',
 		progressBar: false,
 		index: currentScheduleData.items.length
