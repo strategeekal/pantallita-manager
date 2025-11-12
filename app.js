@@ -1,8 +1,11 @@
 // Configuration storage key
 const CONFIG_KEY = 'screeny_config';
 
+console.log('🔥 APP.JS LOADED - VERSION 2.0 - MOBILE CANVAS PREVIEW 🔥');
+
 // Mobile detection
 const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || window.innerWidth <= 768;
+console.log('isMobile detected:', isMobile);
 
 // Global matrix emulator instance for landing page
 let landingMatrix = null;
@@ -327,6 +330,8 @@ function setupTabs() {
 
 // Handle tab switching with proper cleanup
 function handleTabSwitch(targetTab) {
+	console.log('📱 handleTabSwitch called, targetTab:', targetTab);
+
 	// Clean up editor when leaving add-event tab
 	if (targetTab !== 'add-event') {
 		// Clear the form to avoid confusion
