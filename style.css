@@ -2374,8 +2374,10 @@ header p {
 		display: none !important;
 	}
 
-	.schedule-preview-section {
-		display: block;
+	/* Hide the desktop emulator and preview section on mobile */
+	.schedule-preview-section,
+	.schedule-emulator {
+		display: none !important;
 	}
 
 	#schedule-info-form {
@@ -2401,12 +2403,14 @@ header p {
 
 	/* Adjust schedule editor actions for mobile */
 	.schedule-editor .schedule-actions {
-		flex-direction: column;
+		flex-direction: row;
+		flex-wrap: wrap;
 		padding: 15px;
+		gap: 8px;
 	}
 
 	.schedule-editor .schedule-actions .btn-pixel {
-		width: 100%;
+		flex: 1;
 		min-width: 0;
 	}
 }
