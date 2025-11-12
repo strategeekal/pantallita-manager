@@ -109,18 +109,20 @@ Same format as schedule CSV files. Templates are stored in the repository and ca
 ## GitHub Repository Structure
 
 ```
-your-repo/
+pantallita-events/                # Independent repo with files
 ├── ephemeral_events.csv          # Events file
-├── default_schedule.csv          # Default daily schedule
-├── schedule_YYYY-MM-DD.csv       # Date-specific schedules
-├── template_NAME.csv             # Schedule templates
+├── schedules/
+    ├── default_schedule.csv      # Default daily schedule
+    ├── schedule_YYYY-MM-DD.csv   # Date-specific schedules
+    ├── templates/
+        └── NAME.csv              # Schedule templates
 └── img/
     ├── events/                   # Event images (27x28 BMP)
     │   ├── halloween.bmp
     │   ├── birthday.bmp
     │   └── ...
     ├── schedules/                # Schedule images (40x28 BMP)
-    │   ├── wake_up.bmp
+    │   ├── get_dressed.bmp
     │   ├── go_to_school.bmp
     │   └── ...
     └── weather/
@@ -256,12 +258,11 @@ Available colors for event text:
 
 ## Roadmap
 
-- [ ] Bulk event import/export
+- [ ] Event/Schedule Validation
 - [ ] Schedule conflict detection
-- [ ] Dark mode toggle
-- [ ] Keyboard shortcuts
 - [ ] Event search/filter
-- [ ] Schedule validation
+- [ ] Display module control
+- [ ] Dark mode toggle
 
 ## License
 
