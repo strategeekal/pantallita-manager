@@ -327,6 +327,9 @@ export function closeScheduleEditor() {
 		}
 		window.scheduleMatrix = null;
 	}
+
+	// Clear preview and hide edit panel
+	clearPreviewAndEditPanel();
 }
 
 function populateScheduleEditor() {
@@ -714,6 +717,9 @@ function renderScheduleItems() {
 
 	if (currentScheduleData.items.length === 0) {
 		container.innerHTML = '<p class="empty-message">No items yet. Click "Add Item" to create one.</p>';
+
+		// Clear preview and hide edit panel when no items
+		clearPreviewAndEditPanel();
 		return;
 	}
 
@@ -815,6 +821,52 @@ function renderScheduleItems() {
 
 	// Update preview selector
 	updatePreviewSelector();
+
+	// Show first item in preview and edit panel by default
+	showFirstItemByDefault();
+}
+
+function showFirstItemByDefault() {
+	if (!currentScheduleData || currentScheduleData.items.length === 0) return;
+
+	// Update preview to show first item
+	const selector = document.getElementById('preview-item-select');
+	if (selector) {
+		selector.value = '0';
+	}
+
+	// Trigger preview update
+	setTimeout(() => updateSchedulePreview(), 50);
+
+	// Show first item in edit panel
+	if (window.schedulesModule && window.schedulesModule.showEditPanel) {
+		window.schedulesModule.showEditPanel(0);
+	}
+}
+
+function clearPreviewAndEditPanel() {
+	// Clear the preview
+	if (window.scheduleMatrix) {
+		window.scheduleMatrix.clear();
+	}
+
+	// Clear preview selector
+	const selector = document.getElementById('preview-item-select');
+	if (selector) {
+		selector.innerHTML = '';
+	}
+
+	// Hide edit panel
+	const editPanel = document.getElementById('timeline-edit-panel');
+	if (editPanel) {
+		editPanel.classList.add('hidden');
+	}
+
+	// Hide mobile edit panel
+	const mobileEditPanel = document.getElementById('mobile-edit-panel');
+	if (mobileEditPanel) {
+		mobileEditPanel.style.display = 'none';
+	}
 }
 
 function updatePreviewSelector() {
