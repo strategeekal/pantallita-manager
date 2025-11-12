@@ -382,8 +382,8 @@ function initializeEditorTab() {
 	
 	// Always recreate preview (it gets cleared when leaving tab)
 	if (isMobile) {
-		console.log('Mobile detected - using lightweight text preview');
-		setupMobileTextPreview();
+		console.log('Mobile detected - using canvas preview');
+		// Canvas preview will be created on first render
 	} else {
 		// Desktop: Create emulator if it doesn't exist
 		if (!editorMatrix) {
