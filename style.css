@@ -2389,7 +2389,8 @@ header p {
 	}
 
 	/* Replace emulator content with 256x128 square on mobile */
-	.schedule-emulator {
+	.schedule-emulator,
+	.event-emulator {
 		padding: 15px;
 		display: flex;
 		justify-content: center;
@@ -2397,17 +2398,20 @@ header p {
 	}
 
 	/* Hide the actual matrix canvas on mobile */
-	.schedule-emulator #matrix-container-schedule {
+	.schedule-emulator #matrix-container-schedule,
+	.event-emulator #matrix-container-editor {
 		display: none !important;
 	}
 
 	/* Hide mobile preview square on desktop */
-	.mobile-preview-square {
+	.mobile-preview-square,
+	.mobile-event-preview-square {
 		display: none;
 	}
 
 	/* Show mobile preview square on mobile */
-	.schedule-emulator .mobile-preview-square {
+	.schedule-emulator .mobile-preview-square,
+	.event-emulator .mobile-event-preview-square {
 		display: block;
 		width: 256px;
 		height: 128px;
@@ -2416,7 +2420,8 @@ header p {
 		position: relative;
 	}
 
-	.schedule-emulator .mobile-preview-square canvas {
+	.schedule-emulator .mobile-preview-square canvas,
+	.event-emulator .mobile-event-preview-square canvas {
 		display: block;
 		image-rendering: pixelated;
 		image-rendering: -moz-crisp-edges;
