@@ -2050,15 +2050,18 @@ header p {
 }
 
 .mobile-day-item {
-	padding: 8px;
+	padding: 6px 2px;
 	background: #e0e0e0;
 	border: 2px solid #000;
 	text-align: center;
 	font-weight: bold;
 	font-family: 'Courier New', monospace;
-	font-size: 0.85em;
+	font-size: 0.7em;
 	cursor: pointer;
 	transition: all 0.1s;
+	box-sizing: border-box;
+	min-width: 0;
+	overflow: hidden;
 }
 
 .mobile-day-item.has-items {
@@ -2099,15 +2102,22 @@ header p {
 		display: block;
 	}
 
-	/* Show mobile day indicator only on mobile */
+	/* Show mobile day indicator only on mobile AND only for default schedules */
 	.mobile-day-indicator {
-		display: grid;
+		display: none; /* Hidden by default */
 		grid-template-columns: repeat(7, 1fr);
-		gap: 4px;
+		gap: 2px;
 		margin-bottom: 15px;
-		padding: 10px;
+		padding: 5px;
 		background: #f9f9f9;
 		border: 2px solid #000;
+		box-sizing: border-box;
+		width: 100%;
+	}
+
+	/* Show only when editing default schedule */
+	.schedule-editor[data-schedule-type="default"] .mobile-day-indicator {
+		display: grid;
 	}
 
 	/* Show short day names on mobile */
@@ -2299,10 +2309,16 @@ header p {
 		font-size: 0.85em;
 	}
 
-	/* Fix timeline controls overflow on mobile */
+	/* Fix timeline controls overflow on mobile - hide day/week buttons */
 	.timeline-view-controls {
 		flex-wrap: wrap;
 		gap: 5px;
+	}
+
+	/* Hide Day/Week view toggle buttons on mobile */
+	#timeline-view-day,
+	#timeline-view-week {
+		display: none !important;
 	}
 
 	#timeline-day-filter {
@@ -2311,13 +2327,6 @@ header p {
 		box-sizing: border-box;
 		padding: 8px;
 		font-size: 0.9em;
-	}
-
-	.timeline-view-controls .btn-pixel {
-		flex: 1;
-		min-width: 60px;
-		padding: 8px;
-		font-size: 0.85em;
 	}
 
 	/* Fix timeline overflow - make it scrollable */
