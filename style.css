@@ -2374,43 +2374,52 @@ header p {
 		display: none !important;
 	}
 
-	/* Hide the desktop emulator and preview section on mobile */
-	.schedule-preview-section,
+	/* Keep preview section visible on mobile */
+	.schedule-preview-section {
+		display: block !important;
+	}
+
+	/* Replace emulator content with 256x128 square on mobile */
 	.schedule-emulator {
-		display: none !important;
-	}
-
-	#schedule-info-form {
 		padding: 15px;
-	}
-
-	/* Show mobile preview square */
-	.mobile-schedule-preview {
 		display: flex;
 		justify-content: center;
 		align-items: center;
-		padding: 15px;
-		background: #f0f0f0;
-		margin-top: 20px;
 	}
 
-	#mobile-schedule-preview-matrix {
+	/* Hide the actual matrix canvas on mobile */
+	.schedule-emulator #matrix-container-schedule {
+		display: none;
+	}
+
+	/* Show 256x128 black square in emulator instead */
+	.schedule-emulator::before {
+		content: '';
+		display: block;
 		width: 256px;
 		height: 128px;
 		background: #000;
 		border: 2px solid #000;
 	}
 
+	/* Hide the separate mobile preview square container */
+	.mobile-schedule-preview {
+		display: none;
+	}
+
+	#schedule-info-form {
+		padding: 15px;
+	}
+
 	/* Adjust schedule editor actions for mobile */
 	.schedule-editor .schedule-actions {
-		flex-direction: row;
-		flex-wrap: wrap;
+		flex-direction: column;
 		padding: 15px;
-		gap: 8px;
+		gap: 10px;
 	}
 
 	.schedule-editor .schedule-actions .btn-pixel {
-		flex: 1;
+		width: 100%;
 		min-width: 0;
 	}
 }
