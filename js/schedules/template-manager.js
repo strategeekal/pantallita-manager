@@ -221,19 +221,6 @@ function populateTemplateItems(templateData) {
 				`<option value="${img.name}" ${item.image === img.name ? 'selected' : ''}>${formatImageName(img.name)}</option>`
 			).join('');
 
-			// For templates, show day checkboxes (templates support multiple days)
-			const daysHTML = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, dayIndex) => {
-				const isChecked = item.days.includes(dayIndex.toString());
-				return `
-					<label class="day-checkbox ${isChecked ? 'checked' : ''}">
-						<input type="checkbox"
-							${isChecked ? 'checked' : ''}
-							onchange="window.templateManager.updateTemplateDays(${index}, this)">
-						${day}
-					</label>
-				`;
-			}).join('');
-
 			return `
 				<div class="schedule-item">
 					<div class="schedule-item-header">
@@ -250,10 +237,6 @@ function populateTemplateItems(templateData) {
 						</label>
 					</div>
 					<div class="schedule-item-body">
-						<div class="schedule-item-row">
-							<span class="item-label">Days:</span>
-							<div class="day-checkboxes">${daysHTML}</div>
-						</div>
 						<div class="schedule-item-row">
 							<span class="item-label">Time:</span>
 							<div class="time-inputs">
@@ -344,30 +327,6 @@ export function updateTemplateItem(index, field, value) {
 	}
 }
 
-export function updateTemplateDays(index, checkbox) {
-	if (!window.__currentTemplateData || !window.__currentTemplateData.items[index]) return;
-
-	const item = window.__currentTemplateData.items[index];
-	const dayIndex = Array.from(checkbox.parentElement.parentElement.children).indexOf(checkbox.parentElement);
-
-	let days = item.days.split('').filter(d => d !== '');
-	const dayStr = dayIndex.toString();
-
-	if (checkbox.checked) {
-		if (!days.includes(dayStr)) {
-			days.push(dayStr);
-		}
-		checkbox.parentElement.classList.add('checked');
-	} else {
-		days = days.filter(d => d !== dayStr);
-		checkbox.parentElement.classList.remove('checked');
-	}
-
-	item.days = days.sort().join('');
-
-	import('./timeline.js').then(module => module.refreshTimelineViews());
-}
-
 export function deleteTemplateItem(index) {
 	if (!window.__currentTemplateData) return;
 
@@ -420,7 +379,7 @@ export function addTemplateItem() {
 	const newItem = {
 		name: 'New Item',
 		enabled: true,
-		days: '0123456', // Default to all days for templates
+		days: '', // Templates are day-agnostic
 		startHour: startHour,
 		startMin: startMin,
 		endHour: endHour,
@@ -570,12 +529,12 @@ function closeTemplateEditor() {
 function generateTemplateCSV(templateData) {
 	const header = `# Format: name,enabled,days,start_hour,start_min,end_hour,end_min,image,progressbar
 # enabled: 1=true, 0=false
-# days: 0-6 for Mon-Sun (e.g., "01234" = Mon-Fri)
+# days: Templates are day-agnostic (empty field). Days are assigned when loaded into schedules.
 # progressbar: 1=true, 0=false
 `;
 
 	const lines = templateData.items.map(item =>
-		`${item.name},${item.enabled ? 1 : 0},${item.days},${item.startHour},${item.startMin},${item.endHour},${item.endMin},${item.image},${item.progressBar ? 1 : 0}`
+		`${item.name},${item.enabled ? 1 : 0},,${item.startHour},${item.startMin},${item.endHour},${item.endMin},${item.image},${item.progressBar ? 1 : 0}`
 	);
 
 	return header + lines.join('\n');
