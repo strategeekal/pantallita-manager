@@ -5,50 +5,127 @@ import { loadConfig } from '../core/config.js';
 import { loadSchedules, scheduleImages, scheduleTemplates } from './schedule-manager.js';
 import { updateTimelineView, refreshTimelineViews } from './timeline.js';
 import { updateSchedulePreview } from './preview.js';
+import { TINYBIT_FONT } from '../ui/fonts.js';
 
 let currentScheduleData = null;
 let scheduleMatrix = null;
 
 export { currentScheduleData, scheduleMatrix };
 
-// Load mobile preview image from GitHub
-// Note: Similar to loadWeatherColumnImage in rendering.js, but simplified
-// to just get the download URL for CSS background-image instead of parsing BMP
-async function loadMobilePreviewImage() {
-	// Only load on mobile
+// Render mobile preview with text and images
+// Replicates desktop emulator layout at 4x scale (64x32 -> 256x128)
+async function renderMobilePreview() {
+	// Only render on mobile
 	if (window.innerWidth > 768) return;
 
-	const config = loadConfig();
-	if (!config.token || !config.owner || !config.repo) {
-		console.log('GitHub not configured - mobile preview unavailable');
-		return;
+	const previewSquare = document.querySelector('.mobile-preview-square');
+	if (!previewSquare) return;
+
+	// Create canvas if it doesn't exist
+	let canvas = previewSquare.querySelector('canvas');
+	if (!canvas) {
+		canvas = document.createElement('canvas');
+		canvas.width = 256;
+		canvas.height = 128;
+		canvas.style.width = '256px';
+		canvas.style.height = '128px';
+		canvas.style.imageRendering = 'pixelated';
+		previewSquare.appendChild(canvas);
 	}
 
-	try {
-		// Same path structure as loadWeatherColumnImage in rendering.js
-		const url = `https://api.github.com/repos/${config.owner}/${config.repo}/contents/img/weather/columns/1.bmp`;
-		const response = await fetch(url, {
-			headers: {
-				'Authorization': `Bearer ${config.token}`,
-				'Accept': 'application/vnd.github.v3+json'
+	const ctx = canvas.getContext('2d');
+	ctx.fillStyle = '#000000';
+	ctx.fillRect(0, 0, 256, 128);
+
+	// Scale factor from desktop (64x32) to mobile (256x128)
+	const SCALE = 4;
+
+	// Desktop positions
+	const TIME_X = 2;
+	const TIME_Y = 1;
+	const WEATHER_X = 3;
+	const WEATHER_Y = 9;
+	const TEMP_X = 2;
+	const TEMP_Y = 25;
+	const SCHEDULE_IMAGE_X = 23;
+	const SCHEDULE_IMAGE_Y = 1;
+
+	// Draw time "10:10" at scaled position
+	drawTextMobile(ctx, '10:10', TIME_X * SCALE, TIME_Y * SCALE, '#FFFFFF', SCALE);
+
+	// Draw temperature "18°" at scaled position
+	const tempText = '18';
+	drawTextMobile(ctx, tempText, TEMP_X * SCALE, TEMP_Y * SCALE, '#FFFFFF', SCALE);
+	// Draw degree symbol slightly offset
+	const numberWidth = (3 * 2) + 1; // Two digits in TINYBIT_FONT
+	drawTextMobile(ctx, '°', (TEMP_X + numberWidth + 1) * SCALE, (TEMP_Y - 3) * SCALE, '#FFFFFF', SCALE);
+
+	// Load and draw weather icon
+	if (window.loadWeatherColumnImage) {
+		try {
+			const weatherData = await window.loadWeatherColumnImage('1.bmp');
+			if (weatherData && weatherData.pixels) {
+				drawBMPMobile(ctx, weatherData.pixels, WEATHER_X * SCALE, WEATHER_Y * SCALE, SCALE);
 			}
-		});
+		} catch (error) {
+			console.error('Error loading weather icon:', error);
+		}
+	}
 
-		if (!response.ok) {
-			console.error('Failed to fetch mobile preview image:', response.status);
-			return;
+	// Load and draw schedule image
+	if (window.loadScheduleBMPImage) {
+		try {
+			const scheduleImageData = await window.loadScheduleBMPImage('go_to_school.bmp');
+			if (scheduleImageData && scheduleImageData.pixels) {
+				drawBMPMobile(ctx, scheduleImageData.pixels, SCHEDULE_IMAGE_X * SCALE, SCHEDULE_IMAGE_Y * SCALE, SCALE);
+			}
+		} catch (error) {
+			console.error('Error loading schedule image:', error);
+		}
+	}
+}
+
+// Draw text using TINYBIT_FONT on mobile canvas
+function drawTextMobile(ctx, text, x, y, color, scale) {
+	let currentX = x;
+
+	for (let i = 0; i < text.length; i++) {
+		const char = text[i];
+		const glyph = TINYBIT_FONT.glyphs[char];
+
+		if (!glyph) {
+			currentX += 3 * scale; // Default spacing
+			continue;
 		}
 
-		const data = await response.json();
-		const downloadUrl = data.download_url;
+		const { width, height, bitmap } = glyph;
 
-		// Set the image as background for CSS display
-		const previewSquare = document.querySelector('.mobile-preview-square');
-		if (previewSquare && downloadUrl) {
-			previewSquare.style.backgroundImage = `url('${downloadUrl}')`;
+		// Draw each pixel of the character
+		for (let row = 0; row < height; row++) {
+			const byte = bitmap[row];
+			for (let col = 0; col < width; col++) {
+				const bitMask = 0x80 >> col;
+				if (byte & bitMask) {
+					ctx.fillStyle = color;
+					ctx.fillRect(currentX + (col * scale), y + (row * scale), scale, scale);
+				}
+			}
 		}
-	} catch (error) {
-		console.error('Error loading mobile preview image:', error);
+
+		currentX += (width + 1) * scale; // Character width + 1px spacing, scaled
+	}
+}
+
+// Draw BMP image data on mobile canvas
+function drawBMPMobile(ctx, pixels, x, y, scale) {
+	for (let row = 0; row < pixels.length; row++) {
+		for (let col = 0; col < pixels[row].length; col++) {
+			const color = pixels[row][col];
+			if (color && color !== 'transparent') {
+				ctx.fillStyle = color;
+				ctx.fillRect(x + (col * scale), y + (row * scale), scale, scale);
+			}
+		}
 	}
 }
 
@@ -283,8 +360,8 @@ function populateScheduleEditor() {
 		// Update preview after rendering with a short delay
 		setTimeout(() => updateSchedulePreview(), 50);
 
-		// Load mobile preview image
-		loadMobilePreviewImage();
+		// Render mobile preview
+		renderMobilePreview();
 
 	} catch (error) {
 		scheduleInfoForm.innerHTML = `

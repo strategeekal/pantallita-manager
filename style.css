@@ -2404,9 +2404,11 @@ header p {
 		height: 128px;
 		background: #000;
 		border: 2px solid #000;
-		background-repeat: no-repeat;
-		background-position: 5px 44px;
-		background-size: 52px 52px;
+		position: relative;
+	}
+
+	.schedule-emulator .mobile-preview-square canvas {
+		display: block;
 		image-rendering: pixelated;
 		image-rendering: -moz-crisp-edges;
 		image-rendering: crisp-edges;
