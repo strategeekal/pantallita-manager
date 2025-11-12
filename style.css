@@ -1306,7 +1306,21 @@ header p {
 	gap: 8px;
 }
 
-/* Schedule Editor */
+/* Schedule Editor Actions */
+.schedule-editor .schedule-actions {
+	gap: 10px;
+	flex-wrap: wrap;
+	margin-top: 20px;
+	padding: 20px;
+	background: #f0f0f0;
+	border-top: 3px solid #000;
+}
+
+.schedule-editor .schedule-actions .btn-pixel {
+	flex: 1;
+	margin: 0;
+	min-width: 150px;
+}
 .schedule-editor {
 	background: #f0f0f0;
 	border: 3px solid #000;
@@ -1988,27 +2002,12 @@ header p {
 	margin: 0;
 }
 
-/* Schedule Actions */
-.schedule-actions {
-	display: flex;
-	gap: 10px;
-	flex-wrap: wrap;
-	margin-top: 20px;
-	padding: 20px;
-	background: #f0f0f0;
-	border-top: 3px solid #000;
-}
-
-.schedule-actions .btn-pixel {
-	flex: 1;
-	margin: 0;
-	min-width: 150px;
-}
-
 /* Mobile Schedule Preview - hidden on desktop */
 .mobile-schedule-preview {
 	display: none;
 }
+
+/* Schedule Editor */
 
 /* Empty, Loading, Error States */
 .loading-message {
@@ -2225,21 +2224,57 @@ header p {
 		min-width: 40px;
 	}
 
-	/* Group time inputs side by side on mobile */
+	/* Group time inputs side by side on mobile - 2 rows */
 	.time-inputs {
 		display: grid;
-		grid-template-columns: 1fr 1fr;
-		gap: 8px;
+		grid-template-columns: auto auto auto;
+		gap: 5px;
 		align-items: center;
+		justify-content: start;
 	}
 
-	.time-inputs .item-label {
-		grid-column: 1 / -1;
+	/* From time on row 1: hour : minute */
+	.time-inputs input:nth-of-type(1) {
+		grid-column: 1;
+		grid-row: 1;
+	}
+
+	.time-inputs span:nth-of-type(1) {
+		grid-column: 2;
+		grid-row: 1;
+	}
+
+	.time-inputs input:nth-of-type(2) {
+		grid-column: 3;
+		grid-row: 1;
+	}
+
+	/* "to" separator on row 2, spans all columns */
+	.time-inputs span:nth-of-type(2) {
+		grid-column: 1 / 2;
+		grid-row: 2;
+		justify-self: start;
+	}
+
+	/* To time on row 2: hour : minute */
+	.time-inputs input:nth-of-type(3) {
+		grid-column: 1;
+		grid-row: 3;
+	}
+
+	.time-inputs span:nth-of-type(3) {
+		grid-column: 2;
+		grid-row: 3;
+	}
+
+	.time-inputs input:nth-of-type(4) {
+		grid-column: 3;
+		grid-row: 3;
 	}
 
 	.time-input-large {
-		width: 100% !important;
-		max-width: 100%;
+		width: 60px !important;
+		max-width: 60px;
 	}
 
 	.image-select {
@@ -2260,6 +2295,27 @@ header p {
 
 	.schedule-actions .btn-pixel {
 		flex: 1;
+		padding: 8px;
+		font-size: 0.85em;
+	}
+
+	/* Fix timeline controls overflow on mobile */
+	.timeline-view-controls {
+		flex-wrap: wrap;
+		gap: 5px;
+	}
+
+	#timeline-day-filter {
+		width: 100%;
+		max-width: 100%;
+		box-sizing: border-box;
+		padding: 8px;
+		font-size: 0.9em;
+	}
+
+	.timeline-view-controls .btn-pixel {
+		flex: 1;
+		min-width: 60px;
 		padding: 8px;
 		font-size: 0.85em;
 	}
@@ -2334,13 +2390,13 @@ header p {
 		border: 2px solid #000;
 	}
 
-	/* Adjust schedule actions for mobile */
-	.schedule-actions {
+	/* Adjust schedule editor actions for mobile */
+	.schedule-editor .schedule-actions {
 		flex-direction: column;
 		padding: 15px;
 	}
 
-	.schedule-actions .btn-pixel {
+	.schedule-editor .schedule-actions .btn-pixel {
 		width: 100%;
 		min-width: 0;
 	}
