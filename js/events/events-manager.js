@@ -402,18 +402,13 @@ export function initializeColorPreview() {
 
 // Update event preview on emulator
 async function updateEventPreview() {
-	console.log('📱 updateEventPreview called in events-manager.js');
-
 	const topLine = document.getElementById('editor-event-top')?.value || '';
 	const bottomLine = document.getElementById('editor-event-bottom')?.value || '';
 	const colorName = document.getElementById('editor-event-color')?.value || 'MINT';
 	const iconName = document.getElementById('editor-event-image')?.value || '';
 
-	console.log('Preview values:', { topLine, bottomLine, colorName, iconName });
-
 	// Check if mobile
 	const isMobile = window.innerWidth <= 768;
-	console.log('isMobile:', isMobile);
 
 	if (isMobile) {
 		// Mobile: Render on canvas
@@ -428,18 +423,12 @@ async function updateEventPreview() {
 
 // Render mobile event preview with canvas (256x128, 4x scale)
 async function renderMobileEventPreview(topLine, bottomLine, colorName, iconName) {
-	console.log('🎨 renderMobileEventPreview called');
-
 	const previewSquare = document.querySelector('.mobile-event-preview-square');
-	if (!previewSquare) {
-		console.error('mobile-event-preview-square not found');
-		return;
-	}
+	if (!previewSquare) return;
 
 	// Create canvas if it doesn't exist
 	let canvas = previewSquare.querySelector('canvas');
 	if (!canvas) {
-		console.log('Creating canvas element');
 		canvas = document.createElement('canvas');
 		canvas.width = 256;
 		canvas.height = 128;
@@ -453,8 +442,6 @@ async function renderMobileEventPreview(topLine, bottomLine, colorName, iconName
 	ctx.fillStyle = '#000000';
 	ctx.fillRect(0, 0, 256, 128);
 
-	console.log('Canvas cleared');
-
 	// Scale factor from desktop (64x32) to mobile (256x128)
 	const SCALE = 4;
 
@@ -464,48 +451,35 @@ async function renderMobileEventPreview(topLine, bottomLine, colorName, iconName
 	const EVENT_IMAGE_Y = 2;
 
 	// Get colors from COLOR_MAP
-	if (!window.COLOR_MAP) {
-		console.error('COLOR_MAP not available on window');
-		return;
-	}
+	if (!window.COLOR_MAP) return;
 
 	const bottomColor = window.COLOR_MAP[colorName] || window.COLOR_MAP['MINT'];
 	const topColor = window.COLOR_MAP['WHITE'];
 
-	console.log('Colors:', { topColor, bottomColor, colorName });
-
 	// Calculate bottom-aligned text positions
 	const positions = calculateBottomAlignedPositionsMobile(topLine || '', bottomLine || '', 32);
-	console.log('Text positions:', positions);
 
 	// Draw top line text at scaled position
 	if (topLine) {
-		console.log('Drawing top line:', topLine);
 		drawTextMobile(ctx, topLine, TEXT_MARGIN * SCALE, positions.line1Y * SCALE, topColor, SCALE);
 	}
 
 	// Draw bottom line text in selected color at scaled position
 	if (bottomLine) {
-		console.log('Drawing bottom line:', bottomLine);
 		drawTextMobile(ctx, bottomLine, TEXT_MARGIN * SCALE, positions.line2Y * SCALE, bottomColor, SCALE);
 	}
 
 	// Load and draw event image
 	if (iconName && iconName.endsWith('.bmp') && window.loadBMPImage) {
 		try {
-			console.log('Loading event image:', iconName);
 			const imageData = await window.loadBMPImage(iconName);
-			console.log('Image loaded:', imageData);
 			if (imageData && imageData.pixels) {
-				console.log('Drawing image at:', EVENT_IMAGE_X * SCALE, EVENT_IMAGE_Y * SCALE);
 				drawBMPMobile(ctx, imageData.pixels, EVENT_IMAGE_X * SCALE, EVENT_IMAGE_Y * SCALE, SCALE);
 			}
 		} catch (error) {
 			console.error('Error loading event image:', error);
 		}
 	}
-
-	console.log('✅ Rendering complete');
 }
 
 // Calculate bottom-aligned text positions for mobile
@@ -538,10 +512,7 @@ function calculateBottomAlignedPositionsMobile(line1Text, line2Text, displayHeig
 
 // Draw text using TINYBIT_FONT on mobile canvas
 function drawTextMobile(ctx, text, x, y, color, scale) {
-	if (!window.TINYBIT_FONT || !window.TINYBIT_FONT.glyphs) {
-		console.error('TINYBIT_FONT not available');
-		return;
-	}
+	if (!window.TINYBIT_FONT || !window.TINYBIT_FONT.glyphs) return;
 
 	let currentX = x;
 

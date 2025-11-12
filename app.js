@@ -1,11 +1,8 @@
 // Configuration storage key
 const CONFIG_KEY = 'screeny_config';
 
-console.log('🔥 APP.JS LOADED - VERSION 2.0 - MOBILE CANVAS PREVIEW 🔥');
-
 // Mobile detection
 const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || window.innerWidth <= 768;
-console.log('isMobile detected:', isMobile);
 
 // Global matrix emulator instance for landing page
 let landingMatrix = null;
@@ -330,8 +327,6 @@ function setupTabs() {
 
 // Handle tab switching with proper cleanup
 function handleTabSwitch(targetTab) {
-	console.log('📱 handleTabSwitch called, targetTab:', targetTab);
-
 	// Clean up editor when leaving add-event tab
 	if (targetTab !== 'add-event') {
 		// Clear the form to avoid confusion
@@ -552,22 +547,16 @@ function populateImageDropdown() {
 
 // Update editor preview
 async function updateEditorPreview() {
-	console.log('updateEditorPreview called, isMobile:', isMobile);
-
 	const topLine = document.getElementById('editor-event-top').value || '';
 	const bottomLine = document.getElementById('editor-event-bottom').value || '';
 	const colorName = document.getElementById('editor-event-color').value;
 	const iconName = document.getElementById('editor-event-image').value;
 
-	console.log('Preview values:', { topLine, bottomLine, colorName, iconName });
-
 	if (isMobile) {
 		// Update mobile canvas preview with pixel-perfect rendering
-		console.log('Calling renderMobileEventPreview...');
 		await renderMobileEventPreview(topLine, bottomLine, colorName, iconName);
 	} else {
 		// Update desktop matrix emulator
-		console.log('Calling renderEventOnMatrix...');
 		if (editorMatrix) {
 			await renderEventOnMatrix(editorMatrix, topLine, bottomLine, colorName, iconName);
 		}
@@ -676,8 +665,6 @@ async function renderMobileEventPreview(topLine, bottomLine, colorName, iconName
 	ctx.fillStyle = '#000000';
 	ctx.fillRect(0, 0, 256, 128);
 
-	console.log('Rendering mobile event preview:', { topLine, bottomLine, colorName, iconName });
-
 	// Scale factor from desktop (64x32) to mobile (256x128)
 	const SCALE = 4;
 
@@ -687,43 +674,30 @@ async function renderMobileEventPreview(topLine, bottomLine, colorName, iconName
 	const EVENT_IMAGE_Y = 2;
 
 	// Get colors from COLOR_MAP (window.COLOR_MAP)
-	if (!window.COLOR_MAP) {
-		console.error('COLOR_MAP not available on window');
-		return;
-	}
+	if (!window.COLOR_MAP) return;
 
 	const bottomColor = window.COLOR_MAP[colorName] || window.COLOR_MAP['MINT'];
 	const topColor = window.COLOR_MAP['WHITE'];
 
-	console.log('Colors:', { topColor, bottomColor, colorName });
-
 	// Calculate bottom-aligned text positions
 	const positions = calculateBottomAlignedPositionsMobile(topLine || '', bottomLine || '', 32);
-	console.log('Text positions:', positions);
 
 	// Draw top line text at scaled position
 	if (topLine) {
-		console.log('Drawing top line:', topLine, 'at', TEXT_MARGIN * SCALE, positions.line1Y * SCALE);
 		drawTextMobile(ctx, topLine, TEXT_MARGIN * SCALE, positions.line1Y * SCALE, topColor, SCALE);
 	}
 
 	// Draw bottom line text in selected color at scaled position
 	if (bottomLine) {
-		console.log('Drawing bottom line:', bottomLine, 'at', TEXT_MARGIN * SCALE, positions.line2Y * SCALE);
 		drawTextMobile(ctx, bottomLine, TEXT_MARGIN * SCALE, positions.line2Y * SCALE, bottomColor, SCALE);
 	}
 
 	// Load and draw event image
 	if (iconName && iconName.endsWith('.bmp')) {
 		try {
-			console.log('Loading event image:', iconName);
 			const imageData = await loadBMPImage(iconName);
-			console.log('Image data loaded:', imageData);
 			if (imageData && imageData.pixels) {
-				console.log('Drawing image at:', EVENT_IMAGE_X * SCALE, EVENT_IMAGE_Y * SCALE, 'size:', imageData.pixels.length, 'x', imageData.pixels[0]?.length);
 				drawBMPMobile(ctx, imageData.pixels, EVENT_IMAGE_X * SCALE, EVENT_IMAGE_Y * SCALE, SCALE);
-			} else {
-				console.log('No pixel data in image');
 			}
 		} catch (error) {
 			console.error('Error loading event image:', error);
@@ -766,15 +740,7 @@ function calculateBottomAlignedPositionsMobile(line1Text, line2Text, displayHeig
 
 // Draw text using TINYBIT_FONT on mobile canvas
 function drawTextMobile(ctx, text, x, y, color, scale) {
-	if (!window.TINYBIT_FONT || !window.TINYBIT_FONT.glyphs) {
-		console.error('TINYBIT_FONT not available:', {
-			hasTINYBIT_FONT: !!window.TINYBIT_FONT,
-			hasGlyphs: !!window.TINYBIT_FONT?.glyphs
-		});
-		return;
-	}
-
-	console.log('drawTextMobile called:', { text, x, y, color, scale });
+	if (!window.TINYBIT_FONT || !window.TINYBIT_FONT.glyphs) return;
 
 	let currentX = x;
 
@@ -783,7 +749,6 @@ function drawTextMobile(ctx, text, x, y, color, scale) {
 		const glyph = window.TINYBIT_FONT.glyphs[char];
 
 		if (!glyph) {
-			console.log('No glyph for character:', char);
 			currentX += 3 * scale; // Default spacing
 			continue;
 		}
