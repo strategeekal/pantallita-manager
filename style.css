@@ -2428,10 +2428,93 @@ header p {
 	.mobile-edit-panel {
 		display: block;
 		margin-top: 15px;
-		padding: 10px;
+		padding: 15px;
 		background: #f9f9f9;
 		border: 2px solid #000;
 		box-sizing: border-box;
+	}
+
+	.mobile-edit-panel .edit-panel-header {
+		margin-bottom: 15px;
+		padding-bottom: 15px;
+		border-bottom: 2px solid #000;
+	}
+
+	.mobile-edit-panel .edit-panel-header h5 {
+		margin: 0 0 10px 0;
+		font-size: 1.1em;
+	}
+
+	.mobile-edit-panel .form-group-small {
+		margin-bottom: 15px;
+		box-sizing: border-box;
+		width: 100%;
+	}
+
+	.mobile-edit-panel .form-group-small:last-child {
+		margin-bottom: 0;
+	}
+
+	.mobile-edit-panel label {
+		display: block;
+		margin-bottom: 5px;
+		font-weight: bold;
+	}
+
+	.mobile-edit-panel input:not([type="checkbox"]),
+	.mobile-edit-panel select {
+		width: 100%;
+		display: block;
+		box-sizing: border-box;
+		padding: 10px;
+		border: 2px solid #000;
+		margin-bottom: 10px;
+		font-size: 1em;
+	}
+
+	.mobile-edit-panel input[type="checkbox"] {
+		width: auto;
+		display: inline-block;
+		margin: 0 5px 0 0;
+	}
+
+	.mobile-edit-panel .days-checkboxes {
+		display: grid;
+		grid-template-columns: repeat(2, 1fr);
+		gap: 8px;
+		margin-bottom: 10px;
+	}
+
+	.mobile-edit-panel .day-checkbox-sm {
+		padding: 10px;
+		background: #fff;
+		border: 2px solid #000;
+		text-align: center;
+		cursor: pointer;
+		box-sizing: border-box;
+		font-size: 0.9em;
+	}
+
+	.mobile-edit-panel .day-checkbox-sm.checked {
+		background: #00FF88;
+		border-color: #000;
+	}
+
+	.mobile-edit-panel .day-checkbox-sm input {
+		margin-right: 5px;
+	}
+
+	.mobile-edit-panel label[for] {
+		font-size: 0.9em;
+		margin-top: 8px;
+		margin-bottom: 3px;
+		color: #333;
+	}
+
+	.mobile-edit-panel .btn-pixel {
+		width: 100%;
+		margin-top: 10px;
+		padding: 12px;
 	}
 
 	#timeline-edit-panel {
