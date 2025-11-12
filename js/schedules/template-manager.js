@@ -184,8 +184,11 @@ export async function editTemplate(templateName) {
 		updateButtonsForTemplateMode();
 
 		// Import timeline and preview modules
-		const { refreshTimelineViews } = await import('./timeline.js');
+		const { refreshTimelineViews, setTimelineViewMode } = await import('./timeline.js');
 		const { updateSchedulePreview } = await import('./preview.js');
+
+		// Set timeline mode for templates (hides day/week buttons)
+		setTimelineViewMode('day');
 
 		// Update timeline and preview
 		refreshTimelineViews();
