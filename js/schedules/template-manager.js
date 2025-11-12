@@ -288,6 +288,23 @@ function populateTemplateItems(templateData) {
 
 		// Update preview selector
 		updatePreviewSelector();
+
+		// Show first item by default in preview and edit panel
+		if (templateData.items.length > 0) {
+			setTimeout(async () => {
+				const { updateSchedulePreview } = await import('./preview.js');
+				const { showEditPanel, populateMobileEditPanel } = await import('./timeline.js');
+
+				await updateSchedulePreview();
+
+				// Show edit panel based on device
+				if (window.innerWidth > 768) {
+					showEditPanel(0);
+				} else {
+					populateMobileEditPanel(0);
+				}
+			}, 50);
+		}
 	});
 }
 
