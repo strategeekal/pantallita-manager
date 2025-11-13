@@ -1057,6 +1057,15 @@ header p {
 		-webkit-appearance: none;
 		appearance: none;
 		overflow: hidden;
+		min-height: 48px;
+		padding: 12px !important;
+		font-size: 16px !important;
+		line-height: 1.5;
+	}
+
+	/* Style the placeholder-like text for empty date inputs */
+	.event-form input[type="date"]:invalid {
+		color: #999;
 	}
 
 	.form-group input:not([type="checkbox"]),
