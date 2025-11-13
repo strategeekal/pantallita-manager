@@ -55,10 +55,9 @@ async function validateEvents() {
 
 		validationResults.info.push(`Found ${events.length} event(s) to validate`);
 
-		// Get tomorrow's date (start of next day) - mark as past only after the event date
-		const tomorrow = new Date();
-		tomorrow.setHours(0, 0, 0, 0);
-		tomorrow.setDate(tomorrow.getDate() + 1);
+		// Get current date normalized to midnight
+		const today = new Date();
+		today.setHours(0, 0, 0, 0);
 
 		let oldEventsCount = 0;
 		let invalidDateCount = 0;
@@ -79,7 +78,7 @@ async function validateEvents() {
 
 			// Check if event is in the past (before today)
 			const eventDate = new Date(event.date + 'T00:00:00');
-			if (eventDate < tomorrow) {
+			if (eventDate < today) {
 				validationResults.warnings.push(
 					`Event ${lineNum} ${eventIdentifier}: Date is in the past - can be cleaned up`
 				);
@@ -171,10 +170,9 @@ async function validateSchedules() {
 
 		validationResults.info.push(`Found ${scheduleFiles.length} schedule file(s) to validate`);
 
-		// Get tomorrow's date (start of next day) - mark as past only after the schedule date
-		const tomorrow = new Date();
-		tomorrow.setHours(0, 0, 0, 0);
-		tomorrow.setDate(tomorrow.getDate() + 1);
+		// Get current date normalized to midnight
+		const today = new Date();
+		today.setHours(0, 0, 0, 0);
 
 		let oldSchedulesCount = 0;
 
@@ -188,7 +186,7 @@ async function validateSchedules() {
 
 				if (dateMatch) {
 					const scheduleDate = new Date(dateMatch[1] + 'T00:00:00');
-					if (scheduleDate < tomorrow) {
+					if (scheduleDate < today) {
 						validationResults.warnings.push(
 							`Schedule file "${file.name}": Date ${dateMatch[1]} is in the past - can be cleaned up`
 						);

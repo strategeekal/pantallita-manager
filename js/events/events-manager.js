@@ -77,11 +77,24 @@ function displayEvents() {
 
 	const eventsHTML = sortedEvents.map((event) => {
 		const eventDate = new Date(event.date + 'T00:00:00');
-		// Get tomorrow's date (start of next day) to mark events as past only after their date
-		const tomorrow = new Date();
-		tomorrow.setHours(0, 0, 0, 0);
-		tomorrow.setDate(tomorrow.getDate() + 1);
-		const isPast = eventDate < tomorrow;
+
+		// Get current date normalized to midnight
+		const today = new Date();
+		today.setHours(0, 0, 0, 0);
+
+		// Check if event date is before today (past) or if it's today but end hour has passed
+		let isPast = eventDate < today;
+
+		// If event is today and has specific time window, check if end hour has passed
+		if (!isPast && eventDate.getTime() === today.getTime()) {
+			const now = new Date();
+			const currentHour = now.getHours();
+			// Event is past if it has an end hour and current hour is after it
+			if (event.endHour !== undefined && event.endHour !== 23 && currentHour > event.endHour) {
+				isPast = true;
+			}
+		}
+
 		const formattedDate = formatDate(event.date);
 
 		return `
@@ -266,13 +279,12 @@ export async function clearPastEvents() {
 	if (!confirm('Delete all past events? This cannot be undone.')) return;
 
 	try {
-		// Get tomorrow's date (start of next day) - only delete events before today
-		const tomorrow = new Date();
-		tomorrow.setHours(0, 0, 0, 0);
-		tomorrow.setDate(tomorrow.getDate() + 1);
+		// Get current date normalized to midnight - only delete events before today
+		const today = new Date();
+		today.setHours(0, 0, 0, 0);
 		currentEvents = currentEvents.filter(event => {
 			const eventDate = new Date(event.date + 'T00:00:00');
-			return eventDate >= tomorrow;
+			return eventDate >= today;
 		});
 
 		currentEvents.forEach((e, i) => e.index = i);
