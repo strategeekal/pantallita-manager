@@ -77,7 +77,11 @@ function displayEvents() {
 
 	const eventsHTML = sortedEvents.map((event) => {
 		const eventDate = new Date(event.date + 'T00:00:00');
-		const isPast = eventDate < new Date();
+		// Get tomorrow's date (start of next day) to mark events as past only after their date
+		const tomorrow = new Date();
+		tomorrow.setHours(0, 0, 0, 0);
+		tomorrow.setDate(tomorrow.getDate() + 1);
+		const isPast = eventDate < tomorrow;
 		const formattedDate = formatDate(event.date);
 
 		return `
@@ -262,10 +266,13 @@ export async function clearPastEvents() {
 	if (!confirm('Delete all past events? This cannot be undone.')) return;
 
 	try {
-		const now = new Date();
+		// Get tomorrow's date (start of next day) - only delete events before today
+		const tomorrow = new Date();
+		tomorrow.setHours(0, 0, 0, 0);
+		tomorrow.setDate(tomorrow.getDate() + 1);
 		currentEvents = currentEvents.filter(event => {
 			const eventDate = new Date(event.date + 'T00:00:00');
-			return eventDate >= now;
+			return eventDate >= tomorrow;
 		});
 
 		currentEvents.forEach((e, i) => e.index = i);
