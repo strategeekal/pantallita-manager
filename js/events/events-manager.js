@@ -86,17 +86,22 @@ function displayEvents() {
 	// Apply filters
 	let filteredEvents = applyEventFilters([...currentEvents]);
 
+	// Apply sorting
+	let sortedEvents = applySorting(filteredEvents);
+
+	// Limit "upcoming" filter to next 5 events for better UX
+	if (eventFilters.dateFilter === 'upcoming' && sortedEvents.length > 5) {
+		sortedEvents = sortedEvents.slice(0, 5);
+	}
+
 	// Update filter count
-	updateFilterInfo(filteredEvents.length, currentEvents.length);
+	updateFilterInfo(sortedEvents.length, currentEvents.length);
 
 	// Check if filtered results are empty
-	if (filteredEvents.length === 0) {
+	if (sortedEvents.length === 0) {
 		listContainer.innerHTML = '<p class="empty-message">No events match the current filters.</p>';
 		return;
 	}
-
-	// Apply sorting
-	const sortedEvents = applySorting(filteredEvents);
 
 	const eventsHTML = sortedEvents.map((event) => {
 		const eventDate = new Date(event.date + 'T00:00:00');
@@ -731,12 +736,32 @@ export function clearFilters() {
 function applyEventFilters(events) {
 	let filtered = events;
 
-	// Text search filter
+	// Text search filter (searches event text AND dates)
 	if (eventFilters.search) {
-		filtered = filtered.filter(event =>
-			event.topLine.toLowerCase().includes(eventFilters.search) ||
-			event.bottomLine.toLowerCase().includes(eventFilters.search)
-		);
+		filtered = filtered.filter(event => {
+			const searchLower = eventFilters.search;
+
+			// Search in event text
+			const textMatch =
+				event.topLine.toLowerCase().includes(searchLower) ||
+				event.bottomLine.toLowerCase().includes(searchLower);
+
+			// Search in date (various formats)
+			const eventDate = new Date(event.date + 'T00:00:00');
+			const monthNames = ['january', 'february', 'march', 'april', 'may', 'june',
+			                    'july', 'august', 'september', 'october', 'november', 'december'];
+			const monthShort = ['jan', 'feb', 'mar', 'apr', 'may', 'jun',
+			                    'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+
+			const dateMatch =
+				event.date.includes(eventFilters.search) || // Full date: "2025-01-15"
+				monthNames[eventDate.getMonth()].includes(searchLower) || // "january"
+				monthShort[eventDate.getMonth()].includes(searchLower) || // "jan"
+				eventDate.getFullYear().toString().includes(eventFilters.search) || // "2025"
+				eventDate.getDate().toString().includes(eventFilters.search); // "15"
+
+			return textMatch || dateMatch;
+		});
 	}
 
 	// Date filter
