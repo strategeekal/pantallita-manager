@@ -55,8 +55,10 @@ async function validateEvents() {
 
 		validationResults.info.push(`Found ${events.length} event(s) to validate`);
 
-		const today = new Date();
-		today.setHours(0, 0, 0, 0);
+		// Get tomorrow's date (start of next day) - mark as past only after the event date
+		const tomorrow = new Date();
+		tomorrow.setHours(0, 0, 0, 0);
+		tomorrow.setDate(tomorrow.getDate() + 1);
 
 		let oldEventsCount = 0;
 		let invalidDateCount = 0;
@@ -75,9 +77,9 @@ async function validateEvents() {
 				return; // Skip further validation for this event
 			}
 
-			// Check if event is in the past
+			// Check if event is in the past (before today)
 			const eventDate = new Date(event.date + 'T00:00:00');
-			if (eventDate < today) {
+			if (eventDate < tomorrow) {
 				validationResults.warnings.push(
 					`Event ${lineNum} ${eventIdentifier}: Date is in the past - can be cleaned up`
 				);
@@ -169,22 +171,24 @@ async function validateSchedules() {
 
 		validationResults.info.push(`Found ${scheduleFiles.length} schedule file(s) to validate`);
 
-		const today = new Date();
-		today.setHours(0, 0, 0, 0);
+		// Get tomorrow's date (start of next day) - mark as past only after the schedule date
+		const tomorrow = new Date();
+		tomorrow.setHours(0, 0, 0, 0);
+		tomorrow.setDate(tomorrow.getDate() + 1);
 
 		let oldSchedulesCount = 0;
 
 		for (const file of scheduleFiles) {
 			const isDefault = file.name === 'default_schedule.csv' || file.name === 'default.csv';
 
-			// Check for old date-specific schedules
+			// Check for old date-specific schedules (before today)
 			if (!isDefault) {
 				const dateMatch = file.name.match(/schedule_(\d{4}-\d{2}-\d{2})\.csv/) ||
 								 file.name.match(/(\d{4}-\d{2}-\d{2})\.csv/);
 
 				if (dateMatch) {
 					const scheduleDate = new Date(dateMatch[1] + 'T00:00:00');
-					if (scheduleDate < today) {
+					if (scheduleDate < tomorrow) {
 						validationResults.warnings.push(
 							`Schedule file "${file.name}": Date ${dateMatch[1]} is in the past - can be cleaned up`
 						);

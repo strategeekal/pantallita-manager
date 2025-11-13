@@ -66,7 +66,11 @@ function displaySchedules() {
 
 	const schedulesHTML = currentSchedules.map(schedule => {
 		const displayName = schedule.isDefault ? 'Default Schedule' : `Schedule for ${schedule.date}`;
-		const isPast = schedule.date && new Date(schedule.date) < new Date();
+		// Get tomorrow's date (start of next day) to mark schedules as past only after their date
+		const tomorrow = new Date();
+		tomorrow.setHours(0, 0, 0, 0);
+		tomorrow.setDate(tomorrow.getDate() + 1);
+		const isPast = schedule.date && new Date(schedule.date + 'T00:00:00') < tomorrow;
 
 		return `
 			<div class="schedule-card ${isPast ? 'past-schedule' : ''}">
@@ -200,10 +204,13 @@ export async function clearOldSchedules() {
 	if (!confirm('Delete all past schedules? This cannot be undone.')) return;
 
 	try {
-		const now = new Date();
+		// Get tomorrow's date (start of next day) - only delete schedules before today
+		const tomorrow = new Date();
+		tomorrow.setHours(0, 0, 0, 0);
+		tomorrow.setDate(tomorrow.getDate() + 1);
 		const toDelete = currentSchedules.filter(s => {
 			if (s.isDefault) return false;
-			return s.date && new Date(s.date) < now;
+			return s.date && new Date(s.date + 'T00:00:00') < tomorrow;
 		});
 
 		for (const schedule of toDelete) {
