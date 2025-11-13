@@ -51,6 +51,15 @@ A web-based management interface for SCREENY RGB matrix displays. Manage ephemer
 - Optimized date inputs (48px height, proper text alignment and color)
 - Native mobile date pickers for better UX
 
+### 🔍 Data Validation
+- Comprehensive validation for events and schedules
+- Detect old events and schedules that can be cleaned up
+- Verify image references exist in correct repositories
+- Validate character limits (12 chars for event lines)
+- Check data correctness (dates, colors, time ranges, etc.)
+- Visual error and warning reporting with detailed messages
+- Accessible via footer link: "🔍 Validate Data"
+
 ### 🎨 Preview Emulators
 - **Desktop**: Interactive 64x32 RGB matrix emulator
 - **Mobile**: High-resolution 256x128 canvas preview
@@ -290,6 +299,14 @@ Available colors for event text:
   - "+ NEW" button for quick event creation
   - Editor opens as full-screen view (hidden from navigation)
   - Improved UX for managing large event lists
+- **Data Validation System** 🔍:
+  - Comprehensive validation for events and schedules
+  - Detects old events/schedules that can be cleaned up
+  - Verifies image references exist in correct repositories
+  - Validates character limits (12 chars for event lines)
+  - Checks data correctness (dates, colors, time ranges, days format)
+  - Visual error/warning/info reporting in modal interface
+  - Accessible via footer link: "🔍 Validate Data"
 - **Mobile Date Input Enhancements**:
   - Increased touch target height to 48px
   - Fixed text alignment (left-aligned, dark text instead of centered blue)
@@ -318,7 +335,7 @@ Available colors for event text:
 
 ## Roadmap
 
-- [ ] Event/Schedule Validation
+- [x] Event/Schedule Validation ✅ (v1.3.0)
 - [ ] Schedule conflict detection
 - [ ] Event search/filter
 - [ ] Display module control
