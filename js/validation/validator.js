@@ -302,6 +302,43 @@ async function validateSchedules() {
 						}
 					}
 				});
+
+				// Check for duplicate item names (CRITICAL: only last item displays on matrix)
+				const nameMap = new Map();
+				scheduleItems.forEach((item, index) => {
+					const lineNum = index + 1;
+					const itemName = item.name.toLowerCase(); // Case-insensitive comparison
+
+					if (nameMap.has(itemName)) {
+						const firstOccurrence = nameMap.get(itemName);
+						validationResults.errors.push(
+							`Schedule "${file.name}": Duplicate item name "${item.name}" found on line ${lineNum} (first occurrence on line ${firstOccurrence}). Only the last item will display on the matrix!`
+						);
+					} else {
+						nameMap.set(itemName, lineNum);
+					}
+				});
+
+				// Check for overlapping time ranges
+				for (let i = 0; i < scheduleItems.length; i++) {
+					const item1 = scheduleItems[i];
+					const start1 = item1.startHour * 60 + item1.startMin;
+					const end1 = item1.endHour * 60 + item1.endMin;
+
+					for (let j = i + 1; j < scheduleItems.length; j++) {
+						const item2 = scheduleItems[j];
+						const start2 = item2.startHour * 60 + item2.startMin;
+						const end2 = item2.endHour * 60 + item2.endMin;
+
+						// Check if time ranges overlap
+						// Two ranges overlap if: start1 < end2 AND start2 < end1
+						if (start1 < end2 && start2 < end1) {
+							validationResults.warnings.push(
+								`Schedule "${file.name}": Time overlap detected between "${item1.name}" (${item1.startHour}:${String(item1.startMin).padStart(2, '0')}-${item1.endHour}:${String(item1.endMin).padStart(2, '0')}) and "${item2.name}" (${item2.startHour}:${String(item2.startMin).padStart(2, '0')}-${item2.endHour}:${String(item2.endMin).padStart(2, '0')})`
+							);
+						}
+					}
+				}
 			} catch (error) {
 				validationResults.errors.push(
 					`Error reading schedule file "${file.name}": ${error.message}`
