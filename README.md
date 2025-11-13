@@ -1,20 +1,24 @@
 # SCREENY Manager
 
-**Version 1.2.0**
+**Version 1.3.0**
 
 A web-based management interface for SCREENY RGB matrix displays. Manage ephemeral events and daily schedules remotely through GitHub, with full support for desktop and mobile devices.
 
-![SCREENY Manager](https://img.shields.io/badge/status-active-brightgreen) ![Version](https://img.shields.io/badge/version-1.2.0-blue)
+![SCREENY Manager](https://img.shields.io/badge/status-active-brightgreen) ![Version](https://img.shields.io/badge/version-1.3.0-blue)
 
 ## Features
 
 ### 📅 Events Management
+- **Unified Workflow**: Single "Events" tab for viewing and managing all events
+- **Quick Create**: "+ NEW" button for instant access to event editor (matches schedules pattern)
+- **Full-Screen Editor**: Event editor opens as dedicated view for focused editing
 - Create, edit, and delete ephemeral events
 - Two-line text display with customizable colors
 - Event images from BMP library
 - Optional time ranges (start hour to end hour)
 - Real-time preview with matrix emulator (desktop) or canvas preview (mobile)
 - Date-specific events with visual calendar badges
+- Mobile-optimized date inputs with proper height and styling
 
 ### 🕐 Schedules Management
 - Manage default daily schedules
@@ -44,6 +48,8 @@ A web-based management interface for SCREENY RGB matrix displays. Manage ephemer
 - Canvas-based pixel-perfect previews (256x128)
 - Mobile-optimized forms and layouts
 - Stacked footer with large touch targets
+- Optimized date inputs (48px height, proper text alignment and color)
+- Native mobile date pickers for better UX
 
 ### 🎨 Preview Emulators
 - **Desktop**: Interactive 64x32 RGB matrix emulator
@@ -278,7 +284,23 @@ Available colors for event text:
 
 ## Version History
 
-### Version 1.2.0 (Current)
+### Version 1.3.0 (Current)
+- **Unified Events Interface**: Merged "View Events" and "Add Event" tabs into single "Events" tab
+  - Consistent workflow with Schedules feature
+  - "+ NEW" button for quick event creation
+  - Editor opens as full-screen view (hidden from navigation)
+  - Improved UX for managing large event lists
+- **Mobile Date Input Enhancements**:
+  - Increased touch target height to 48px
+  - Fixed text alignment (left-aligned, dark text instead of centered blue)
+  - Native mobile date picker support
+  - Consistent styling across event and schedule editors
+- **Bug Fixes**:
+  - Fixed color preview not resetting when creating new events on mobile
+  - Fixed date inputs extending beyond container on mobile
+  - Improved tab switching for programmatically-accessed editor views
+
+### Version 1.2.0
 - **Day-Agnostic Templates**: Templates no longer store day-of-week information
   - Templates focus solely on schedule patterns (times, names, images, progress bars)
   - Auto-inherit day-of-week when loaded into date-specific schedules
