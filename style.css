@@ -831,17 +831,17 @@ header p {
 
 /* Event Filters */
 .event-filters {
-	background: rgba(255, 255, 255, 0.05);
-	border: 2px solid var(--border-color);
-	border-radius: 8px;
-	padding: 15px;
+	background: white;
+	border: 3px solid #000;
+	padding: 20px;
 	margin-bottom: 20px;
+	box-shadow: 2px 2px 0px rgba(0, 0, 0, 0.3);
 }
 
 .filter-row {
 	display: flex;
 	gap: 10px;
-	margin-bottom: 10px;
+	margin-bottom: 15px;
 	flex-wrap: wrap;
 	align-items: stretch;
 }
@@ -853,23 +853,21 @@ header p {
 
 .filter-search input {
 	width: 100%;
-	padding: 10px 12px;
-	background: rgba(0, 0, 0, 0.3);
-	border: 2px solid var(--border-color);
-	border-radius: 4px;
-	color: var(--text-color);
+	padding: 12px;
+	background: white;
+	border: 3px solid #000;
 	font-family: 'Courier New', monospace;
-	font-size: 14px;
+	font-size: 1em;
+	transition: box-shadow 0.1s;
 }
 
 .filter-search input:focus {
 	outline: none;
-	border-color: var(--primary-color);
-	background: rgba(0, 0, 0, 0.5);
+	box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.3);
 }
 
 .filter-search input::placeholder {
-	color: rgba(255, 255, 255, 0.4);
+	color: #999;
 }
 
 .filter-controls {
@@ -879,26 +877,24 @@ header p {
 }
 
 .filter-controls select {
-	padding: 10px 12px;
-	background: rgba(0, 0, 0, 0.3);
-	border: 2px solid var(--border-color);
-	border-radius: 4px;
-	color: var(--text-color);
+	padding: 12px;
+	background: white;
+	border: 3px solid #000;
 	font-family: 'Courier New', monospace;
-	font-size: 14px;
+	font-size: 1em;
 	cursor: pointer;
-	min-width: 150px;
+	min-width: 180px;
+	transition: box-shadow 0.1s;
 }
 
 .filter-controls select:focus {
 	outline: none;
-	border-color: var(--primary-color);
-	background: rgba(0, 0, 0, 0.5);
+	box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.3);
 }
 
 .filter-controls select option {
-	background: #1a1a1a;
-	color: var(--text-color);
+	background: white;
+	color: #000;
 }
 
 .filter-info {
@@ -906,41 +902,62 @@ header p {
 	justify-content: space-between;
 	align-items: center;
 	font-size: 14px;
-	color: rgba(255, 255, 255, 0.6);
+	color: #666;
+	margin-top: 5px;
 }
 
 .btn-text {
 	background: none;
 	border: none;
-	color: var(--primary-color);
+	color: #00FFAA;
 	cursor: pointer;
 	font-family: 'Courier New', monospace;
 	font-size: 14px;
 	text-decoration: underline;
 	padding: 0;
+	transition: color 0.1s;
 }
 
 .btn-text:hover {
-	color: var(--primary-hover);
+	color: #00CC88;
 }
 
 /* Mobile optimizations for filters */
 @media (max-width: 768px) {
+	.event-filters {
+		padding: 15px;
+	}
+
 	.filter-row {
 		flex-direction: column;
+		gap: 10px;
 	}
 
 	.filter-search {
 		min-width: 100%;
 	}
 
+	.filter-search input {
+		font-size: 16px;
+		padding: 12px;
+	}
+
 	.filter-controls {
 		width: 100%;
+		flex-direction: column;
 	}
 
 	.filter-controls select {
-		flex: 1;
+		width: 100%;
 		min-width: 0;
+		font-size: 16px;
+		padding: 12px;
+	}
+
+	.filter-info {
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 5px;
 	}
 }
 
