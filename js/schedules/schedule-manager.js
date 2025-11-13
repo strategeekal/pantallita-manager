@@ -44,6 +44,11 @@ export async function loadSchedules() {
 
 		displaySchedules();
 
+		// Update validation badge after loading schedules
+		if (window.updateValidationBadge) {
+			window.updateValidationBadge();
+		}
+
 	} catch (error) {
 		if (error.message.includes('404')) {
 			showSchedulesEmpty();

@@ -27,6 +27,11 @@ export async function loadEvents() {
 		const { content } = await fetchGitHubFile('ephemeral_events.csv');
 		currentEvents = parseEventsCSV(content);
 		displayEvents();
+
+		// Update validation badge after loading events
+		if (window.updateValidationBadge) {
+			window.updateValidationBadge();
+		}
 	} catch (error) {
 		if (error.message.includes('404')) {
 			showEventsEmpty();

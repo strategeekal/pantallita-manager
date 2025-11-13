@@ -166,6 +166,15 @@ async function runAutoValidation() {
 		// Wait a bit for events/schedules to load
 		await new Promise(resolve => setTimeout(resolve, 2000));
 
+		await updateValidationBadge();
+	} catch (error) {
+		console.error('Auto-validation failed:', error);
+	}
+}
+
+// Update the validation badge based on current validation results
+async function updateValidationBadge() {
+	try {
 		const results = await validator.runSilentValidation();
 		const badge = document.getElementById('validation-badge');
 
@@ -187,11 +196,16 @@ async function runAutoValidation() {
 			console.log(`Validation found ${results.errors} error(s) and ${results.warnings} warning(s)`);
 		} else {
 			badge.classList.add('hidden');
+			badge.classList.remove('pulse', 'warning');
+			console.log('Validation passed - no issues found');
 		}
 	} catch (error) {
-		console.error('Auto-validation failed:', error);
+		console.error('Failed to update validation badge:', error);
 	}
 }
+
+// Expose updateValidationBadge globally so it can be called after data changes
+window.updateValidationBadge = updateValidationBadge;
 
 // Landing page display functions
 function displayHello(matrix) {
