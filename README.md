@@ -20,8 +20,8 @@ A web-based management interface for SCREENY RGB matrix displays. Manage ephemer
 - Date-specific events with visual calendar badges
 - Mobile-optimized date inputs with proper height and styling
 - **Advanced Filtering & Organization**:
-  - Text search across event names
-  - Date filters (All, Upcoming, Past, Today, This Week, This Month, Next Month)
+  - Smart search across event names AND dates (search "november", "2025", "jan", specific dates)
+  - Date filters (All, Upcoming [next 5], Past, Today, This Week, This Month, Next Month)
   - Sort options (Date ascending/descending, A-Z, Z-A)
   - Real-time filter count display
   - One-click "Clear Filters" button
@@ -330,13 +330,20 @@ Available colors for event text:
   - Prevents duplicate name bug where only last item displays on matrix
   - Works alongside validation and editor duplicate checking
 - **Advanced Event Filtering & Organization** 🔍:
-  - Text search across event names (top line and bottom line)
-  - Date filters: All Events, Upcoming, Past, Today, This Week, This Month, Next Month
+  - Smart search across event names AND dates:
+    - Search event text (top line and bottom line)
+    - Search by month name ("november", "jan", "december")
+    - Search by year ("2025", "2024")
+    - Search by specific date components ("15", "01-15")
+    - Search by full date ("2025-01-15")
+  - Date filters: All Events, Upcoming (next 5), Past, Today, This Week, This Month, Next Month
+  - "Upcoming" filter intelligently shows only next 5 events for better UX
   - Sort options: By date (ascending/descending) or alphabetically (A-Z/Z-A)
   - Real-time filter count: Shows "Showing X of Y events" based on active filters
   - One-click "Clear Filters" button appears when filters are active
   - Fully responsive design optimized for mobile devices
   - Clean, pixel-art styling matching form inputs (white background, 3px black borders, box shadows)
+  - Search bar sized to not overlap with filter dropdowns, matching dropdown height
 - **Fixed Time-Bound Event Editing Bug**:
   - Bug: Time fields would sometimes disappear when editing events with specific hours
   - Root cause: Logic used AND (&&) instead of OR (||) operator
