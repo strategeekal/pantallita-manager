@@ -1,10 +1,10 @@
 # SCREENY Manager
 
-**Version 1.4.0**
+**Version 1.5.0**
 
 A web-based management interface for SCREENY RGB matrix displays. Manage ephemeral events and daily schedules remotely through GitHub, with full support for desktop and mobile devices.
 
-![SCREENY Manager](https://img.shields.io/badge/status-active-brightgreen) ![Version](https://img.shields.io/badge/version-1.4.0-blue)
+![SCREENY Manager](https://img.shields.io/badge/status-active-brightgreen) ![Version](https://img.shields.io/badge/version-1.5.0-blue)
 
 ## Features
 
@@ -306,7 +306,40 @@ Available colors for event text:
 
 ## Version History
 
-### Version 1.4.0 (Current)
+### Version 1.5.0 (Current)
+- **Schedule Conflict Detection** 🚨:
+  - Detects duplicate item names within schedules (ERROR - critical: only last item displays on matrix)
+  - Detects overlapping time ranges between schedule items (WARNING)
+  - Case-insensitive duplicate name checking
+  - Integrated into comprehensive validation system
+- **Automatic Incremental Naming for Schedule Items** 🔢:
+  - New schedule items automatically get unique names
+  - First item: "New Item", subsequent items: "New Item 1", "New Item 2", etc.
+  - Prevents duplicate name bug where only last item displays on matrix
+  - Works as additional defense alongside validation and editor duplicate checking
+  - Smart gap-filling (reuses deleted item numbers)
+- **Advanced Event Filtering & Organization** 🔍:
+  - **Smart search** across event names AND dates:
+    - Search event text (top line and bottom line)
+    - Search by month name ("november", "jan", "december")
+    - Search by year ("2025", "2024")
+    - Search by specific date components ("15", "01-15")
+    - Search by full date ("2025-01-15")
+  - **Date filters**: All Events, Upcoming (next 5), Past, Today, This Week, This Month, Next Month
+  - **"Upcoming" filter** intelligently shows only next 5 events for better UX
+  - **Sort options**: By date (ascending/descending) or alphabetically (A-Z/Z-A)
+  - **Real-time filter count**: Shows "Showing X of Y events" based on active filters
+  - **One-click "Clear Filters"** button appears when filters are active
+  - **Clean, pixel-art styling** matching form inputs (white background, 3px black borders, box shadows)
+  - **Responsive design**: Search bar sized to not overlap with dropdowns, matching heights
+  - **Mobile optimized**: Stacked layout, 16px font to prevent iOS zoom, full-width controls
+- **Filter UX Improvements**:
+  - Removed color filter (not useful for most users)
+  - Search bar: flex 0 1 300px, max-width 400px to prevent overlap
+  - Consistent 46px height on desktop, 48px on mobile (matching dropdowns)
+  - Better visual hierarchy and spacing
+
+### Version 1.4.0
 - **Comprehensive Data Validation System** 🔍:
   - Automatic validation on app load with discreet badge notification
   - Badge shows issue count (red for errors, yellow for warnings only)
@@ -323,27 +356,6 @@ Available colors for event text:
     - Character limits (12 chars for event lines)
     - Date formats, colors, time ranges
     - Schedule days format and time logic
-    - **Schedule conflicts**: Duplicate item names (critical bug) and overlapping time ranges
-- **Automatic Incremental Naming for Schedule Items**:
-  - New schedule items automatically get unique names
-  - First item: "New Item", subsequent items: "New Item 1", "New Item 2", etc.
-  - Prevents duplicate name bug where only last item displays on matrix
-  - Works alongside validation and editor duplicate checking
-- **Advanced Event Filtering & Organization** 🔍:
-  - Smart search across event names AND dates:
-    - Search event text (top line and bottom line)
-    - Search by month name ("november", "jan", "december")
-    - Search by year ("2025", "2024")
-    - Search by specific date components ("15", "01-15")
-    - Search by full date ("2025-01-15")
-  - Date filters: All Events, Upcoming (next 5), Past, Today, This Week, This Month, Next Month
-  - "Upcoming" filter intelligently shows only next 5 events for better UX
-  - Sort options: By date (ascending/descending) or alphabetically (A-Z/Z-A)
-  - Real-time filter count: Shows "Showing X of Y events" based on active filters
-  - One-click "Clear Filters" button appears when filters are active
-  - Fully responsive design optimized for mobile devices
-  - Clean, pixel-art styling matching form inputs (white background, 3px black borders, box shadows)
-  - Search bar sized to not overlap with filter dropdowns, matching dropdown height
 - **Fixed Time-Bound Event Editing Bug**:
   - Bug: Time fields would sometimes disappear when editing events with specific hours
   - Root cause: Logic used AND (&&) instead of OR (||) operator
