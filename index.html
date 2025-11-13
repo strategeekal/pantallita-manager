@@ -497,7 +497,10 @@
 				<span class="footer-separator">|</span>
 				<a href="#" class="footer-link" onclick="window.templateManager.openTemplateManager(); return false;">Template Manager</a>
 				<span class="footer-separator">|</span>
-				<a href="#" class="footer-link" onclick="window.runValidation(); return false;">🔍 Validate Data</a>
+				<a href="#" class="footer-link validation-link" onclick="window.runValidation(); return false;">
+					🔍 Validate Data
+					<span id="validation-badge" class="validation-badge hidden"></span>
+				</a>
 			</div>
 			<div class="footer-right">
 				<button class="btn-logout-footer" onclick="window.logout()">Logout</button>

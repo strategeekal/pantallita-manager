@@ -15,6 +15,16 @@ let validationResults = {
 	info: []
 };
 
+// Helper function to format date as MM-DD-YYYY
+function formatDateForDisplay(dateString) {
+	if (!dateString) return dateString;
+	const parts = dateString.split('-');
+	if (parts.length === 3) {
+		return `${parts[1]}-${parts[2]}-${parts[0]}`; // MM-DD-YYYY
+	}
+	return dateString;
+}
+
 export async function runValidation() {
 	// Reset results
 	validationResults = {
@@ -41,6 +51,32 @@ export async function runValidation() {
 	}
 }
 
+// Run validation silently (without showing modal) and return results
+export async function runSilentValidation() {
+	// Reset results
+	validationResults = {
+		errors: [],
+		warnings: [],
+		info: []
+	};
+
+	try {
+		// Run all validation checks
+		await validateEvents();
+		await validateSchedules();
+		await validateImages();
+
+		return {
+			errors: validationResults.errors.length,
+			warnings: validationResults.warnings.length,
+			info: validationResults.info.length
+		};
+	} catch (error) {
+		console.error('Silent validation failed:', error);
+		return { errors: 0, warnings: 0, info: 0 };
+	}
+}
+
 async function validateEvents() {
 	updateValidationStatus('Validating events...');
 
@@ -63,14 +99,14 @@ async function validateEvents() {
 		let invalidDateCount = 0;
 
 		events.forEach((event, index) => {
-			const lineNum = index + 1;
-			const eventIdentifier = `"${event.topLine} - ${event.bottomLine}" (${event.date})`;
+			const formattedDate = formatDateForDisplay(event.date);
+			const eventIdentifier = `"${event.topLine} - ${event.bottomLine}" (${formattedDate})`;
 
 			// Validate date format
 			const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
 			if (!dateRegex.test(event.date)) {
 				validationResults.errors.push(
-					`Event ${lineNum} ${eventIdentifier}: Invalid date format "${event.date}" (expected YYYY-MM-DD)`
+					`${eventIdentifier}: Invalid date format "${event.date}" (expected YYYY-MM-DD)`
 				);
 				invalidDateCount++;
 				return; // Skip further validation for this event
@@ -80,7 +116,7 @@ async function validateEvents() {
 			const eventDate = new Date(event.date + 'T00:00:00');
 			if (eventDate < today) {
 				validationResults.warnings.push(
-					`Event ${lineNum} ${eventIdentifier}: Date is in the past - can be cleaned up`
+					`${eventIdentifier}: Date is in the past - can be cleaned up`
 				);
 				oldEventsCount++;
 			}
@@ -88,52 +124,52 @@ async function validateEvents() {
 			// Validate top line length
 			if (event.topLine.length > 12) {
 				validationResults.errors.push(
-					`Event ${lineNum} ${eventIdentifier}: Top line exceeds 12 character limit (${event.topLine.length} chars)`
+					`${eventIdentifier}: Top line exceeds 12 character limit (${event.topLine.length} chars)`
 				);
 			}
 
 			// Validate bottom line length
 			if (event.bottomLine.length > 12) {
 				validationResults.errors.push(
-					`Event ${lineNum} ${eventIdentifier}: Bottom line exceeds 12 character limit (${event.bottomLine.length} chars)`
+					`${eventIdentifier}: Bottom line exceeds 12 character limit (${event.bottomLine.length} chars)`
 				);
 			}
 
 			// Validate color
 			if (!VALID_COLORS.includes(event.colorName)) {
 				validationResults.errors.push(
-					`Event ${lineNum} ${eventIdentifier}: Invalid color "${event.colorName}" (valid: ${VALID_COLORS.join(', ')})`
+					`${eventIdentifier}: Invalid color "${event.colorName}" (valid: ${VALID_COLORS.join(', ')})`
 				);
 			}
 
 			// Validate hours
 			if (event.startHour !== undefined && (event.startHour < 0 || event.startHour > 23)) {
 				validationResults.errors.push(
-					`Event ${lineNum} ${eventIdentifier}: Invalid start hour ${event.startHour} (must be 0-23)`
+					`${eventIdentifier}: Invalid start hour ${event.startHour} (must be 0-23)`
 				);
 			}
 
 			if (event.endHour !== undefined && (event.endHour < 0 || event.endHour > 23)) {
 				validationResults.errors.push(
-					`Event ${lineNum} ${eventIdentifier}: Invalid end hour ${event.endHour} (must be 0-23)`
+					`${eventIdentifier}: Invalid end hour ${event.endHour} (must be 0-23)`
 				);
 			}
 
 			// Validate hour range logic
 			if (event.startHour !== undefined && event.endHour !== undefined && event.startHour >= event.endHour) {
 				validationResults.warnings.push(
-					`Event ${lineNum} ${eventIdentifier}: Start hour (${event.startHour}) is >= end hour (${event.endHour})`
+					`${eventIdentifier}: Start hour (${event.startHour}) is >= end hour (${event.endHour})`
 				);
 			}
 
 			// Validate image filename
 			if (!event.iconName) {
 				validationResults.warnings.push(
-					`Event ${lineNum} ${eventIdentifier}: No image specified`
+					`${eventIdentifier}: No image specified`
 				);
 			} else if (!event.iconName.endsWith('.bmp')) {
 				validationResults.errors.push(
-					`Event ${lineNum} ${eventIdentifier}: Image "${event.iconName}" must be a .bmp file`
+					`${eventIdentifier}: Image "${event.iconName}" must be a .bmp file`
 				);
 			}
 		});
@@ -308,9 +344,10 @@ async function validateImages() {
 
 			events.forEach((event, index) => {
 				if (event.iconName && !eventImages.includes(event.iconName)) {
-					const eventIdentifier = `"${event.topLine} - ${event.bottomLine}" (${event.date})`;
+					const formattedDate = formatDateForDisplay(event.date);
+					const eventIdentifier = `"${event.topLine} - ${event.bottomLine}" (${formattedDate})`;
 					validationResults.errors.push(
-						`Event ${index + 1} ${eventIdentifier}: Image "${event.iconName}" not found in img/events/ directory`
+						`${eventIdentifier}: Image "${event.iconName}" not found in img/events/ directory`
 					);
 				}
 			});
