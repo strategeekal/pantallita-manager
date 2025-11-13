@@ -63,12 +63,13 @@ async function validateEvents() {
 
 		events.forEach((event, index) => {
 			const lineNum = index + 1;
+			const eventIdentifier = `"${event.topLine} - ${event.bottomLine}" (${event.date})`;
 
 			// Validate date format
 			const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
 			if (!dateRegex.test(event.date)) {
 				validationResults.errors.push(
-					`Event ${lineNum}: Invalid date format "${event.date}" (expected YYYY-MM-DD)`
+					`Event ${lineNum} ${eventIdentifier}: Invalid date format "${event.date}" (expected YYYY-MM-DD)`
 				);
 				invalidDateCount++;
 				return; // Skip further validation for this event
@@ -78,7 +79,7 @@ async function validateEvents() {
 			const eventDate = new Date(event.date + 'T00:00:00');
 			if (eventDate < today) {
 				validationResults.warnings.push(
-					`Event ${lineNum}: "${event.topLine} - ${event.bottomLine}" on ${event.date} is in the past`
+					`Event ${lineNum} ${eventIdentifier}: Date is in the past - can be cleaned up`
 				);
 				oldEventsCount++;
 			}
@@ -86,52 +87,52 @@ async function validateEvents() {
 			// Validate top line length
 			if (event.topLine.length > 12) {
 				validationResults.errors.push(
-					`Event ${lineNum}: Top line "${event.topLine}" exceeds 12 character limit (${event.topLine.length} chars)`
+					`Event ${lineNum} ${eventIdentifier}: Top line exceeds 12 character limit (${event.topLine.length} chars)`
 				);
 			}
 
 			// Validate bottom line length
 			if (event.bottomLine.length > 12) {
 				validationResults.errors.push(
-					`Event ${lineNum}: Bottom line "${event.bottomLine}" exceeds 12 character limit (${event.bottomLine.length} chars)`
+					`Event ${lineNum} ${eventIdentifier}: Bottom line exceeds 12 character limit (${event.bottomLine.length} chars)`
 				);
 			}
 
 			// Validate color
 			if (!VALID_COLORS.includes(event.colorName)) {
 				validationResults.errors.push(
-					`Event ${lineNum}: Invalid color "${event.colorName}" (valid colors: ${VALID_COLORS.join(', ')})`
+					`Event ${lineNum} ${eventIdentifier}: Invalid color "${event.colorName}" (valid: ${VALID_COLORS.join(', ')})`
 				);
 			}
 
 			// Validate hours
 			if (event.startHour !== undefined && (event.startHour < 0 || event.startHour > 23)) {
 				validationResults.errors.push(
-					`Event ${lineNum}: Invalid start hour ${event.startHour} (must be 0-23)`
+					`Event ${lineNum} ${eventIdentifier}: Invalid start hour ${event.startHour} (must be 0-23)`
 				);
 			}
 
 			if (event.endHour !== undefined && (event.endHour < 0 || event.endHour > 23)) {
 				validationResults.errors.push(
-					`Event ${lineNum}: Invalid end hour ${event.endHour} (must be 0-23)`
+					`Event ${lineNum} ${eventIdentifier}: Invalid end hour ${event.endHour} (must be 0-23)`
 				);
 			}
 
 			// Validate hour range logic
 			if (event.startHour !== undefined && event.endHour !== undefined && event.startHour >= event.endHour) {
 				validationResults.warnings.push(
-					`Event ${lineNum}: Start hour (${event.startHour}) is >= end hour (${event.endHour})`
+					`Event ${lineNum} ${eventIdentifier}: Start hour (${event.startHour}) is >= end hour (${event.endHour})`
 				);
 			}
 
 			// Validate image filename
 			if (!event.iconName) {
 				validationResults.warnings.push(
-					`Event ${lineNum}: No image specified`
+					`Event ${lineNum} ${eventIdentifier}: No image specified`
 				);
 			} else if (!event.iconName.endsWith('.bmp')) {
 				validationResults.errors.push(
-					`Event ${lineNum}: Image "${event.iconName}" must be a .bmp file`
+					`Event ${lineNum} ${eventIdentifier}: Image "${event.iconName}" must be a .bmp file`
 				);
 			}
 		});
@@ -185,7 +186,7 @@ async function validateSchedules() {
 					const scheduleDate = new Date(dateMatch[1] + 'T00:00:00');
 					if (scheduleDate < today) {
 						validationResults.warnings.push(
-							`Schedule "${file.name}" is for a past date (${dateMatch[1]})`
+							`Schedule file "${file.name}": Date ${dateMatch[1]} is in the past - can be cleaned up`
 						);
 						oldSchedulesCount++;
 					}
@@ -200,29 +201,30 @@ async function validateSchedules() {
 				scheduleItems.forEach((item, index) => {
 					const lineNum = index + 1;
 					const scheduleName = file.name;
+					const itemIdentifier = `"${item.name}" in ${scheduleName}`;
 
 					// Validate time ranges
 					if (item.startHour < 0 || item.startHour > 23) {
 						validationResults.errors.push(
-							`${scheduleName} line ${lineNum}: Invalid start hour ${item.startHour} (must be 0-23)`
+							`Schedule item ${itemIdentifier} (line ${lineNum}): Invalid start hour ${item.startHour} (must be 0-23)`
 						);
 					}
 
 					if (item.endHour < 0 || item.endHour > 23) {
 						validationResults.errors.push(
-							`${scheduleName} line ${lineNum}: Invalid end hour ${item.endHour} (must be 0-23)`
+							`Schedule item ${itemIdentifier} (line ${lineNum}): Invalid end hour ${item.endHour} (must be 0-23)`
 						);
 					}
 
 					if (item.startMin < 0 || item.startMin > 59) {
 						validationResults.errors.push(
-							`${scheduleName} line ${lineNum}: Invalid start minute ${item.startMin} (must be 0-59)`
+							`Schedule item ${itemIdentifier} (line ${lineNum}): Invalid start minute ${item.startMin} (must be 0-59)`
 						);
 					}
 
 					if (item.endMin < 0 || item.endMin > 59) {
 						validationResults.errors.push(
-							`${scheduleName} line ${lineNum}: Invalid end minute ${item.endMin} (must be 0-59)`
+							`Schedule item ${itemIdentifier} (line ${lineNum}): Invalid end minute ${item.endMin} (must be 0-59)`
 						);
 					}
 
@@ -231,18 +233,18 @@ async function validateSchedules() {
 					const endMinutes = item.endHour * 60 + item.endMin;
 					if (startMinutes >= endMinutes) {
 						validationResults.warnings.push(
-							`${scheduleName} line ${lineNum}: "${item.name}" - Start time (${item.startHour}:${String(item.startMin).padStart(2, '0')}) is >= end time (${item.endHour}:${String(item.endMin).padStart(2, '0')})`
+							`Schedule item ${itemIdentifier} (line ${lineNum}): Start time ${item.startHour}:${String(item.startMin).padStart(2, '0')} is >= end time ${item.endHour}:${String(item.endMin).padStart(2, '0')}`
 						);
 					}
 
 					// Validate image
 					if (!item.image) {
 						validationResults.warnings.push(
-							`${scheduleName} line ${lineNum}: "${item.name}" - No image specified`
+							`Schedule item ${itemIdentifier} (line ${lineNum}): No image specified`
 						);
 					} else if (!item.image.endsWith('.bmp')) {
 						validationResults.errors.push(
-							`${scheduleName} line ${lineNum}: Image "${item.image}" must be a .bmp file`
+							`Schedule item ${itemIdentifier} (line ${lineNum}): Image "${item.image}" must be a .bmp file`
 						);
 					}
 
@@ -251,7 +253,7 @@ async function validateSchedules() {
 						const validDays = /^[0-6]*$/;
 						if (!validDays.test(item.days)) {
 							validationResults.errors.push(
-								`${scheduleName} line ${lineNum}: Invalid days format "${item.days}" (must contain only digits 0-6)`
+								`Schedule item ${itemIdentifier} (line ${lineNum}): Invalid days format "${item.days}" (must contain only digits 0-6)`
 							);
 						}
 					}
@@ -304,8 +306,9 @@ async function validateImages() {
 
 			events.forEach((event, index) => {
 				if (event.iconName && !eventImages.includes(event.iconName)) {
+					const eventIdentifier = `"${event.topLine} - ${event.bottomLine}" (${event.date})`;
 					validationResults.errors.push(
-						`Event ${index + 1}: Image "${event.iconName}" not found in img/events/ directory`
+						`Event ${index + 1} ${eventIdentifier}: Image "${event.iconName}" not found in img/events/ directory`
 					);
 				}
 			});
@@ -327,8 +330,9 @@ async function validateImages() {
 
 				scheduleItems.forEach((item, index) => {
 					if (item.image && !scheduleImages.includes(item.image)) {
+						const itemIdentifier = `"${item.name}" in ${file.name}`;
 						validationResults.errors.push(
-							`${file.name} line ${index + 1}: Image "${item.image}" not found in img/schedules/ directory`
+							`Schedule item ${itemIdentifier} (line ${index + 1}): Image "${item.image}" not found in img/schedules/ directory`
 						);
 					}
 				});
