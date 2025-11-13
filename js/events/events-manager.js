@@ -232,17 +232,20 @@ function populateEditForm() {
 	document.getElementById('editor-event-image').value = event.iconName;
 
 	// Set time fields if applicable (if not all-day event)
+	// All-day event is 0-23, so if either startHour != 0 OR endHour != 23, it has specific time
 	const hasTimeCheckbox = document.getElementById('editor-event-has-time');
-	if (hasTimeCheckbox && event.startHour !== 0 && event.endHour !== 23) {
+	const hasSpecificTime = (event.startHour !== undefined && event.startHour !== 0) ||
+	                         (event.endHour !== undefined && event.endHour !== 23);
+	if (hasTimeCheckbox && hasSpecificTime) {
 		hasTimeCheckbox.checked = true;
 		const timeFields = document.getElementById('editor-event-time-fields');
 		if (timeFields) timeFields.classList.remove('hidden');
 
 		const startHourField = document.getElementById('editor-event-start-hour');
-		if (startHourField) startHourField.value = event.startHour;
+		if (startHourField) startHourField.value = event.startHour !== undefined ? event.startHour : 0;
 
 		const endHourField = document.getElementById('editor-event-end-hour');
-		if (endHourField) endHourField.value = event.endHour;
+		if (endHourField) endHourField.value = event.endHour !== undefined ? event.endHour : 23;
 	}
 
 	// Update form title

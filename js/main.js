@@ -124,6 +124,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 		}
 		// Auto-show app if token exists
 		await showApp();
+
+		// Run silent validation after app loads to check for issues
+		runAutoValidation();
 	}
 
 	// Load matrix emulator for landing page (desktop only)
@@ -156,6 +159,39 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 	console.log(`Mobile optimization: ${IS_MOBILE ? 'ENABLED - Matrix emulator skipped' : 'DISABLED - Full features loaded'}`);
 });
+
+// Run auto-validation on app load
+async function runAutoValidation() {
+	try {
+		// Wait a bit for events/schedules to load
+		await new Promise(resolve => setTimeout(resolve, 2000));
+
+		const results = await validator.runSilentValidation();
+		const badge = document.getElementById('validation-badge');
+
+		if (!badge) return;
+
+		const totalIssues = results.errors + results.warnings;
+
+		if (totalIssues > 0) {
+			badge.textContent = totalIssues;
+			badge.classList.remove('hidden', 'warning');
+
+			// Show red badge for errors, yellow for warnings only
+			if (results.errors > 0) {
+				badge.classList.add('pulse');
+			} else {
+				badge.classList.add('warning', 'pulse');
+			}
+
+			console.log(`Validation found ${results.errors} error(s) and ${results.warnings} warning(s)`);
+		} else {
+			badge.classList.add('hidden');
+		}
+	} catch (error) {
+		console.error('Auto-validation failed:', error);
+	}
+}
 
 // Landing page display functions
 function displayHello(matrix) {

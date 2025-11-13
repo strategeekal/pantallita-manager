@@ -2863,3 +2863,52 @@ header p {
 		padding: 15px;
 	}
 }
+
+/* ============================================
+   VALIDATION BADGE (Footer notification)
+   ============================================ */
+
+.validation-link {
+	position: relative;
+	display: inline-flex;
+	align-items: center;
+	gap: 5px;
+}
+
+.validation-badge {
+	display: inline-block;
+	min-width: 18px;
+	height: 18px;
+	padding: 2px 6px;
+	background: #dc3545;
+	color: white;
+	border-radius: 10px;
+	font-size: 0.75em;
+	font-weight: bold;
+	text-align: center;
+	line-height: 14px;
+	margin-left: 5px;
+}
+
+.validation-badge.warning {
+	background: #ffc107;
+	color: #000;
+}
+
+.validation-badge.hidden {
+	display: none;
+}
+
+/* Pulse animation for the badge */
+@keyframes pulse {
+	0%, 100% {
+		opacity: 1;
+	}
+	50% {
+		opacity: 0.7;
+	}
+}
+
+.validation-badge.pulse {
+	animation: pulse 2s ease-in-out infinite;
+}
