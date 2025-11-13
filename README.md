@@ -30,6 +30,7 @@ A web-based management interface for SCREENY RGB matrix displays. Manage ephemer
   - Schedule images
   - Optional progress bars
   - Enable/disable toggles
+  - Automatic incremental naming (New Item, New Item 1, New Item 2, etc.)
 - Live preview with emulator
 - Drag-and-drop item reordering
 
@@ -316,6 +317,11 @@ Available colors for event text:
     - Date formats, colors, time ranges
     - Schedule days format and time logic
     - **Schedule conflicts**: Duplicate item names (critical bug) and overlapping time ranges
+- **Automatic Incremental Naming for Schedule Items**:
+  - New schedule items automatically get unique names
+  - First item: "New Item", subsequent items: "New Item 1", "New Item 2", etc.
+  - Prevents duplicate name bug where only last item displays on matrix
+  - Works alongside validation and editor duplicate checking
 - **Fixed Time-Bound Event Editing Bug**:
   - Bug: Time fields would sometimes disappear when editing events with specific hours
   - Root cause: Logic used AND (&&) instead of OR (||) operator
