@@ -45,6 +45,12 @@ export async function runValidation() {
 
 		// Display results
 		displayValidationResults();
+
+		// Update the badge to reflect current validation status
+		if (window.updateValidationBadge) {
+			// Small delay to ensure modal is visible before badge updates
+			setTimeout(() => window.updateValidationBadge(), 500);
+		}
 	} catch (error) {
 		validationResults.errors.push(`Validation failed: ${error.message}`);
 		displayValidationResults();
