@@ -1052,6 +1052,13 @@ header p {
 		font-size: 1em !important;
 	}
 
+	/* Specific fix for date inputs on mobile */
+	.event-form input[type="date"] {
+		-webkit-appearance: none;
+		appearance: none;
+		overflow: hidden;
+	}
+
 	.form-group input:not([type="checkbox"]),
 	.form-group select {
 		width: 100% !important;

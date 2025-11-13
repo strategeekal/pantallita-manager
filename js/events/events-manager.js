@@ -322,6 +322,9 @@ export function clearEventForm() {
 		window.editorMatrix.clear();
 		window.editorMatrix.render();
 	}
+
+	// Reset color preview square to MINT
+	updateColorPreview();
 }
 
 async function saveEventsToGitHub() {
