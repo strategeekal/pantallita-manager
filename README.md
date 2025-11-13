@@ -59,6 +59,9 @@ A web-based management interface for SCREENY RGB matrix displays. Manage ephemer
 - Verify image references exist in correct repositories
 - Validate character limits (12 chars for event lines)
 - Check data correctness (dates, colors, time ranges, etc.)
+- **Schedule conflict detection**:
+  - Duplicate item names (critical: only last item displays on matrix)
+  - Overlapping time ranges between schedule items
 - Visual error and warning reporting with detailed messages
 - Accessible via footer link: "Validate Data"
 
@@ -312,6 +315,7 @@ Available colors for event text:
     - Character limits (12 chars for event lines)
     - Date formats, colors, time ranges
     - Schedule days format and time logic
+    - **Schedule conflicts**: Duplicate item names (critical bug) and overlapping time ranges
 - **Fixed Time-Bound Event Editing Bug**:
   - Bug: Time fields would sometimes disappear when editing events with specific hours
   - Root cause: Logic used AND (&&) instead of OR (||) operator
