@@ -1069,26 +1069,13 @@ header p {
 		font-size: 16px !important;
 		line-height: 1.5;
 		width: 100%;
+		text-align: left !important;
+		color: #000 !important;
 	}
 
-	/* Custom placeholder for date inputs */
+	/* Hide custom placeholder on mobile - use native picker instead */
 	.date-placeholder {
-		position: absolute;
-		left: 12px;
-		top: 50%;
-		transform: translateY(-50%);
-		color: #999;
-		pointer-events: none;
-		font-size: 16px;
-		transition: opacity 0.2s;
-	}
-
-	/* Hide placeholder when input has a value or is focused */
-	.event-form input[type="date"]:focus + .date-placeholder,
-	.event-form input[type="date"]:valid + .date-placeholder,
-	#schedule-info-form input[type="date"]:focus + .date-placeholder,
-	#schedule-info-form input[type="date"]:valid + .date-placeholder {
-		opacity: 0;
+		display: none !important;
 	}
 
 	.form-group input:not([type="checkbox"]),
