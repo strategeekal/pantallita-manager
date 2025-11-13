@@ -17,6 +17,9 @@ import * as timeline from './schedules/timeline.js';
 import * as preview from './schedules/preview.js';
 import * as templateManager from './schedules/template-manager.js';
 
+// Import validation module
+import * as validator from './validation/validator.js';
+
 // Detect mobile at startup
 const IS_MOBILE = isMobileDevice();
 
@@ -98,6 +101,9 @@ window.templateManager = {
 	getCurrentTemplateData: templateManager.getCurrentTemplateData,
 	saveAsNewTemplate: templateManager.saveAsNewTemplate
 };
+
+// Expose validation functions globally (already exposed in validator.js, but adding here for clarity)
+window.validatorModule = validator;
 
 // Initialize app on page load
 document.addEventListener('DOMContentLoaded', async () => {
