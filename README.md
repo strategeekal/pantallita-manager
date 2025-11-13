@@ -403,10 +403,10 @@ Available colors for event text:
 ## Roadmap
 
 - [x] Event/Schedule Validation ✅ (v1.4.0)
-- [ ] Schedule conflict detection
-- [ ] Event search/filter
-- [ ] Display module control
+- [x] Schedule conflict detection ✅ (v1.5.0)
+- [x] Event search/filter ✅ (v1.5.0)
 - [ ] Dark mode toggle
+- [ ] Display module control
 
 ## License
 
