@@ -1,10 +1,10 @@
 # SCREENY Manager
 
-**Version 1.3.0**
+**Version 1.4.0**
 
 A web-based management interface for SCREENY RGB matrix displays. Manage ephemeral events and daily schedules remotely through GitHub, with full support for desktop and mobile devices.
 
-![SCREENY Manager](https://img.shields.io/badge/status-active-brightgreen) ![Version](https://img.shields.io/badge/version-1.3.0-blue)
+![SCREENY Manager](https://img.shields.io/badge/status-active-brightgreen) ![Version](https://img.shields.io/badge/version-1.4.0-blue)
 
 ## Features
 
@@ -52,13 +52,15 @@ A web-based management interface for SCREENY RGB matrix displays. Manage ephemer
 - Native mobile date pickers for better UX
 
 ### 🔍 Data Validation
+- Automatic validation on app load with discreet badge notification
+- Badge auto-refreshes after save/delete/refresh operations
 - Comprehensive validation for events and schedules
 - Detect old events and schedules that can be cleaned up
 - Verify image references exist in correct repositories
 - Validate character limits (12 chars for event lines)
 - Check data correctness (dates, colors, time ranges, etc.)
 - Visual error and warning reporting with detailed messages
-- Accessible via footer link: "🔍 Validate Data"
+- Accessible via footer link: "Validate Data"
 
 ### 🎨 Preview Emulators
 - **Desktop**: Interactive 64x32 RGB matrix emulator
@@ -293,20 +295,41 @@ Available colors for event text:
 
 ## Version History
 
-### Version 1.3.0 (Current)
+### Version 1.4.0 (Current)
+- **Comprehensive Data Validation System** 🔍:
+  - Automatic validation on app load with discreet badge notification
+  - Badge shows issue count (red for errors, yellow for warnings only)
+  - Badge auto-refreshes after data changes (save, delete, refresh)
+  - Silent validation runs in background without interrupting workflow
+  - Improved validation messages:
+    - Removed event numbers for clarity
+    - Changed date format to MM-DD-YYYY for readability
+    - Clear event/schedule identifiers in all messages
+  - Click "Validate Data" in footer to see full detailed report
+  - Validates:
+    - Old events/schedules (past dates)
+    - Missing images in repositories
+    - Character limits (12 chars for event lines)
+    - Date formats, colors, time ranges
+    - Schedule days format and time logic
+- **Fixed Time-Bound Event Editing Bug**:
+  - Bug: Time fields would sometimes disappear when editing events with specific hours
+  - Root cause: Logic used AND (&&) instead of OR (||) operator
+  - Now properly detects all non-all-day events (any event not exactly 0-23)
+  - Time fields consistently populate and save correctly
+- **Improved Date Threshold Logic**:
+  - Events/schedules now remain active throughout their entire scheduled date
+  - Only marked as past starting the day AFTER their date (not same day)
+  - Time-based expiration: Events with specific end hours gray out after that hour passes
+  - Matches display's 3am data import behavior
+  - Clear Past Events/Schedules buttons respect new threshold
+
+### Version 1.3.0
 - **Unified Events Interface**: Merged "View Events" and "Add Event" tabs into single "Events" tab
   - Consistent workflow with Schedules feature
   - "+ NEW" button for quick event creation
   - Editor opens as full-screen view (hidden from navigation)
   - Improved UX for managing large event lists
-- **Data Validation System** 🔍:
-  - Comprehensive validation for events and schedules
-  - Detects old events/schedules that can be cleaned up
-  - Verifies image references exist in correct repositories
-  - Validates character limits (12 chars for event lines)
-  - Checks data correctness (dates, colors, time ranges, days format)
-  - Visual error/warning/info reporting in modal interface
-  - Accessible via footer link: "🔍 Validate Data"
 - **Mobile Date Input Enhancements**:
   - Increased touch target height to 48px
   - Fixed text alignment (left-aligned, dark text instead of centered blue)
@@ -335,7 +358,7 @@ Available colors for event text:
 
 ## Roadmap
 
-- [x] Event/Schedule Validation ✅ (v1.3.0)
+- [x] Event/Schedule Validation ✅ (v1.4.0)
 - [ ] Schedule conflict detection
 - [ ] Event search/filter
 - [ ] Display module control
