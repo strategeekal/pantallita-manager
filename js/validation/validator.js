@@ -106,7 +106,7 @@ async function validateEvents() {
 
 		events.forEach((event, index) => {
 			const formattedDate = formatDateForDisplay(event.date);
-			const eventIdentifier = `"${event.topLine} - ${event.bottomLine}" (${formattedDate})`;
+			const eventIdentifier = `EVENT: "${event.topLine} - ${event.bottomLine}" (${formattedDate})`;
 
 			// Validate date format
 			const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
@@ -351,7 +351,7 @@ async function validateImages() {
 			events.forEach((event, index) => {
 				if (event.iconName && !eventImages.includes(event.iconName)) {
 					const formattedDate = formatDateForDisplay(event.date);
-					const eventIdentifier = `"${event.topLine} - ${event.bottomLine}" (${formattedDate})`;
+					const eventIdentifier = `EVENT: "${event.topLine} - ${event.bottomLine}" (${formattedDate})`;
 					validationResults.errors.push(
 						`${eventIdentifier}: Image "${event.iconName}" not found in img/events/ directory`
 					);
