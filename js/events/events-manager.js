@@ -10,7 +10,6 @@ let editingEventIndex = null;
 let eventFilters = {
 	search: '',
 	dateFilter: 'all',
-	colorFilter: 'all',
 	sort: 'date-asc'
 };
 
@@ -710,7 +709,6 @@ export function applyFilters() {
 	// Get filter values from UI
 	eventFilters.search = document.getElementById('event-search')?.value.toLowerCase() || '';
 	eventFilters.dateFilter = document.getElementById('event-date-filter')?.value || 'all';
-	eventFilters.colorFilter = document.getElementById('event-color-filter')?.value || 'all';
 	eventFilters.sort = document.getElementById('event-sort')?.value || 'date-asc';
 
 	// Redisplay events with filters
@@ -724,7 +722,6 @@ export function clearFilters() {
 	// Reset filter values
 	document.getElementById('event-search').value = '';
 	document.getElementById('event-date-filter').value = 'all';
-	document.getElementById('event-color-filter').value = 'all';
 	document.getElementById('event-sort').value = 'date-asc';
 
 	// Apply filters
@@ -773,13 +770,6 @@ function applyEventFilters(events) {
 					return true;
 			}
 		});
-	}
-
-	// Color filter
-	if (eventFilters.colorFilter !== 'all') {
-		filtered = filtered.filter(event =>
-			event.colorName === eventFilters.colorFilter
-		);
 	}
 
 	return filtered;
@@ -835,7 +825,6 @@ function updateClearFiltersButton() {
 	const hasActiveFilters =
 		eventFilters.search !== '' ||
 		eventFilters.dateFilter !== 'all' ||
-		eventFilters.colorFilter !== 'all' ||
 		eventFilters.sort !== 'date-asc';
 
 	clearBtn.style.display = hasActiveFilters ? 'inline-block' : 'none';

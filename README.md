@@ -22,7 +22,6 @@ A web-based management interface for SCREENY RGB matrix displays. Manage ephemer
 - **Advanced Filtering & Organization**:
   - Text search across event names
   - Date filters (All, Upcoming, Past, Today, This Week, This Month, Next Month)
-  - Color filters (filter by specific event colors)
   - Sort options (Date ascending/descending, A-Z, Z-A)
   - Real-time filter count display
   - One-click "Clear Filters" button
@@ -333,11 +332,11 @@ Available colors for event text:
 - **Advanced Event Filtering & Organization** 🔍:
   - Text search across event names (top line and bottom line)
   - Date filters: All Events, Upcoming, Past, Today, This Week, This Month, Next Month
-  - Color filters: Filter by any of the 12 available event colors
   - Sort options: By date (ascending/descending) or alphabetically (A-Z/Z-A)
   - Real-time filter count: Shows "Showing X of Y events" based on active filters
   - One-click "Clear Filters" button appears when filters are active
   - Fully responsive design optimized for mobile devices
+  - Clean, pixel-art styling matching form inputs (white background, 3px black borders, box shadows)
 - **Fixed Time-Bound Event Editing Bug**:
   - Bug: Time fields would sometimes disappear when editing events with specific hours
   - Root cause: Logic used AND (&&) instead of OR (||) operator
