@@ -451,7 +451,6 @@ function populateScheduleEditor() {
 					<label>Schedule Date *</label>
 					<div class="date-input-wrapper">
 						<input type="date" id="schedule-date" value="${currentScheduleData.date || ''}" onchange="window.schedulesModule.handleDateChange()">
-						<span class="date-placeholder">YYYY-MM-DD</span>
 					</div>
 				</div>
 				<div class="form-group">
