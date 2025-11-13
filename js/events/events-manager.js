@@ -6,6 +6,14 @@ import { loadConfig } from '../core/config.js';
 let currentEvents = [];
 let editingEventIndex = null;
 
+// Filter state
+let eventFilters = {
+	search: '',
+	dateFilter: 'all',
+	colorFilter: 'all',
+	sort: 'date-asc'
+};
+
 export async function initializeEvents() {
 	await loadEvents();
 	setupEventFormHandlers();
@@ -72,13 +80,24 @@ function displayEvents() {
 
 	if (currentEvents.length === 0) {
 		showEventsEmpty();
+		updateFilterInfo(0, 0);
 		return;
 	}
 
-	// Sort events by date ascending (earliest first)
-	const sortedEvents = [...currentEvents].sort((a, b) => {
-		return new Date(a.date) - new Date(b.date);
-	});
+	// Apply filters
+	let filteredEvents = applyEventFilters([...currentEvents]);
+
+	// Update filter count
+	updateFilterInfo(filteredEvents.length, currentEvents.length);
+
+	// Check if filtered results are empty
+	if (filteredEvents.length === 0) {
+		listContainer.innerHTML = '<p class="empty-message">No events match the current filters.</p>';
+		return;
+	}
+
+	// Apply sorting
+	const sortedEvents = applySorting(filteredEvents);
 
 	const eventsHTML = sortedEvents.map((event) => {
 		const eventDate = new Date(event.date + 'T00:00:00');
@@ -686,6 +705,142 @@ function hideEventsMessages() {
 	hideEventsEmpty();
 }
 
+// Filter and sorting functions
+export function applyFilters() {
+	// Get filter values from UI
+	eventFilters.search = document.getElementById('event-search')?.value.toLowerCase() || '';
+	eventFilters.dateFilter = document.getElementById('event-date-filter')?.value || 'all';
+	eventFilters.colorFilter = document.getElementById('event-color-filter')?.value || 'all';
+	eventFilters.sort = document.getElementById('event-sort')?.value || 'date-asc';
+
+	// Redisplay events with filters
+	displayEvents();
+
+	// Show/hide clear filters button
+	updateClearFiltersButton();
+}
+
+export function clearFilters() {
+	// Reset filter values
+	document.getElementById('event-search').value = '';
+	document.getElementById('event-date-filter').value = 'all';
+	document.getElementById('event-color-filter').value = 'all';
+	document.getElementById('event-sort').value = 'date-asc';
+
+	// Apply filters
+	applyFilters();
+}
+
+function applyEventFilters(events) {
+	let filtered = events;
+
+	// Text search filter
+	if (eventFilters.search) {
+		filtered = filtered.filter(event =>
+			event.topLine.toLowerCase().includes(eventFilters.search) ||
+			event.bottomLine.toLowerCase().includes(eventFilters.search)
+		);
+	}
+
+	// Date filter
+	if (eventFilters.dateFilter !== 'all') {
+		const today = new Date();
+		today.setHours(0, 0, 0, 0);
+
+		filtered = filtered.filter(event => {
+			const eventDate = new Date(event.date + 'T00:00:00');
+
+			switch (eventFilters.dateFilter) {
+				case 'upcoming':
+					return eventDate >= today;
+				case 'past':
+					return eventDate < today;
+				case 'today':
+					return eventDate.getTime() === today.getTime();
+				case 'this-week':
+					const weekEnd = new Date(today);
+					weekEnd.setDate(today.getDate() + 7);
+					return eventDate >= today && eventDate < weekEnd;
+				case 'this-month':
+					return eventDate.getMonth() === today.getMonth() &&
+					       eventDate.getFullYear() === today.getFullYear();
+				case 'next-month':
+					const nextMonth = new Date(today);
+					nextMonth.setMonth(today.getMonth() + 1);
+					return eventDate.getMonth() === nextMonth.getMonth() &&
+					       eventDate.getFullYear() === nextMonth.getFullYear();
+				default:
+					return true;
+			}
+		});
+	}
+
+	// Color filter
+	if (eventFilters.colorFilter !== 'all') {
+		filtered = filtered.filter(event =>
+			event.colorName === eventFilters.colorFilter
+		);
+	}
+
+	return filtered;
+}
+
+function applySorting(events) {
+	const sorted = [...events];
+
+	switch (eventFilters.sort) {
+		case 'date-asc':
+			sorted.sort((a, b) => new Date(a.date) - new Date(b.date));
+			break;
+		case 'date-desc':
+			sorted.sort((a, b) => new Date(b.date) - new Date(a.date));
+			break;
+		case 'alpha-asc':
+			sorted.sort((a, b) => {
+				const nameA = `${a.topLine} ${a.bottomLine}`.toLowerCase();
+				const nameB = `${b.topLine} ${b.bottomLine}`.toLowerCase();
+				return nameA.localeCompare(nameB);
+			});
+			break;
+		case 'alpha-desc':
+			sorted.sort((a, b) => {
+				const nameA = `${a.topLine} ${a.bottomLine}`.toLowerCase();
+				const nameB = `${b.topLine} ${b.bottomLine}`.toLowerCase();
+				return nameB.localeCompare(nameA);
+			});
+			break;
+		default:
+			sorted.sort((a, b) => new Date(a.date) - new Date(b.date));
+	}
+
+	return sorted;
+}
+
+function updateFilterInfo(filteredCount, totalCount) {
+	const filterCountEl = document.getElementById('filter-count');
+	if (!filterCountEl) return;
+
+	if (filteredCount === totalCount) {
+		filterCountEl.textContent = `Showing all ${totalCount} event${totalCount !== 1 ? 's' : ''}`;
+	} else {
+		filterCountEl.textContent = `Showing ${filteredCount} of ${totalCount} event${totalCount !== 1 ? 's' : ''}`;
+	}
+}
+
+function updateClearFiltersButton() {
+	const clearBtn = document.getElementById('clear-filters');
+	if (!clearBtn) return;
+
+	// Check if any filters are active
+	const hasActiveFilters =
+		eventFilters.search !== '' ||
+		eventFilters.dateFilter !== 'all' ||
+		eventFilters.colorFilter !== 'all' ||
+		eventFilters.sort !== 'date-asc';
+
+	clearBtn.style.display = hasActiveFilters ? 'inline-block' : 'none';
+}
+
 // Expose functions globally for onclick handlers
 window.eventsModule = {
 	initializeEvents,
@@ -698,7 +853,9 @@ window.eventsModule = {
 	clearEventForm,
 	closeEventEditor,
 	isEditing,
-	initializeColorPreview
+	initializeColorPreview,
+	applyFilters,
+	clearFilters
 };
 
 // Also expose directly for HTML onclick

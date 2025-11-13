@@ -92,6 +92,51 @@
 						</div>
 					</div>
 
+				<!-- Filter Controls -->
+				<div class="event-filters">
+					<div class="filter-row">
+						<div class="filter-search">
+							<input type="text" id="event-search" placeholder="Search events..." oninput="window.eventsModule.applyFilters()">
+						</div>
+						<div class="filter-controls">
+							<select id="event-date-filter" onchange="window.eventsModule.applyFilters()">
+								<option value="all">All Events</option>
+								<option value="upcoming">Upcoming</option>
+								<option value="past">Past</option>
+								<option value="today">Today</option>
+								<option value="this-week">This Week</option>
+								<option value="this-month">This Month</option>
+								<option value="next-month">Next Month</option>
+							</select>
+							<select id="event-color-filter" onchange="window.eventsModule.applyFilters()">
+								<option value="all">All Colors</option>
+								<option value="MINT">MINT</option>
+								<option value="LILAC">LILAC</option>
+								<option value="ORANGE">ORANGE</option>
+								<option value="YELLOW">YELLOW</option>
+								<option value="BLUE">BLUE</option>
+								<option value="WHITE">WHITE</option>
+								<option value="RED">RED</option>
+								<option value="GREEN">GREEN</option>
+								<option value="PINK">PINK</option>
+								<option value="PURPLE">PURPLE</option>
+								<option value="BUGAMBILIA">BUGAMBILIA</option>
+								<option value="AQUA">AQUA</option>
+							</select>
+							<select id="event-sort" onchange="window.eventsModule.applyFilters()">
+								<option value="date-asc">Date (Earliest First)</option>
+								<option value="date-desc">Date (Latest First)</option>
+								<option value="alpha-asc">A-Z</option>
+								<option value="alpha-desc">Z-A</option>
+							</select>
+						</div>
+					</div>
+					<div class="filter-info">
+						<span id="filter-count"></span>
+						<button class="btn-text" id="clear-filters" onclick="window.eventsModule.clearFilters()" style="display: none;">Clear Filters</button>
+					</div>
+				</div>
+
 					<div id="events-loading" class="loading-message hidden">
 						Loading events from GitHub...
 					</div>
