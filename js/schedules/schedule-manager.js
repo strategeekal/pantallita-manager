@@ -66,11 +66,17 @@ function displaySchedules() {
 
 	const schedulesHTML = currentSchedules.map(schedule => {
 		const displayName = schedule.isDefault ? 'Default Schedule' : `Schedule for ${schedule.date}`;
-		// Get tomorrow's date (start of next day) to mark schedules as past only after their date
-		const tomorrow = new Date();
-		tomorrow.setHours(0, 0, 0, 0);
-		tomorrow.setDate(tomorrow.getDate() + 1);
-		const isPast = schedule.date && new Date(schedule.date + 'T00:00:00') < tomorrow;
+
+		// Get current date normalized to midnight
+		const today = new Date();
+		today.setHours(0, 0, 0, 0);
+
+		// Check if schedule date is before today (past dates only)
+		const isPast = schedule.date && new Date(schedule.date + 'T00:00:00') < today;
+
+		// Note: Checking if last schedule item has ended would require fetching
+		// the schedule content for each file, which would be too many API calls
+		// for the list view. This granular check is better suited for editor view.
 
 		return `
 			<div class="schedule-card ${isPast ? 'past-schedule' : ''}">
@@ -204,13 +210,12 @@ export async function clearOldSchedules() {
 	if (!confirm('Delete all past schedules? This cannot be undone.')) return;
 
 	try {
-		// Get tomorrow's date (start of next day) - only delete schedules before today
-		const tomorrow = new Date();
-		tomorrow.setHours(0, 0, 0, 0);
-		tomorrow.setDate(tomorrow.getDate() + 1);
+		// Get current date normalized to midnight - only delete schedules before today
+		const today = new Date();
+		today.setHours(0, 0, 0, 0);
 		const toDelete = currentSchedules.filter(s => {
 			if (s.isDefault) return false;
-			return s.date && new Date(s.date + 'T00:00:00') < tomorrow;
+			return s.date && new Date(s.date + 'T00:00:00') < today;
 		});
 
 		for (const schedule of toDelete) {
