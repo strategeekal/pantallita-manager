@@ -1052,8 +1052,15 @@ header p {
 		font-size: 1em !important;
 	}
 
+	/* Date input wrapper for custom placeholder */
+	.date-input-wrapper {
+		position: relative;
+		width: 100%;
+	}
+
 	/* Specific fix for date inputs on mobile */
-	.event-form input[type="date"] {
+	.event-form input[type="date"],
+	#schedule-info-form input[type="date"] {
 		-webkit-appearance: none;
 		appearance: none;
 		overflow: hidden;
@@ -1061,11 +1068,27 @@ header p {
 		padding: 12px !important;
 		font-size: 16px !important;
 		line-height: 1.5;
+		width: 100%;
 	}
 
-	/* Style the placeholder-like text for empty date inputs */
-	.event-form input[type="date"]:invalid {
+	/* Custom placeholder for date inputs */
+	.date-placeholder {
+		position: absolute;
+		left: 12px;
+		top: 50%;
+		transform: translateY(-50%);
 		color: #999;
+		pointer-events: none;
+		font-size: 16px;
+		transition: opacity 0.2s;
+	}
+
+	/* Hide placeholder when input has a value or is focused */
+	.event-form input[type="date"]:focus + .date-placeholder,
+	.event-form input[type="date"]:valid + .date-placeholder,
+	#schedule-info-form input[type="date"]:focus + .date-placeholder,
+	#schedule-info-form input[type="date"]:valid + .date-placeholder {
+		opacity: 0;
 	}
 
 	.form-group input:not([type="checkbox"]),

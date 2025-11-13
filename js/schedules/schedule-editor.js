@@ -404,10 +404,16 @@ function populateScheduleEditor() {
 					scheduleInfoForm.innerHTML = `
 						<div class="form-group">
 							<label>Schedule Date</label>
-							<input type="date" id="schedule-date" value="${currentScheduleData.date}" onchange="window.schedulesModule.handleDateChange()">
+							<div class="date-input-wrapper">
+								<input type="date" id="schedule-date" value="${currentScheduleData.date}" onchange="window.schedulesModule.handleDateChange()">
+								<span class="date-placeholder">YYYY-MM-DD</span>
+							</div>
 							<small>This schedule is for ${dayOfWeek}</small>
 						</div>
 					`;
+
+					// Setup date placeholder handler
+					setupScheduleDatePlaceholder();
 
 					// Add default schedule button to actions section - use setTimeout to ensure DOM is ready
 					setTimeout(() => {
@@ -444,7 +450,10 @@ function populateScheduleEditor() {
 			scheduleInfoForm.innerHTML = `
 				<div class="form-group">
 					<label>Schedule Date *</label>
-					<input type="date" id="schedule-date" value="${currentScheduleData.date || ''}" onchange="window.schedulesModule.handleDateChange()">
+					<div class="date-input-wrapper">
+						<input type="date" id="schedule-date" value="${currentScheduleData.date || ''}" onchange="window.schedulesModule.handleDateChange()">
+						<span class="date-placeholder">YYYY-MM-DD</span>
+					</div>
 				</div>
 				<div class="form-group">
 					<label>Start From Template</label>
@@ -455,6 +464,8 @@ function populateScheduleEditor() {
 					</select>
 				</div>
 			`;
+			// Setup date placeholder handler
+			setupScheduleDatePlaceholder();
 		} else {
 			scheduleInfoForm.innerHTML = `
 				<div class="form-group">
@@ -1077,4 +1088,23 @@ function generateScheduleCSV() {
 	);
 
 	return header + lines.join('\n');
+}
+
+// Helper function to setup date input placeholder handler
+function setupScheduleDatePlaceholder() {
+	setTimeout(() => {
+		const dateInput = document.getElementById('schedule-date');
+		if (dateInput) {
+			const updatePlaceholder = () => {
+				const placeholder = dateInput.nextElementSibling;
+				if (placeholder && placeholder.classList.contains('date-placeholder')) {
+					placeholder.style.display = dateInput.value ? 'none' : 'block';
+				}
+			};
+			dateInput.addEventListener('input', updatePlaceholder);
+			dateInput.addEventListener('change', updatePlaceholder);
+			// Initial check
+			updatePlaceholder();
+		}
+	}, 0);
 }

@@ -398,6 +398,21 @@ function setupEventFormHandlers() {
 		});
 	}
 
+	// Date input - hide/show placeholder
+	const dateInput = document.getElementById('editor-event-date');
+	if (dateInput) {
+		const updateDatePlaceholder = () => {
+			const placeholder = dateInput.nextElementSibling;
+			if (placeholder && placeholder.classList.contains('date-placeholder')) {
+				placeholder.style.display = dateInput.value ? 'none' : 'block';
+			}
+		};
+		dateInput.addEventListener('input', updateDatePlaceholder);
+		dateInput.addEventListener('change', updateDatePlaceholder);
+		// Initial check
+		updateDatePlaceholder();
+	}
+
 	// Time checkbox toggle
 	const hasTimeCheckbox = document.getElementById('editor-event-has-time');
 	const timeFieldsContainer = document.getElementById('editor-event-time-fields');
