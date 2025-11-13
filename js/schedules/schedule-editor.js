@@ -731,8 +731,25 @@ export function addScheduleItem() {
 		endHour += 1;
 	}
 
+	// Generate unique name with incremental counter to avoid duplicates
+	let itemName = 'New Item';
+	const existingNames = currentScheduleData.items.map(item => item.name.toLowerCase());
+
+	// Check if "New Item" is available
+	if (existingNames.includes('new item')) {
+		// Need to use a numbered version
+		let counter = 1;
+
+		// Find the next available number
+		while (existingNames.includes(`new item ${counter}`)) {
+			counter++;
+		}
+
+		itemName = `New Item ${counter}`;
+	}
+
 	const newItem = {
-		name: 'New Item',
+		name: itemName,
 		enabled: true,
 		days: defaultDays,
 		startHour: startHour,
