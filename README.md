@@ -34,7 +34,7 @@ A web-based management interface for SCREENY RGB matrix displays. Manage ephemer
 - Schedule items with:
   - Custom time ranges (hour and minute precision)
   - Day-of-week selection (Mon-Sun)
-  - Schedule images
+  - Schedule images (required - all items must have an image)
   - Optional progress bars
   - Enable/disable toggles
   - Automatic incremental naming (New Item, New Item 1, New Item 2, etc.)
@@ -312,6 +312,12 @@ Available colors for event text:
   - Detects overlapping time ranges between schedule items (WARNING)
   - Case-insensitive duplicate name checking
   - Integrated into comprehensive validation system
+- **Required Image Selection for Schedule Items** 📷:
+  - All schedule items must now have an image selected
+  - Visual indicator (* asterisk) shows required field
+  - Validation prevents saving schedules with missing images
+  - Placeholder text "-- Select Image --" with gray italic styling
+  - Prevents display errors from missing images on matrix
 - **Automatic Incremental Naming for Schedule Items** 🔢:
   - New schedule items automatically get unique names
   - First item: "New Item", subsequent items: "New Item 1", "New Item 2", etc.
