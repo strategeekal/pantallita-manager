@@ -853,9 +853,9 @@ function renderScheduleItems() {
 						</div>
 					</div>
 					<div class="schedule-item-row">
-						<span class="item-label">Image:</span>
-						<select class="image-select" onchange="window.schedulesModule.updateScheduleItem(${index}, 'image', this.value)">
-							<option value="">None</option>
+						<span class="item-label">Image: *</span>
+						<select class="image-select" onchange="window.schedulesModule.updateScheduleItem(${index}, 'image', this.value)" required>
+							<option value="" ${!item.image ? 'selected' : ''}>-- Select Image --</option>
 							${imageOptions}
 						</select>
 					</div>
@@ -1017,6 +1017,10 @@ export async function saveSchedule() {
 		return;
 	}
 
+	if (!validateAllImagesSelected()) {
+		return;
+	}
+
 	const config = loadConfig();
 	let filename;
 	let oldFilename = null;
@@ -1085,6 +1089,20 @@ function validateUniqueNames() {
 		const uniqueDuplicates = [...new Set(duplicates)];
 
 		showStatus(`Duplicate names found: ${uniqueDuplicates.join(', ')}. Each item must have a unique name.`, 'error');
+		return false;
+	}
+
+	return true;
+}
+
+function validateAllImagesSelected() {
+	if (!currentScheduleData || !currentScheduleData.items) return true;
+
+	const itemsWithoutImages = currentScheduleData.items.filter(item => !item.image || item.image.trim() === '');
+
+	if (itemsWithoutImages.length > 0) {
+		const itemNames = itemsWithoutImages.map(item => `"${item.name}"`).join(', ');
+		showStatus(`All schedule items must have an image selected. Missing images for: ${itemNames}`, 'error');
 		return false;
 	}
 

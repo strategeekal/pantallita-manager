@@ -1710,6 +1710,25 @@ header p {
 	min-width: 150px;
 }
 
+.image-select[value=""],
+.image-select option[value=""]:checked {
+	color: #999;
+	font-style: italic;
+}
+
+.item-label {
+	color: inherit;
+}
+
+.item-label::after {
+	content: '';
+}
+
+/* Required field indicator (asterisk) */
+.schedule-item-row .item-label:contains('*') {
+	font-weight: normal;
+}
+
 .progress-label {
 	display: flex;
 	align-items: center;
