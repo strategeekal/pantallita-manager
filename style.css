@@ -3202,7 +3202,7 @@ header p {
 }
 
 .toggle-checkbox:checked + .toggle-label {
-	background: #28a745;
+	background: #00FF88;
 }
 
 .toggle-checkbox:checked + .toggle-label .toggle-switch {
@@ -3233,7 +3233,7 @@ header p {
 .toggle-inner:after {
 	content: 'OFF';
 	right: 4px;
-	color: #666;
+	color: #FF0088;
 	opacity: 1;
 	transition: opacity 0.3s;
 }
