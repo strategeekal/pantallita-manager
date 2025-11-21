@@ -20,6 +20,9 @@ import * as templateManager from './schedules/template-manager.js';
 // Import validation module
 import * as validator from './validation/validator.js';
 
+// Import configuration module
+import * as configManager from './config/config-manager.js';
+
 // Detect mobile at startup
 const IS_MOBILE = isMobileDevice();
 
