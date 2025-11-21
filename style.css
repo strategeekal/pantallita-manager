@@ -3072,3 +3072,223 @@ header p {
 .validation-badge.pulse {
 	animation: pulse 2s ease-in-out infinite;
 }
+
+/* ============================================
+   CONFIGURATION TAB
+   ============================================ */
+
+.config-container {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+	gap: 30px;
+	margin-top: 20px;
+}
+
+.config-panel {
+	background: white;
+	border: 3px solid #000;
+	padding: 25px;
+	box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.3);
+}
+
+.config-panel h3 {
+	font-size: 1.5em;
+	margin-bottom: 15px;
+	color: #000;
+	text-transform: uppercase;
+	letter-spacing: 1px;
+}
+
+.config-status {
+	margin-bottom: 15px;
+	min-height: 24px;
+}
+
+.config-settings {
+	margin: 20px 0;
+}
+
+.config-section {
+	margin-bottom: 25px;
+}
+
+.config-section:last-child {
+	margin-bottom: 0;
+}
+
+.config-section-title {
+	font-size: 1.1em;
+	font-weight: bold;
+	color: #333;
+	margin-bottom: 12px;
+	padding-bottom: 8px;
+	border-bottom: 2px solid #e0e0e0;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+}
+
+.config-setting {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 12px 15px;
+	margin-bottom: 8px;
+	background: #f9f9f9;
+	border: 2px solid #ddd;
+	transition: all 0.2s;
+}
+
+.config-setting:hover {
+	background: #f0f0f0;
+	border-color: #000;
+}
+
+.config-setting-info {
+	flex: 1;
+	margin-right: 20px;
+}
+
+.config-label {
+	display: block;
+	font-weight: bold;
+	font-size: 0.95em;
+	color: #000;
+	margin-bottom: 3px;
+	cursor: pointer;
+}
+
+.config-description {
+	display: block;
+	font-size: 0.85em;
+	color: #666;
+	font-style: italic;
+}
+
+/* Toggle Switch Styles */
+.config-toggle {
+	flex-shrink: 0;
+}
+
+.toggle-checkbox {
+	display: none;
+}
+
+.toggle-label {
+	display: block;
+	width: 60px;
+	height: 30px;
+	background: #ccc;
+	border: 3px solid #000;
+	position: relative;
+	cursor: pointer;
+	transition: all 0.3s;
+	box-shadow: 2px 2px 0px rgba(0, 0, 0, 0.3);
+}
+
+.toggle-label:hover {
+	box-shadow: 3px 3px 0px rgba(0, 0, 0, 0.4);
+}
+
+.toggle-switch {
+	display: block;
+	width: 22px;
+	height: 22px;
+	background: white;
+	border: 2px solid #000;
+	position: absolute;
+	top: 1px;
+	left: 1px;
+	transition: all 0.3s;
+}
+
+.toggle-checkbox:checked + .toggle-label {
+	background: #28a745;
+}
+
+.toggle-checkbox:checked + .toggle-label .toggle-switch {
+	left: 31px;
+	background: white;
+}
+
+/* ON/OFF text inside toggle */
+.toggle-inner:before,
+.toggle-inner:after {
+	display: block;
+	position: absolute;
+	top: 50%;
+	transform: translateY(-50%);
+	font-size: 0.7em;
+	font-weight: bold;
+	font-family: 'Courier New', monospace;
+}
+
+.toggle-inner:before {
+	content: 'ON';
+	left: 6px;
+	color: white;
+	opacity: 0;
+	transition: opacity 0.3s;
+}
+
+.toggle-inner:after {
+	content: 'OFF';
+	right: 4px;
+	color: #666;
+	opacity: 1;
+	transition: opacity 0.3s;
+}
+
+.toggle-checkbox:checked + .toggle-label .toggle-inner:before {
+	opacity: 1;
+}
+
+.toggle-checkbox:checked + .toggle-label .toggle-inner:after {
+	opacity: 0;
+}
+
+.config-actions {
+	display: flex;
+	gap: 10px;
+	margin-top: 20px;
+	flex-wrap: wrap;
+}
+
+.config-actions button {
+	flex: 1;
+	min-width: 150px;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+	.config-container {
+		grid-template-columns: 1fr;
+		gap: 20px;
+	}
+
+	.config-panel {
+		padding: 20px;
+	}
+
+	.config-setting {
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 10px;
+	}
+
+	.config-setting-info {
+		margin-right: 0;
+		margin-bottom: 10px;
+	}
+
+	.config-toggle {
+		align-self: flex-end;
+	}
+
+	.config-actions {
+		flex-direction: column;
+	}
+
+	.config-actions button {
+		width: 100%;
+	}
+}

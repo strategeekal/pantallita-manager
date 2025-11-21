@@ -45,6 +45,10 @@ export async function handleTabSwitch(targetTab) {
 		if (window.eventsModule && window.eventsModule.initializeEvents) {
 			await window.eventsModule.initializeEvents();
 		}
+	} else if (targetTab === 'configuration') {
+		if (window.configManager && window.configManager.init) {
+			window.configManager.init();
+		}
 	}
 
 	// Clean up when leaving editor tab

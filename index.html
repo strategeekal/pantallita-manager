@@ -75,6 +75,7 @@
 			<nav class="tabs">
 				<button class="tab active" data-tab="events">Events</button>
 				<button class="tab" data-tab="schedules">Schedules</button>
+				<button class="tab" data-tab="configuration">Configuration</button>
 			</nav>
 
 			<!-- Events Tab -->
@@ -501,6 +502,50 @@
 				</div>
 			</div>
 		</div>
+
+		<!-- Configuration Tab -->
+		<section id="configuration-tab" class="tab-content">
+			<h2>Display Configuration</h2>
+			<p class="tab-description">Control what displays on each matrix independently</p>
+
+			<div class="config-container">
+				<!-- Matrix 1 Configuration -->
+				<div class="config-panel">
+					<h3>Matrix 1 Configuration</h3>
+					<div class="config-status">
+						<span id="matrix1-status" class="loading-message hidden">Loading...</span>
+						<span id="matrix1-error" class="error-message hidden"></span>
+					</div>
+					
+					<div id="matrix1-config" class="config-settings">
+						<!-- Settings will be populated here -->
+					</div>
+
+					<div class="config-actions">
+						<button class="btn-pixel btn-primary" onclick="window.configManager.saveConfig('matrix1')">💾 Save Matrix 1</button>
+						<button class="btn-pixel btn-secondary" onclick="window.configManager.loadConfig('matrix1')">🔄 Reload</button>
+					</div>
+				</div>
+
+				<!-- Matrix 2 Configuration -->
+				<div class="config-panel">
+					<h3>Matrix 2 Configuration</h3>
+					<div class="config-status">
+						<span id="matrix2-status" class="loading-message hidden">Loading...</span>
+						<span id="matrix2-error" class="error-message hidden"></span>
+					</div>
+					
+					<div id="matrix2-config" class="config-settings">
+						<!-- Settings will be populated here -->
+					</div>
+
+					<div class="config-actions">
+						<button class="btn-pixel btn-primary" onclick="window.configManager.saveConfig('matrix2')">💾 Save Matrix 2</button>
+						<button class="btn-pixel btn-secondary" onclick="window.configManager.loadConfig('matrix2')">🔄 Reload</button>
+					</div>
+				</div>
+			</div>
+		</section>
 
 		<!-- Validation Modal -->
 		<div id="validation-modal" class="modal hidden">
