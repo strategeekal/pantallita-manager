@@ -49,6 +49,10 @@ export async function handleTabSwitch(targetTab) {
 		if (window.configManager && window.configManager.init) {
 			window.configManager.init();
 		}
+	} else if (targetTab === 'stocks') {
+		if (window.stocksModule && window.stocksModule.initializeStocks) {
+			await window.stocksModule.initializeStocks();
+		}
 	}
 
 	// Clean up when leaving editor tab

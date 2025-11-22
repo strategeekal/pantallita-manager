@@ -3292,3 +3292,152 @@ header p {
 		width: 100%;
 	}
 }
+
+/* ============================================
+   Stocks Section Styles
+   ============================================ */
+
+.stocks-section {
+	padding: 20px;
+	background: white;
+	border: 4px solid #000;
+	border-radius: 8px;
+	box-shadow: 8px 8px 0px rgba(0, 0, 0, 0.2);
+}
+
+.stocks-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 20px;
+	flex-wrap: wrap;
+	gap: 15px;
+}
+
+.stocks-header h3 {
+	margin: 0;
+	font-size: 1.4em;
+}
+
+.stocks-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+	gap: 15px;
+	margin-top: 15px;
+}
+
+.stock-card {
+	background: #f8f9fa;
+	border: 3px solid #000;
+	border-radius: 6px;
+	padding: 15px;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	transition: all 0.2s;
+}
+
+.stock-card:hover {
+	transform: translateY(-2px);
+	box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.1);
+}
+
+.stock-info {
+	flex: 1;
+}
+
+.stock-ticker {
+	font-size: 1.3em;
+	font-weight: bold;
+	color: #000;
+	margin-bottom: 5px;
+}
+
+.stock-company {
+	font-size: 0.9em;
+	color: #666;
+}
+
+.stock-actions {
+	display: flex;
+	gap: 8px;
+}
+
+.btn-small {
+	padding: 6px 12px;
+	font-size: 0.85em;
+	min-height: 32px;
+}
+
+.btn-danger {
+	background: #ff4444;
+	color: white;
+}
+
+.btn-danger:hover {
+	background: #cc0000;
+}
+
+.ticker-input-group {
+	display: flex;
+	gap: 10px;
+	align-items: center;
+}
+
+.ticker-input-group input {
+	flex: 1;
+}
+
+.ticker-input-group button {
+	white-space: nowrap;
+}
+
+#fetch-status {
+	display: block;
+	margin-top: 5px;
+	font-size: 0.9em;
+}
+
+#fetch-status.error {
+	color: #ff4444;
+}
+
+.info-message {
+	color: #0066cc;
+	font-size: 0.9em;
+}
+
+/* Mobile Responsive Styles for Stocks */
+@media (max-width: 768px) {
+	.stocks-header {
+		flex-direction: column;
+		align-items: stretch;
+	}
+
+	.stocks-grid {
+		grid-template-columns: 1fr;
+	}
+
+	.stock-card {
+		flex-direction: column;
+		align-items: stretch;
+		gap: 12px;
+	}
+
+	.stock-actions {
+		justify-content: stretch;
+	}
+
+	.stock-actions button {
+		flex: 1;
+	}
+
+	.ticker-input-group {
+		flex-direction: column;
+		align-items: stretch;
+	}
+
+	.ticker-input-group button {
+		width: 100%;
+	}
+}

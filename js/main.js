@@ -23,6 +23,9 @@ import * as validator from './validation/validator.js';
 // Import configuration module
 import * as configManager from './config/config-manager.js';
 
+// Import stocks module
+import * as stocksModule from './stocks/stocks-manager.js';
+
 // Detect mobile at startup
 const IS_MOBILE = isMobileDevice();
 
@@ -107,6 +110,9 @@ window.templateManager = {
 
 // Expose validation functions globally (already exposed in validator.js, but adding here for clarity)
 window.validatorModule = validator;
+
+// Stocks module is already exposed in stocks-manager.js, but reference it here for completeness
+// window.stocksModule is set in stocks-manager.js
 
 // Initialize app on page load
 document.addEventListener('DOMContentLoaded', async () => {

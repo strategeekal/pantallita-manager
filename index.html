@@ -75,6 +75,7 @@
 			<nav class="tabs">
 				<button class="tab active" data-tab="events">Events</button>
 				<button class="tab" data-tab="schedules">Schedules</button>
+				<button class="tab" data-tab="stocks">Stocks</button>
 				<button class="tab" data-tab="configuration">Configuration</button>
 			</nav>
 
@@ -546,6 +547,84 @@
 				</div>
 			</div>
 		</section>
+
+		<!-- Stocks Tab -->
+		<section id="stocks-tab" class="tab-content">
+			<h2>Investment Stocks</h2>
+			<p class="tab-description">Manage stock tickers displayed on your matrix</p>
+
+			<div class="stocks-section">
+				<div class="stocks-header">
+					<h3>Your Stocks</h3>
+					<div class="list-actions">
+						<button class="btn-pixel btn-primary" onclick="window.stocksModule.openAddStockDialog()">➕ Add Stock</button>
+						<button class="btn-pixel btn-secondary" onclick="window.stocksModule.loadStocks()">🔄 Refresh</button>
+					</div>
+				</div>
+
+				<div id="stocks-loading" class="loading-message hidden">
+					Loading stocks from GitHub...
+				</div>
+
+				<div id="stocks-status" class="loading-message hidden"></div>
+
+				<div id="stocks-error" class="error-message hidden"></div>
+
+				<div id="stocks-empty" class="empty-message hidden">
+					No stocks configured. Click "+ Add Stock" to add your first stock!
+				</div>
+
+				<div id="stocks-list"></div>
+			</div>
+		</section>
+
+		<!-- Stock Editor Modal -->
+		<div id="stock-editor-modal" class="modal hidden">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h3 id="stock-editor-title">Add New Stock</h3>
+					<button class="modal-close" onclick="window.stocksModule.closeStockEditor()">×</button>
+				</div>
+				<div class="modal-body">
+					<div class="form-group">
+						<label for="stock-ticker">Stock Ticker Symbol *</label>
+						<div class="ticker-input-group">
+							<input
+								type="text"
+								id="stock-ticker"
+								placeholder="e.g., AAPL"
+								maxlength="10"
+								style="text-transform: uppercase;"
+								required
+							>
+							<button
+								class="btn-pixel btn-secondary"
+								onclick="window.stocksModule.fetchCompanyName(document.getElementById('stock-ticker').value)"
+								title="Auto-fetch company name"
+							>
+								🔍 Lookup
+							</button>
+						</div>
+						<span id="fetch-status" class="info-message hidden"></span>
+					</div>
+
+					<div class="form-group">
+						<label for="stock-company-name">Company Name *</label>
+						<input
+							type="text"
+							id="stock-company-name"
+							placeholder="e.g., Apple Inc."
+							required
+						>
+					</div>
+
+					<div class="modal-footer">
+						<button class="btn-pixel btn-primary" onclick="window.stocksModule.saveStock()">💾 Save</button>
+						<button class="btn-pixel btn-secondary" onclick="window.stocksModule.closeStockEditor()">Cancel</button>
+					</div>
+				</div>
+			</div>
+		</div>
 
 		<!-- Validation Modal -->
 		<div id="validation-modal" class="modal hidden">
