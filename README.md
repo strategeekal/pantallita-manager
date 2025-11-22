@@ -1,10 +1,10 @@
 # SCREENY Manager
 
-**Version 1.5.0**
+**Version 1.6.0**
 
 A web-based management interface for SCREENY RGB matrix displays. Manage ephemeral events and daily schedules remotely through GitHub, with full support for desktop and mobile devices.
 
-![SCREENY Manager](https://img.shields.io/badge/status-active-brightgreen) ![Version](https://img.shields.io/badge/version-1.5.0-blue)
+![SCREENY Manager](https://img.shields.io/badge/status-active-brightgreen) ![Version](https://img.shields.io/badge/version-1.6.0-blue)
 
 ## Features
 
@@ -58,6 +58,22 @@ A web-based management interface for SCREENY RGB matrix displays. Manage ephemer
 - Stacked footer with large touch targets
 - Optimized date inputs (48px height, proper text alignment and color)
 - Native mobile date pickers for better UX
+
+### ⚙️ Display Configuration
+- **Dual Matrix Control**: Independent configuration for two RGB matrix displays (Matrix 1 & Matrix 2)
+- **Toggle-Based Settings**: Easy on/off controls for display features
+- **Configurable Display Options**:
+  - Show/hide weather information
+  - Show/hide weather forecast
+  - Show/hide events
+  - Show/hide weekday indicator
+  - Show/hide scheduled displays
+  - Show/hide events between schedules
+  - Enable/disable delayed start (safety feature)
+- **GitHub Integration**: Configuration files (CSV format) stored in repository
+- **Real-time Updates**: Save and reload configurations on the fly
+- **Grouped Settings**: Settings organized by logical sections for clarity
+- **Visual Feedback**: Loading states and error messages for save/reload operations
 
 ### 🔍 Data Validation
 - Automatic validation on app load with discreet badge notification
@@ -154,11 +170,71 @@ Get Dressed,1,,8,0,8,30,get_dressed.bmp,1
 
 Templates are stored in `schedules/templates/` directory and can be loaded into any schedule type.
 
+### Configuration CSV (`matrix1_config.csv` or `matrix2_config.csv`)
+
+**Format:**
+```
+# Display Configuration for Pantallita
+# Format: setting,value
+# Boolean values: 1 = True, 0 = False
+# This file can be overridden by GitHub remote config at startup
+
+# Core displays
+show_weather,1
+show_forecast,1
+show_events,1
+
+# Additional features
+show_weekday_indicator,1
+show_scheduled_displays,1
+show_events_in_between_schedules,1
+
+# System
+delayed_start,1
+```
+
+**Fields:**
+- `setting` - Configuration setting name
+- `value` - Boolean value: `1` = enabled, `0` = disabled
+
+**Available Settings:**
+- `show_weather` - Display current weather information
+- `show_forecast` - Display weather forecast
+- `show_events` - Display upcoming events
+- `show_weekday_indicator` - Show day of the week indicator
+- `show_scheduled_displays` - Show scheduled display items
+- `show_events_in_between_schedules` - Show events when no schedule is active
+- `delayed_start` - Enable delayed startup for safety
+
+**Example:**
+```csv
+# Display Configuration for Pantallita
+# Format: setting,value
+# Boolean values: 1 = True, 0 = False
+
+# Core displays
+show_weather,1
+show_forecast,0
+show_events,1
+
+# Additional features
+show_weekday_indicator,1
+show_scheduled_displays,1
+show_events_in_between_schedules,0
+
+# System
+delayed_start,1
+```
+
+Two configuration files are supported for dual matrix setups: `matrix1_config.csv` and `matrix2_config.csv`.
+
 ## GitHub Repository Structure
 
 ```
 pantallita-events/                # Independent repo with files
 ├── ephemeral_events.csv          # Events file
+├── matrix1_config.csv            # Matrix 1 configuration
+├── matrix2_config.csv            # Matrix 2 configuration
 ├── schedules/
     ├── default_schedule.csv      # Default daily schedule
     ├── schedule_YYYY-MM-DD.csv   # Date-specific schedules
@@ -225,7 +301,10 @@ pantallita-manager/
 │   ├── core/
 │   │   ├── api.js               # GitHub API integration
 │   │   ├── config.js            # Configuration management
+│   │   ├── constants.js         # App constants
 │   │   └── utils.js             # Utility functions
+│   ├── config/
+│   │   └── config-manager.js    # Matrix configuration management
 │   ├── events/
 │   │   └── events-manager.js    # Events CRUD operations
 │   ├── schedules/
@@ -234,6 +313,8 @@ pantallita-manager/
 │   │   ├── timeline.js          # Timeline view & item editor
 │   │   ├── preview.js           # Desktop preview emulator
 │   │   └── template-manager.js  # Template operations
+│   ├── validation/
+│   │   └── validator.js         # Data validation system
 │   └── ui/
 │       ├── fonts.js             # TINYBIT bitmap font data
 │       ├── matrix-emulator.js   # RGB matrix emulator
@@ -306,7 +387,26 @@ Available colors for event text:
 
 ## Version History
 
-### Version 1.5.0 (Current)
+### Version 1.6.0 (Current)
+- **Matrix Display Configuration** ⚙️:
+  - New Configuration tab for controlling display settings
+  - Independent control for dual matrix setups (Matrix 1 & Matrix 2)
+  - Toggle-based interface for easy on/off control
+  - Configuration options include:
+    - Show/hide weather information
+    - Show/hide weather forecast
+    - Show/hide events
+    - Show/hide weekday indicator
+    - Show/hide scheduled displays
+    - Show/hide events between schedules
+    - Enable/disable delayed start (safety feature)
+  - GitHub integration: CSV-based configuration files (matrix1_config.csv, matrix2_config.csv)
+  - Real-time save and reload functionality
+  - Settings organized by logical sections (Core displays, Additional features, System)
+  - Visual feedback with loading states and error messages
+  - Allows fine-grained control over what displays on each matrix independently
+
+### Version 1.5.0
 - **Schedule Conflict Detection** 🚨:
   - Detects duplicate item names within schedules (ERROR - critical: only last item displays on matrix)
   - Detects overlapping time ranges between schedule items (WARNING)
@@ -411,8 +511,8 @@ Available colors for event text:
 - [x] Event/Schedule Validation ✅ (v1.4.0)
 - [x] Schedule conflict detection ✅ (v1.5.0)
 - [x] Event search/filter ✅ (v1.5.0)
+- [x] Display module control ✅ (v1.6.0)
 - [ ] Dark mode toggle
-- [ ] Display module control
 
 ## License
 
