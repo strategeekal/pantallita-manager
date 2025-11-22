@@ -18,6 +18,7 @@ const configLabels = {
     'show_weekday_indicator': 'Show Weekday Indicator',
     'show_scheduled_displays': 'Show Scheduled Displays',
     'show_events_in_between_schedules': 'Show Events Between Schedules',
+    'night_mode_minimal_display': 'Night Mode (Minimal Display)',
     'delayed_start': 'Delayed Start (Safety Feature)'
 };
 
@@ -29,6 +30,7 @@ const configDescriptions = {
     'show_weekday_indicator': 'Show day of the week indicator',
     'show_scheduled_displays': 'Show scheduled display items',
     'show_events_in_between_schedules': 'Show events when no schedule is active',
+    'night_mode_minimal_display': 'Enable minimal display mode during nighttime hours',
     'delayed_start': 'Enable delayed startup for safety'
 };
 
