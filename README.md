@@ -1,10 +1,10 @@
 # SCREENY Manager
 
-**Version 1.6.0**
+**Version 1.7.0**
 
-A web-based management interface for SCREENY RGB matrix displays. Manage ephemeral events and daily schedules remotely through GitHub, with full support for desktop and mobile devices.
+A web-based management interface for SCREENY RGB matrix displays. Manage ephemeral events, daily schedules, and investment stock tickers remotely through GitHub, with full support for desktop and mobile devices.
 
-![SCREENY Manager](https://img.shields.io/badge/status-active-brightgreen) ![Version](https://img.shields.io/badge/version-1.6.0-blue)
+![SCREENY Manager](https://img.shields.io/badge/status-active-brightgreen) ![Version](https://img.shields.io/badge/version-1.7.0-blue)
 
 ## Features
 
@@ -50,6 +50,19 @@ A web-based management interface for SCREENY RGB matrix displays. Manage ephemer
 - Template library management
 - Cleaner timeline view for templates (no day/week selector)
 
+### 📈 Stocks Management
+- **Investment Stock Tickers**: Display stock information on your matrix
+- **CRUD Operations**: Add, edit, and delete stock tickers
+- **Stock Information**:
+  - Ticker symbol (e.g., AAPL, GOOGL, TSLA)
+  - Company name
+- **Auto-Lookup Feature**: Automatically fetch company names from ticker symbols
+  - Uses Yahoo Finance API for real-time lookups
+  - Manual entry supported if auto-lookup fails
+- **Grid View**: Stock cards displayed in responsive grid layout
+- **GitHub Integration**: Stock data stored in `stocks.csv` file
+- **Easy Management**: Similar interface to schedule items for consistency
+
 ### 📱 Mobile Optimization
 - Fully responsive design
 - Touch-friendly interface
@@ -69,6 +82,7 @@ A web-based management interface for SCREENY RGB matrix displays. Manage ephemer
   - Show/hide weekday indicator
   - Show/hide scheduled displays
   - Show/hide events between schedules
+  - Show/hide investment stocks
   - Enable/disable night mode (minimal display during nighttime hours)
   - Enable/disable delayed start (safety feature)
 - **GitHub Integration**: Configuration files (CSV format) stored in repository
@@ -171,6 +185,35 @@ Get Dressed,1,,8,0,8,30,get_dressed.bmp,1
 
 Templates are stored in `schedules/templates/` directory and can be loaded into any schedule type.
 
+### Stocks CSV (`stocks.csv`)
+
+**Format:**
+```
+ticker,company_name
+```
+
+**Fields:**
+- `ticker` - Stock ticker symbol (automatically converted to uppercase)
+- `company_name` - Company name (can contain commas)
+
+**Example:**
+```csv
+# Stock Tickers
+# Format: ticker,company_name
+
+AAPL,Apple Inc.
+GOOGL,Alphabet Inc.
+TSLA,Tesla, Inc.
+MSFT,Microsoft Corporation
+AMZN,Amazon.com, Inc.
+```
+
+**Notes:**
+- Company names can contain commas (they will be preserved)
+- Ticker symbols are automatically converted to uppercase
+- Use the "🔍 Lookup" button in the web interface to auto-fetch company names
+- Blank lines and lines starting with `#` are ignored
+
 ### Configuration CSV (`matrix1_config.csv` or `matrix2_config.csv`)
 
 **Format:**
@@ -189,6 +232,7 @@ show_events,1
 show_weekday_indicator,1
 show_scheduled_displays,1
 show_events_in_between_schedules,1
+show_stocks,1
 night_mode_minimal_display,1
 
 # Safety features
@@ -206,6 +250,7 @@ delayed_start,0
 - `show_weekday_indicator` - Show day of the week indicator
 - `show_scheduled_displays` - Show scheduled display items
 - `show_events_in_between_schedules` - Show events when no schedule is active
+- `show_stocks` - Display investment stock ticker information
 - `night_mode_minimal_display` - Enable minimal display mode during nighttime hours
 - `delayed_start` - Enable delayed startup for safety
 
@@ -224,6 +269,7 @@ show_events,1
 show_weekday_indicator,1
 show_scheduled_displays,1
 show_events_in_between_schedules,0
+show_stocks,1
 night_mode_minimal_display,1
 
 # Safety features
@@ -237,6 +283,7 @@ Two configuration files are supported for dual matrix setups: `matrix1_config.cs
 ```
 pantallita-events/                # Independent repo with files
 ├── ephemeral_events.csv          # Events file
+├── stocks.csv                    # Stock tickers
 ├── matrix1_config.csv            # Matrix 1 configuration
 ├── matrix2_config.csv            # Matrix 2 configuration
 ├── schedules/
@@ -317,6 +364,8 @@ pantallita-manager/
 │   │   ├── timeline.js          # Timeline view & item editor
 │   │   ├── preview.js           # Desktop preview emulator
 │   │   └── template-manager.js  # Template operations
+│   ├── stocks/
+│   │   └── stocks-manager.js    # Stock tickers CRUD operations
 │   ├── validation/
 │   │   └── validator.js         # Data validation system
 │   └── ui/
@@ -391,7 +440,23 @@ Available colors for event text:
 
 ## Version History
 
-### Version 1.6.0 (Current)
+### Version 1.7.0 (Current)
+- **Investment Stocks Management** 📈:
+  - New Stocks tab for managing investment stock tickers
+  - Add, edit, and delete stock ticker entries
+  - Stock information includes ticker symbol and company name
+  - Auto-lookup feature to fetch company names from ticker symbols
+  - Uses Yahoo Finance API for real-time company name lookups
+  - Manual entry supported if auto-lookup fails
+  - Responsive grid layout for stock cards
+  - GitHub integration via `stocks.csv` file
+  - Similar UI/UX to schedule items for consistency
+- **Stock Display Toggle** ⚙️:
+  - Added `show_stocks` configuration option to matrix config files
+  - Enable/disable stock ticker display per matrix
+  - Integrated into Configuration tab
+
+### Version 1.6.0
 - **Matrix Display Configuration** ⚙️:
   - New Configuration tab for controlling display settings
   - Independent control for dual matrix setups (Matrix 1 & Matrix 2)
