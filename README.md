@@ -69,6 +69,7 @@ A web-based management interface for SCREENY RGB matrix displays. Manage ephemer
   - Show/hide weekday indicator
   - Show/hide scheduled displays
   - Show/hide events between schedules
+  - Enable/disable night mode (minimal display during nighttime hours)
   - Enable/disable delayed start (safety feature)
 - **GitHub Integration**: Configuration files (CSV format) stored in repository
 - **Real-time Updates**: Save and reload configurations on the fly
@@ -184,13 +185,14 @@ show_weather,1
 show_forecast,1
 show_events,1
 
-# Additional features
+# Display elements
 show_weekday_indicator,1
 show_scheduled_displays,1
 show_events_in_between_schedules,1
+night_mode_minimal_display,1
 
-# System
-delayed_start,1
+# Safety features
+delayed_start,0
 ```
 
 **Fields:**
@@ -204,6 +206,7 @@ delayed_start,1
 - `show_weekday_indicator` - Show day of the week indicator
 - `show_scheduled_displays` - Show scheduled display items
 - `show_events_in_between_schedules` - Show events when no schedule is active
+- `night_mode_minimal_display` - Enable minimal display mode during nighttime hours
 - `delayed_start` - Enable delayed startup for safety
 
 **Example:**
@@ -217,13 +220,14 @@ show_weather,1
 show_forecast,0
 show_events,1
 
-# Additional features
+# Display elements
 show_weekday_indicator,1
 show_scheduled_displays,1
 show_events_in_between_schedules,0
+night_mode_minimal_display,1
 
-# System
-delayed_start,1
+# Safety features
+delayed_start,0
 ```
 
 Two configuration files are supported for dual matrix setups: `matrix1_config.csv` and `matrix2_config.csv`.
@@ -399,10 +403,11 @@ Available colors for event text:
     - Show/hide weekday indicator
     - Show/hide scheduled displays
     - Show/hide events between schedules
+    - Enable/disable night mode (minimal display during nighttime hours)
     - Enable/disable delayed start (safety feature)
   - GitHub integration: CSV-based configuration files (matrix1_config.csv, matrix2_config.csv)
   - Real-time save and reload functionality
-  - Settings organized by logical sections (Core displays, Additional features, System)
+  - Settings organized by logical sections (Core displays, Display elements, Safety features)
   - Visual feedback with loading states and error messages
   - Allows fine-grained control over what displays on each matrix independently
 
