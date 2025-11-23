@@ -254,6 +254,7 @@ show_scheduled_displays,1
 show_events_in_between_schedules,1
 show_stocks,1
 stocks_respect_market_hours,0
+stocks_display_frequency,3
 night_mode_minimal_display,1
 
 # Safety features
@@ -262,7 +263,7 @@ delayed_start,0
 
 **Fields:**
 - `setting` - Configuration setting name
-- `value` - Boolean value: `1` = enabled, `0` = disabled
+- `value` - Boolean value (`1` = enabled, `0` = disabled) or numeric value (for frequency settings)
 
 **Available Settings:**
 - `show_weather` - Display current weather information
@@ -273,6 +274,7 @@ delayed_start,0
 - `show_events_in_between_schedules` - Show events when no schedule is active
 - `show_stocks` - Display investment stock ticker information
 - `stocks_respect_market_hours` - Show stocks only during market hours (1) or all day (0)
+- `stocks_display_frequency` - Number of cycles before displaying next set of stocks (numeric: 1-78, default: 3)
 - `night_mode_minimal_display` - Enable minimal display mode during nighttime hours
 - `delayed_start` - Enable delayed startup for safety
 
@@ -293,6 +295,7 @@ show_scheduled_displays,1
 show_events_in_between_schedules,0
 show_stocks,1
 stocks_respect_market_hours,1
+stocks_display_frequency,5
 night_mode_minimal_display,1
 
 # Safety features
