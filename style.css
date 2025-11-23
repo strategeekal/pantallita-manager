@@ -3260,12 +3260,12 @@ header p {
 }
 
 .config-number-input .number-input {
-	width: 80px;
-	height: 36px;
-	padding: 6px 10px;
+	width: 60px;
+	height: 30px;
+	padding: 3px 8px;
 	background: white;
 	border: 3px solid #000;
-	font-size: 16px;
+	font-size: 14px;
 	font-family: 'Courier New', monospace;
 	font-weight: bold;
 	text-align: center;
