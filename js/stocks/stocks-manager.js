@@ -133,6 +133,7 @@ function renderStocksList() {
                  data-index="${index}"
                  ondragstart="window.stocksModule.handleDragStart(event)"
                  ondragover="window.stocksModule.handleDragOver(event)"
+                 ondragleave="window.stocksModule.handleDragLeave(event)"
                  ondrop="window.stocksModule.handleDrop(event)"
                  ondragend="window.stocksModule.handleDragEnd(event)">
                 <div class="stock-drag-handle" title="Drag to reorder">⋮⋮</div>
@@ -188,6 +189,7 @@ export async function moveStockDown(index) {
 
 // Drag and drop state
 let draggedIndex = null;
+let draggedElement = null;
 
 /**
  * Handle drag start event
@@ -195,9 +197,10 @@ let draggedIndex = null;
  */
 export function handleDragStart(event) {
     draggedIndex = parseInt(event.currentTarget.dataset.index);
+    draggedElement = event.currentTarget;
     event.currentTarget.classList.add('dragging');
     event.dataTransfer.effectAllowed = 'move';
-    event.dataTransfer.setData('text/html', event.currentTarget.innerHTML);
+    event.dataTransfer.setData('text/plain', draggedIndex.toString()); // Use text/plain for better compatibility
 }
 
 /**
@@ -205,17 +208,37 @@ export function handleDragStart(event) {
  * @param {DragEvent} event
  */
 export function handleDragOver(event) {
-    if (event.preventDefault) {
-        event.preventDefault();
-    }
-    event.dataTransfer.dropEffect = 'move';
+    event.preventDefault(); // Required to allow drop
+    event.stopPropagation();
 
     const target = event.currentTarget;
-    if (target.classList.contains('stock-card')) {
-        target.classList.add('drag-over');
+    const targetIndex = parseInt(target.dataset.index);
+
+    // Don't highlight if dragging over self
+    if (draggedIndex === targetIndex) {
+        return false;
     }
 
+    // Remove drag-over from all other cards
+    document.querySelectorAll('.stock-card').forEach(card => {
+        if (card !== target) {
+            card.classList.remove('drag-over');
+        }
+    });
+
+    // Add drag-over to current target
+    target.classList.add('drag-over');
+
+    event.dataTransfer.dropEffect = 'move';
     return false;
+}
+
+/**
+ * Handle drag leave event
+ * @param {DragEvent} event
+ */
+export function handleDragLeave(event) {
+    event.currentTarget.classList.remove('drag-over');
 }
 
 /**
@@ -223,9 +246,8 @@ export function handleDragOver(event) {
  * @param {DragEvent} event
  */
 export async function handleDrop(event) {
-    if (event.stopPropagation) {
-        event.stopPropagation();
-    }
+    event.preventDefault();
+    event.stopPropagation();
 
     const dropIndex = parseInt(event.currentTarget.dataset.index);
 
@@ -247,7 +269,10 @@ export async function handleDrop(event) {
  * @param {DragEvent} event
  */
 export function handleDragEnd(event) {
-    event.currentTarget.classList.remove('dragging');
+    // Remove dragging class
+    if (draggedElement) {
+        draggedElement.classList.remove('dragging');
+    }
 
     // Remove drag-over class from all cards
     document.querySelectorAll('.stock-card').forEach(card => {
@@ -255,6 +280,7 @@ export function handleDragEnd(event) {
     });
 
     draggedIndex = null;
+    draggedElement = null;
 }
 
 /**
@@ -471,6 +497,7 @@ if (typeof window !== 'undefined') {
         moveStockDown,
         handleDragStart,
         handleDragOver,
+        handleDragLeave,
         handleDrop,
         handleDragEnd
     };
