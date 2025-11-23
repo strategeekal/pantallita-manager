@@ -3254,6 +3254,46 @@ header p {
 	opacity: 0;
 }
 
+/* Number Input Styles for Configuration */
+.config-number-input {
+	flex-shrink: 0;
+}
+
+.config-number-input .number-input {
+	width: 80px;
+	height: 36px;
+	padding: 6px 10px;
+	background: white;
+	border: 3px solid #000;
+	font-size: 16px;
+	font-family: 'Courier New', monospace;
+	font-weight: bold;
+	text-align: center;
+	box-shadow: 2px 2px 0px rgba(0, 0, 0, 0.3);
+	transition: all 0.2s;
+}
+
+.config-number-input .number-input:hover {
+	box-shadow: 3px 3px 0px rgba(0, 0, 0, 0.4);
+}
+
+.config-number-input .number-input:focus {
+	outline: none;
+	border-color: #00FFAA;
+	box-shadow: 0 0 0 3px rgba(0, 255, 170, 0.3);
+}
+
+/* Remove spinner arrows for cleaner look (optional) */
+.config-number-input .number-input::-webkit-outer-spin-button,
+.config-number-input .number-input::-webkit-inner-spin-button {
+	-webkit-appearance: none;
+	margin: 0;
+}
+
+.config-number-input .number-input[type=number] {
+	-moz-appearance: textfield;
+}
+
 .config-actions {
 	display: flex;
 	gap: 10px;

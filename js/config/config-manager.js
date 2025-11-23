@@ -19,6 +19,8 @@ const configLabels = {
     'show_scheduled_displays': 'Show Scheduled Displays',
     'show_events_in_between_schedules': 'Show Events Between Schedules',
     'show_stocks': 'Show Investment Stocks',
+    'stocks_respect_market_hours': 'Stocks: Only During Market Hours',
+    'stocks_display_frequency': 'Stocks: Display Cycle Frequency',
     'night_mode_minimal_display': 'Night Mode (Minimal Display)',
     'delayed_start': 'Delayed Start (Safety Feature)'
 };
@@ -32,8 +34,30 @@ const configDescriptions = {
     'show_scheduled_displays': 'Show scheduled display items',
     'show_events_in_between_schedules': 'Show events when no schedule is active',
     'show_stocks': 'Display investment stock ticker information',
+    'stocks_respect_market_hours': 'Show stocks only during market hours (1) or all day (0)',
+    'stocks_display_frequency': 'Number of cycles before displaying next set of stocks (1-78)',
     'night_mode_minimal_display': 'Enable minimal display mode during nighttime hours',
     'delayed_start': 'Enable delayed startup for safety'
+};
+
+// Configuration field types (boolean or number)
+const configTypes = {
+    'show_weather': 'boolean',
+    'show_forecast': 'boolean',
+    'show_events': 'boolean',
+    'show_weekday_indicator': 'boolean',
+    'show_scheduled_displays': 'boolean',
+    'show_events_in_between_schedules': 'boolean',
+    'show_stocks': 'boolean',
+    'stocks_respect_market_hours': 'boolean',
+    'stocks_display_frequency': 'number',
+    'night_mode_minimal_display': 'boolean',
+    'delayed_start': 'boolean'
+};
+
+// Configuration ranges for numeric fields
+const configRanges = {
+    'stocks_display_frequency': { min: 1, max: 78, default: 3 }
 };
 
 /**
@@ -138,12 +162,32 @@ function parseConfigCSV(content) {
                 const settingName = parts[0].trim();
                 const settingValue = parts[1].trim();
 
+                // Determine the type and parse value accordingly
+                const fieldType = configTypes[settingName] || 'boolean';
+                let parsedValue;
+
+                if (fieldType === 'number') {
+                    parsedValue = parseInt(settingValue, 10);
+                    // Validate range if defined
+                    if (configRanges[settingName]) {
+                        const range = configRanges[settingName];
+                        if (isNaN(parsedValue) || parsedValue < range.min || parsedValue > range.max) {
+                            parsedValue = range.default;
+                        }
+                    }
+                } else {
+                    // Boolean type
+                    parsedValue = settingValue === '1';
+                }
+
                 settings.push({
                     name: settingName,
-                    value: settingValue === '1',
+                    value: parsedValue,
+                    type: fieldType,
                     section: currentSection,
                     label: configLabels[settingName] || settingName.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
-                    description: configDescriptions[settingName] || ''
+                    description: configDescriptions[settingName] || '',
+                    range: configRanges[settingName] || null
                 });
             }
         }
@@ -182,27 +226,53 @@ function renderConfigSettings(matrixName, settings) {
 
             sectionSettings.forEach((setting, index) => {
                 const settingId = `${matrixName}-${setting.name}`;
-                const checked = setting.value ? 'checked' : '';
 
-                html += `
-                    <div class="config-setting">
-                        <div class="config-setting-info">
-                            <label for="${settingId}" class="config-label">${setting.label}</label>
-                            ${setting.description ? `<span class="config-description">${setting.description}</span>` : ''}
+                if (setting.type === 'number') {
+                    // Render number input
+                    const min = setting.range ? setting.range.min : 0;
+                    const max = setting.range ? setting.range.max : 100;
+
+                    html += `
+                        <div class="config-setting">
+                            <div class="config-setting-info">
+                                <label for="${settingId}" class="config-label">${setting.label}</label>
+                                ${setting.description ? `<span class="config-description">${setting.description}</span>` : ''}
+                            </div>
+                            <div class="config-number-input">
+                                <input type="number"
+                                       id="${settingId}"
+                                       class="number-input"
+                                       value="${setting.value}"
+                                       min="${min}"
+                                       max="${max}"
+                                       onchange="window.configManager.updateSetting('${matrixName}', '${setting.name}', parseInt(this.value))">
+                            </div>
                         </div>
-                        <div class="config-toggle">
-                            <input type="checkbox"
-                                   id="${settingId}"
-                                   class="toggle-checkbox"
-                                   ${checked}
-                                   onchange="window.configManager.updateSetting('${matrixName}', '${setting.name}', this.checked)">
-                            <label for="${settingId}" class="toggle-label">
-                                <span class="toggle-inner"></span>
-                                <span class="toggle-switch"></span>
-                            </label>
+                    `;
+                } else {
+                    // Render toggle for boolean
+                    const checked = setting.value ? 'checked' : '';
+
+                    html += `
+                        <div class="config-setting">
+                            <div class="config-setting-info">
+                                <label for="${settingId}" class="config-label">${setting.label}</label>
+                                ${setting.description ? `<span class="config-description">${setting.description}</span>` : ''}
+                            </div>
+                            <div class="config-toggle">
+                                <input type="checkbox"
+                                       id="${settingId}"
+                                       class="toggle-checkbox"
+                                       ${checked}
+                                       onchange="window.configManager.updateSetting('${matrixName}', '${setting.name}', this.checked)">
+                                <label for="${settingId}" class="toggle-label">
+                                    <span class="toggle-inner"></span>
+                                    <span class="toggle-switch"></span>
+                                </label>
+                            </div>
                         </div>
-                    </div>
-                `;
+                    `;
+                }
             });
 
             html += `</div>`;
@@ -313,7 +383,12 @@ function buildConfigCSV(configData) {
             csv += `# ${sectionName}\n`;
 
             sectionSettings.forEach(setting => {
-                const value = setting.value ? '1' : '0';
+                let value;
+                if (setting.type === 'number') {
+                    value = setting.value;
+                } else {
+                    value = setting.value ? '1' : '0';
+                }
                 csv += `${setting.name},${value}\n`;
             });
 
