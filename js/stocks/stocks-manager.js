@@ -107,7 +107,7 @@ function parseStocksCSV(content) {
 }
 
 /**
- * Render the stocks list with cycle grouping
+ * Render the stocks list with cycle grouping and drag-and-drop
  */
 function renderStocksList() {
     const listEl = document.getElementById('stocks-list');
@@ -120,62 +120,41 @@ function renderStocksList() {
 
     document.getElementById('stocks-empty').classList.add('hidden');
 
-    let html = '';
+    let html = '<div class="stocks-grid">';
     const cycleSize = 3;
 
     stocksData.forEach((stock, index) => {
         const cycleNumber = Math.floor(index / cycleSize) + 1;
         const positionInCycle = (index % cycleSize) + 1;
 
-        // Add cycle header at the start of each cycle
-        if (index % cycleSize === 0) {
-            html += `
-                <div class="cycle-header">
-                    <span class="cycle-badge">Cycle ${cycleNumber}</span>
-                    <span class="cycle-info">Stocks shown together on display</span>
-                </div>
-            `;
-        }
-
-        const canMoveUp = index > 0;
-        const canMoveDown = index < stocksData.length - 1;
-
         html += `
-            <div class="stock-card ${index % cycleSize === cycleSize - 1 ? 'cycle-last' : ''}">
-                <div class="stock-order">
-                    <span class="order-number">${index + 1}</span>
-                </div>
+            <div class="stock-card"
+                 draggable="true"
+                 data-index="${index}"
+                 ondragstart="window.stocksModule.handleDragStart(event)"
+                 ondragover="window.stocksModule.handleDragOver(event)"
+                 ondrop="window.stocksModule.handleDrop(event)"
+                 ondragend="window.stocksModule.handleDragEnd(event)">
+                <div class="stock-drag-handle" title="Drag to reorder">⋮⋮</div>
+                <div class="stock-cycle-badge">Cycle ${cycleNumber}</div>
                 <div class="stock-info">
                     <div class="stock-ticker">${stock.ticker}</div>
                     <div class="stock-company">${stock.companyName}</div>
                 </div>
                 <div class="stock-actions">
-                    <div class="stock-reorder">
-                        <button
-                            class="btn-pixel btn-small btn-secondary"
-                            onclick="window.stocksModule.moveStockUp(${index})"
-                            ${!canMoveUp ? 'disabled' : ''}
-                            title="Move up"
-                        >↑</button>
-                        <button
-                            class="btn-pixel btn-small btn-secondary"
-                            onclick="window.stocksModule.moveStockDown(${index})"
-                            ${!canMoveDown ? 'disabled' : ''}
-                            title="Move down"
-                        >↓</button>
-                    </div>
                     <button class="btn-pixel btn-small btn-secondary" onclick="window.stocksModule.editStock(${index})">✏️</button>
                     <button class="btn-pixel btn-small btn-danger" onclick="window.stocksModule.deleteStock(${index})">🗑️</button>
                 </div>
             </div>
         `;
 
-        // Add visual separator between cycles
+        // Add cycle separator after every 3 stocks (except the last group)
         if ((index + 1) % cycleSize === 0 && index < stocksData.length - 1) {
-            html += '<div class="cycle-separator"></div>';
+            html += '<div class="cycle-row-separator"></div>';
         }
     });
 
+    html += '</div>';
     listEl.innerHTML = html;
 }
 
@@ -205,6 +184,77 @@ export async function moveStockDown(index) {
 
     await saveStocksToGitHub();
     renderStocksList();
+}
+
+// Drag and drop state
+let draggedIndex = null;
+
+/**
+ * Handle drag start event
+ * @param {DragEvent} event
+ */
+export function handleDragStart(event) {
+    draggedIndex = parseInt(event.currentTarget.dataset.index);
+    event.currentTarget.classList.add('dragging');
+    event.dataTransfer.effectAllowed = 'move';
+    event.dataTransfer.setData('text/html', event.currentTarget.innerHTML);
+}
+
+/**
+ * Handle drag over event
+ * @param {DragEvent} event
+ */
+export function handleDragOver(event) {
+    if (event.preventDefault) {
+        event.preventDefault();
+    }
+    event.dataTransfer.dropEffect = 'move';
+
+    const target = event.currentTarget;
+    if (target.classList.contains('stock-card')) {
+        target.classList.add('drag-over');
+    }
+
+    return false;
+}
+
+/**
+ * Handle drop event
+ * @param {DragEvent} event
+ */
+export async function handleDrop(event) {
+    if (event.stopPropagation) {
+        event.stopPropagation();
+    }
+
+    const dropIndex = parseInt(event.currentTarget.dataset.index);
+
+    if (draggedIndex !== null && draggedIndex !== dropIndex) {
+        // Move the dragged item to the new position
+        const draggedStock = stocksData[draggedIndex];
+        stocksData.splice(draggedIndex, 1);
+        stocksData.splice(dropIndex, 0, draggedStock);
+
+        await saveStocksToGitHub();
+        renderStocksList();
+    }
+
+    return false;
+}
+
+/**
+ * Handle drag end event
+ * @param {DragEvent} event
+ */
+export function handleDragEnd(event) {
+    event.currentTarget.classList.remove('dragging');
+
+    // Remove drag-over class from all cards
+    document.querySelectorAll('.stock-card').forEach(card => {
+        card.classList.remove('drag-over');
+    });
+
+    draggedIndex = null;
 }
 
 /**
@@ -418,6 +468,10 @@ if (typeof window !== 'undefined') {
         deleteStock,
         fetchCompanyName,
         moveStockUp,
-        moveStockDown
+        moveStockDown,
+        handleDragStart,
+        handleDragOver,
+        handleDrop,
+        handleDragEnd
     };
 }

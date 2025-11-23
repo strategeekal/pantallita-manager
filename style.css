@@ -3293,6 +3293,7 @@ header p {
 	}
 }
 
+
 /* ============================================
    Stocks Section Styles
    ============================================ */
@@ -3319,31 +3320,84 @@ header p {
 	font-size: 1.4em;
 }
 
+/* 3-Column Grid Layout */
 .stocks-grid {
 	display: grid;
-	grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+	grid-template-columns: repeat(3, 1fr);
 	gap: 15px;
 	margin-top: 15px;
 }
 
+/* Stock Card - Pixel Art Style */
 .stock-card {
 	background: #f8f9fa;
 	border: 3px solid #000;
-	border-radius: 6px;
+	border-radius: 0;
 	padding: 15px;
-	display: flex;
-	justify-content: space-between;
-	align-items: center;
+	position: relative;
+	cursor: grab;
 	transition: all 0.2s;
+	box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.1);
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
 }
 
 .stock-card:hover {
 	transform: translateY(-2px);
-	box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.1);
+	box-shadow: 6px 6px 0px rgba(0, 0, 0, 0.15);
 }
 
+.stock-card:active {
+	cursor: grabbing;
+}
+
+/* Drag and Drop States */
+.stock-card.dragging {
+	opacity: 0.5;
+	transform: rotate(3deg);
+	cursor: grabbing;
+}
+
+.stock-card.drag-over {
+	border-color: #00FFAA;
+	border-width: 4px;
+	background: #e0ffe0;
+}
+
+/* Drag Handle */
+.stock-drag-handle {
+	position: absolute;
+	top: 8px;
+	left: 8px;
+	font-size: 1.2em;
+	color: #999;
+	cursor: grab;
+	user-select: none;
+	line-height: 1;
+}
+
+.stock-card:active .stock-drag-handle {
+	cursor: grabbing;
+}
+
+/* Cycle Badge - Top Right Corner */
+.stock-cycle-badge {
+	position: absolute;
+	top: 8px;
+	right: 8px;
+	background: #000;
+	color: #00FFAA;
+	padding: 3px 8px;
+	font-size: 0.7em;
+	font-weight: bold;
+	border: 2px solid #000;
+	box-shadow: 2px 2px 0px rgba(0, 0, 0, 0.2);
+}
+
+/* Stock Info */
 .stock-info {
-	flex: 1;
+	margin-top: 10px;
 }
 
 .stock-ticker {
@@ -3351,16 +3405,20 @@ header p {
 	font-weight: bold;
 	color: #000;
 	margin-bottom: 5px;
+	font-family: monospace;
 }
 
 .stock-company {
-	font-size: 0.9em;
+	font-size: 0.85em;
 	color: #666;
+	line-height: 1.3;
 }
 
+/* Stock Actions */
 .stock-actions {
 	display: flex;
 	gap: 8px;
+	margin-top: 8px;
 }
 
 .btn-small {
@@ -3378,6 +3436,40 @@ header p {
 	background: #cc0000;
 }
 
+/* Cycle Row Separator - Inspired by Timeline Free Time Indicator */
+.cycle-row-separator {
+	grid-column: 1 / -1;
+	height: 30px;
+	background: repeating-linear-gradient(
+		90deg,
+		#f0f0f0,
+		#f0f0f0 10px,
+		#e0e0e0 10px,
+		#e0e0e0 20px
+	);
+	border: 2px solid #ddd;
+	border-left: none;
+	border-right: none;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 0.75em;
+	color: #999;
+	font-weight: bold;
+	text-transform: uppercase;
+	letter-spacing: 1px;
+	margin: 10px 0;
+}
+
+.cycle-row-separator::before {
+	content: '⬇ Next Display Cycle ⬇';
+	background: white;
+	padding: 0 12px;
+	border: 2px solid #ddd;
+	box-shadow: 2px 2px 0px rgba(0, 0, 0, 0.05);
+}
+
+/* Modal Styles for Stock Editor */
 .ticker-input-group {
 	display: flex;
 	gap: 10px;
@@ -3408,6 +3500,12 @@ header p {
 }
 
 /* Mobile Responsive Styles for Stocks */
+@media (max-width: 1024px) {
+	.stocks-grid {
+		grid-template-columns: repeat(2, 1fr);
+	}
+}
+
 @media (max-width: 768px) {
 	.stocks-header {
 		flex-direction: column;
@@ -3421,15 +3519,14 @@ header p {
 	.stock-card {
 		flex-direction: column;
 		align-items: stretch;
-		gap: 12px;
 	}
 
 	.stock-actions {
-		justify-content: stretch;
+		flex-direction: column;
 	}
 
 	.stock-actions button {
-		flex: 1;
+		width: 100%;
 	}
 
 	.ticker-input-group {
@@ -3440,167 +3537,8 @@ header p {
 	.ticker-input-group button {
 		width: 100%;
 	}
-}
 
-/* Cycle Grouping Styles */
-.cycle-header {
-	display: flex;
-	align-items: center;
-	gap: 12px;
-	margin: 20px 0 12px 0;
-	padding: 8px 12px;
-	background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-	border-radius: 6px;
-	border: 3px solid #000;
-}
-
-.cycle-badge {
-	background: white;
-	color: #667eea;
-	padding: 4px 12px;
-	border-radius: 4px;
-	font-weight: bold;
-	font-size: 0.9em;
-	border: 2px solid #000;
-}
-
-.cycle-info {
-	color: white;
-	font-size: 0.85em;
-	font-weight: 500;
-}
-
-.cycle-separator {
-	height: 20px;
-	border-bottom: 3px dashed #ddd;
-	margin: 15px 0;
-	position: relative;
-}
-
-.cycle-separator::after {
-	content: '⬇ Next Cycle ⬇';
-	position: absolute;
-	left: 50%;
-	top: 50%;
-	transform: translate(-50%, -50%);
-	background: white;
-	padding: 0 15px;
-	color: #999;
-	font-size: 0.75em;
-	font-weight: bold;
-}
-
-.stock-card {
-	display: flex;
-	align-items: center;
-	gap: 12px;
-	position: relative;
-}
-
-.stock-card.cycle-last {
-	margin-bottom: 8px;
-}
-
-.stock-order {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	min-width: 40px;
-}
-
-.order-number {
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-	width: 32px;
-	height: 32px;
-	background: #f0f0f0;
-	border: 2px solid #000;
-	border-radius: 50%;
-	font-weight: bold;
-	font-size: 0.9em;
-	color: #333;
-}
-
-.stock-actions {
-	display: flex;
-	gap: 6px;
-	align-items: center;
-	flex-wrap: wrap;
-}
-
-.stock-reorder {
-	display: flex;
-	flex-direction: column;
-	gap: 3px;
-}
-
-.stock-reorder button {
-	padding: 4px 8px;
-	min-width: 32px;
-	min-height: 28px;
-	font-size: 1em;
-	line-height: 1;
-}
-
-.stock-reorder button:disabled {
-	opacity: 0.3;
-	cursor: not-allowed;
-	background: #ccc;
-}
-
-.stock-reorder button:disabled:hover {
-	background: #ccc;
-	transform: none;
-}
-
-/* Update existing stock-grid to remove grid layout in favor of list */
-.stocks-grid {
-	display: flex;
-	flex-direction: column;
-	gap: 0;
-}
-
-/* Mobile Responsive Updates for Cycles */
-@media (max-width: 768px) {
-	.cycle-header {
-		flex-direction: column;
-		align-items: stretch;
-		text-align: center;
-		gap: 8px;
-	}
-
-	.stock-card {
-		flex-wrap: wrap;
-		gap: 8px;
-	}
-
-	.stock-order {
-		order: -1;
-	}
-
-	.stock-info {
-		flex: 1;
-		min-width: 150px;
-	}
-
-	.stock-actions {
-		width: 100%;
-		justify-content: space-between;
-	}
-
-	.stock-reorder {
-		flex-direction: row;
-		gap: 6px;
-	}
-
-	.stock-reorder button {
-		flex: 1;
-		min-height: 40px;
-	}
-
-	.cycle-separator::after {
-		font-size: 0.7em;
-		padding: 0 10px;
+	.cycle-row-separator::before {
+		font-size: 0.85em;
 	}
 }
