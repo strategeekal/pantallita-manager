@@ -440,7 +440,7 @@ function buildStocksCSV() {
 }
 
 /**
- * Fetch company name from ticker using local reference file
+ * Fetch company name from ticker using local reference and validate with Twelve Data API
  * @param {string} ticker - Stock ticker symbol
  */
 export async function fetchCompanyName(ticker) {
@@ -457,28 +457,80 @@ export async function fetchCompanyName(ticker) {
         statusEl.textContent = 'Looking up...';
         statusEl.classList.remove('hidden', 'error');
 
-        // Load reference if not already loaded
+        // First try local reference
         const reference = await loadStockReference();
+        let companyName = reference[ticker];
+        let foundInLocal = !!companyName;
 
-        if (reference[ticker]) {
-            companyNameInput.value = reference[ticker];
-            statusEl.textContent = '✓ Found in database';
-            statusEl.classList.remove('error');
-            setTimeout(() => {
-                statusEl.classList.add('hidden');
-            }, 2000);
-        } else {
-            throw new Error('Ticker not found in database');
+        if (foundInLocal) {
+            companyNameInput.value = companyName;
+            statusEl.textContent = 'Validating with Twelve Data...';
+        }
+
+        // Validate with Twelve Data API
+        try {
+            // Twelve Data API - Symbol Search endpoint (free tier)
+            // Note: Replace with your API key or use the free tier endpoint
+            const apiUrl = `https://api.twelvedata.com/symbol_search?symbol=${ticker}&outputsize=1`;
+            const response = await fetch(apiUrl);
+
+            if (response.ok) {
+                const data = await response.json();
+
+                if (data.data && data.data.length > 0) {
+                    const stockInfo = data.data[0];
+
+                    // If we didn't find in local reference, use API data
+                    if (!foundInLocal && stockInfo.instrument_name) {
+                        companyName = stockInfo.instrument_name;
+                        companyNameInput.value = companyName;
+                    }
+
+                    // Show success with validation
+                    statusEl.textContent = `✓ Validated: ${stockInfo.symbol} (${stockInfo.exchange || 'Stock'})`;
+                    statusEl.classList.remove('error');
+                    setTimeout(() => {
+                        statusEl.classList.add('hidden');
+                    }, 3000);
+                } else {
+                    throw new Error('Ticker not found in Twelve Data');
+                }
+            } else if (response.status === 429) {
+                // Rate limit hit - still OK if we found it locally
+                if (foundInLocal) {
+                    statusEl.textContent = '✓ Found (validation rate limited)';
+                    statusEl.classList.remove('error');
+                    setTimeout(() => {
+                        statusEl.classList.add('hidden');
+                    }, 3000);
+                } else {
+                    throw new Error('Rate limit - please try again later');
+                }
+            } else {
+                throw new Error('API validation failed');
+            }
+        } catch (apiError) {
+            // If API fails but we found it locally, that's OK
+            if (foundInLocal) {
+                statusEl.textContent = '✓ Found in local database';
+                statusEl.classList.remove('error');
+                setTimeout(() => {
+                    statusEl.classList.add('hidden');
+                }, 2000);
+            } else {
+                // Both local and API failed
+                throw apiError;
+            }
         }
 
     } catch (error) {
         console.error('Error fetching company name:', error);
-        statusEl.textContent = '⚠️ Not found - please enter manually';
+        statusEl.textContent = '⚠️ Not found - enter manually or check ticker';
         statusEl.classList.add('error');
         companyNameInput.focus();
         setTimeout(() => {
             statusEl.classList.add('hidden');
-        }, 3000);
+        }, 4000);
     }
 }
 
