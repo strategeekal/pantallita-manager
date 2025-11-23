@@ -1,10 +1,10 @@
 # SCREENY Manager
 
-**Version 1.7.0**
+**Version 1.7.1**
 
 A web-based management interface for SCREENY RGB matrix displays. Manage ephemeral events, daily schedules, and investment stock tickers remotely through GitHub, with full support for desktop and mobile devices.
 
-![SCREENY Manager](https://img.shields.io/badge/status-active-brightgreen) ![Version](https://img.shields.io/badge/version-1.7.0-blue)
+![SCREENY Manager](https://img.shields.io/badge/status-active-brightgreen) ![Version](https://img.shields.io/badge/version-1.7.1-blue)
 
 ## Features
 
@@ -56,12 +56,24 @@ A web-based management interface for SCREENY RGB matrix displays. Manage ephemer
 - **Stock Information**:
   - Ticker symbol (e.g., AAPL, GOOGL, TSLA)
   - Company name
-- **Auto-Lookup Feature**: Automatically fetch company names from ticker symbols
-  - Uses Yahoo Finance API for real-time lookups
-  - Manual entry supported if auto-lookup fails
-- **Grid View**: Stock cards displayed in responsive grid layout
-- **GitHub Integration**: Stock data stored in `stocks.csv` file
-- **Easy Management**: Similar interface to schedule items for consistency
+- **Drag-and-Drop Reordering**: Intuitive drag-and-drop to reorder stocks
+  - Visual feedback while dragging
+  - Touch-friendly on mobile devices
+  - Auto-saves order to GitHub
+- **3-Stock Cycle Grouping**:
+  - Visual grouping every 3 stocks (matches display rotation)
+  - Cycle badges showing which stocks display together
+  - Row separators between cycles
+  - Order preserved in CSV with cycle comments
+- **Local Stock Reference Database**:
+  - 100+ popular stock tickers included
+  - Instant offline lookups
+  - No API rate limits
+  - Manual entry supported for any ticker
+- **Twelve Data API Validation**: Validates ticker symbols are real and supported
+- **Grid View**: Stock cards in 3-column responsive pixel-art layout
+- **GitHub Integration**: Stock data stored in `stocks.csv` file with cycle organization
+- **Fixed Toast Notifications**: Non-intrusive success messages that don't shift layout
 
 ### 📱 Mobile Optimization
 - Fully responsive design
@@ -200,19 +212,27 @@ ticker,company_name
 ```csv
 # Stock Tickers
 # Format: ticker,company_name
+# Stocks are displayed in cycles of 3 on the matrix
 
+# Cycle 1 (stocks 1-3)
 AAPL,Apple Inc.
 GOOGL,Alphabet Inc.
 TSLA,Tesla, Inc.
+
+# Cycle 2 (stocks 4-6)
 MSFT,Microsoft Corporation
 AMZN,Amazon.com, Inc.
+NVDA,NVIDIA Corporation
 ```
 
 **Notes:**
+- Stocks are organized in groups of 3 (display cycles)
+- Cycle comments are auto-generated when reordering
 - Company names can contain commas (they will be preserved)
 - Ticker symbols are automatically converted to uppercase
-- Use the "🔍 Lookup" button in the web interface to auto-fetch company names
+- Use the "🔍 Lookup" button to fetch company names and validate tickers
 - Blank lines and lines starting with `#` are ignored
+- Order in CSV matches display order (drag-and-drop to reorder)
 
 ### Configuration CSV (`matrix1_config.csv` or `matrix2_config.csv`)
 
@@ -440,7 +460,40 @@ Available colors for event text:
 
 ## Version History
 
-### Version 1.7.0 (Current)
+### Version 1.7.1 (Current)
+- **Stocks Feature Enhancements** 📈:
+  - **Drag-and-Drop Reordering**: Smooth, intuitive reordering of stocks
+    - Visual feedback with opacity, rotation, and scaling
+    - Mint green highlight on drop target
+    - Touch-friendly on mobile devices
+    - Reliable event handling with dragleave support
+  - **3-Stock Cycle Grouping**:
+    - Visual cycle badges (Cycle 1, Cycle 2, etc.)
+    - Row separators between display cycles
+    - CSV auto-formats with cycle comments
+    - Clear visual organization matching display rotation
+  - **Local Stock Reference Database**:
+    - 100+ popular stock tickers included
+    - Instant offline lookups (no API dependencies)
+    - No rate limits or CORS issues
+    - Fallback to manual entry for any ticker
+  - **Twelve Data API Validation**: Verify tickers are real and supported
+  - **Fixed Toast Notifications**: Non-intrusive success messages
+    - Fixed position (top-right on desktop, top-center on mobile)
+    - No layout shift when appearing/disappearing
+    - Smooth slide-in animation
+  - **Mobile Improvements**:
+    - Prevented browser search during drag
+    - User-select: none to avoid text selection
+    - Touch-action: pan-y for vertical scrolling
+    - Full-width toast notifications
+  - **Pixel-Art Design Consistency**:
+    - 3-column grid layout
+    - Sharp edges with black borders
+    - Box shadows matching existing design
+    - Subtle cycle badges in card corners
+
+### Version 1.7.0
 - **Investment Stocks Management** 📈:
   - New Stocks tab for managing investment stock tickers
   - Add, edit, and delete stock ticker entries
