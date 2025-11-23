@@ -2033,7 +2033,6 @@ header p {
 	flex-shrink: 0;
 }
 
-
 .btn-danger {
 	background-color: #FF0088;
 	color: white;
@@ -2041,6 +2040,15 @@ header p {
 
 .btn-danger:hover {
 	background-color: #CC0066;
+}
+
+.btn-calm {
+	background-color: #fff;
+	color: white;
+}
+
+.btn-calm:hover {
+	background-color: #333;
 }
 
 /* Schedule Editor Layout - Side by Side */

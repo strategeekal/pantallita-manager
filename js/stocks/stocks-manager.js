@@ -143,8 +143,8 @@ function renderStocksList() {
                     <div class="stock-company">${stock.companyName}</div>
                 </div>
                 <div class="stock-actions">
-                    <button class="btn-pixel btn-small btn-secondary" onclick="window.stocksModule.editStock(${index})">✏️</button>
-                    <button class="btn-pixel btn-small btn-danger" onclick="window.stocksModule.deleteStock(${index})">🗑️</button>
+                    <button class="btn-pixel btn-small btn-primary" onclick="window.stocksModule.editStock(${index})">✏️</button>
+                    <button class="btn-pixel btn-small btn-calm" onclick="window.stocksModule.deleteStock(${index})">🗑️</button>
                 </div>
             </div>
         `;
