@@ -19,6 +19,7 @@ const configLabels = {
     'show_scheduled_displays': 'Show Scheduled Displays',
     'show_events_in_between_schedules': 'Show Events Between Schedules',
     'show_stocks': 'Show Investment Stocks',
+    'stocks_respect_market_hours': 'Stocks: Only During Market Hours',
     'night_mode_minimal_display': 'Night Mode (Minimal Display)',
     'delayed_start': 'Delayed Start (Safety Feature)'
 };
@@ -32,6 +33,7 @@ const configDescriptions = {
     'show_scheduled_displays': 'Show scheduled display items',
     'show_events_in_between_schedules': 'Show events when no schedule is active',
     'show_stocks': 'Display investment stock ticker information',
+    'stocks_respect_market_hours': 'Show stocks only during market hours (1) or all day (0)',
     'night_mode_minimal_display': 'Enable minimal display mode during nighttime hours',
     'delayed_start': 'Enable delayed startup for safety'
 };

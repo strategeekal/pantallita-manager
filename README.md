@@ -253,6 +253,7 @@ show_weekday_indicator,1
 show_scheduled_displays,1
 show_events_in_between_schedules,1
 show_stocks,1
+stocks_respect_market_hours,0
 night_mode_minimal_display,1
 
 # Safety features
@@ -271,6 +272,7 @@ delayed_start,0
 - `show_scheduled_displays` - Show scheduled display items
 - `show_events_in_between_schedules` - Show events when no schedule is active
 - `show_stocks` - Display investment stock ticker information
+- `stocks_respect_market_hours` - Show stocks only during market hours (1) or all day (0)
 - `night_mode_minimal_display` - Enable minimal display mode during nighttime hours
 - `delayed_start` - Enable delayed startup for safety
 
@@ -290,6 +292,7 @@ show_weekday_indicator,1
 show_scheduled_displays,1
 show_events_in_between_schedules,0
 show_stocks,1
+stocks_respect_market_hours,1
 night_mode_minimal_display,1
 
 # Safety features
