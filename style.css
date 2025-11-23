@@ -3441,3 +3441,166 @@ header p {
 		width: 100%;
 	}
 }
+
+/* Cycle Grouping Styles */
+.cycle-header {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	margin: 20px 0 12px 0;
+	padding: 8px 12px;
+	background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+	border-radius: 6px;
+	border: 3px solid #000;
+}
+
+.cycle-badge {
+	background: white;
+	color: #667eea;
+	padding: 4px 12px;
+	border-radius: 4px;
+	font-weight: bold;
+	font-size: 0.9em;
+	border: 2px solid #000;
+}
+
+.cycle-info {
+	color: white;
+	font-size: 0.85em;
+	font-weight: 500;
+}
+
+.cycle-separator {
+	height: 20px;
+	border-bottom: 3px dashed #ddd;
+	margin: 15px 0;
+	position: relative;
+}
+
+.cycle-separator::after {
+	content: '⬇ Next Cycle ⬇';
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	transform: translate(-50%, -50%);
+	background: white;
+	padding: 0 15px;
+	color: #999;
+	font-size: 0.75em;
+	font-weight: bold;
+}
+
+.stock-card {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	position: relative;
+}
+
+.stock-card.cycle-last {
+	margin-bottom: 8px;
+}
+
+.stock-order {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 40px;
+}
+
+.order-number {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 32px;
+	height: 32px;
+	background: #f0f0f0;
+	border: 2px solid #000;
+	border-radius: 50%;
+	font-weight: bold;
+	font-size: 0.9em;
+	color: #333;
+}
+
+.stock-actions {
+	display: flex;
+	gap: 6px;
+	align-items: center;
+	flex-wrap: wrap;
+}
+
+.stock-reorder {
+	display: flex;
+	flex-direction: column;
+	gap: 3px;
+}
+
+.stock-reorder button {
+	padding: 4px 8px;
+	min-width: 32px;
+	min-height: 28px;
+	font-size: 1em;
+	line-height: 1;
+}
+
+.stock-reorder button:disabled {
+	opacity: 0.3;
+	cursor: not-allowed;
+	background: #ccc;
+}
+
+.stock-reorder button:disabled:hover {
+	background: #ccc;
+	transform: none;
+}
+
+/* Update existing stock-grid to remove grid layout in favor of list */
+.stocks-grid {
+	display: flex;
+	flex-direction: column;
+	gap: 0;
+}
+
+/* Mobile Responsive Updates for Cycles */
+@media (max-width: 768px) {
+	.cycle-header {
+		flex-direction: column;
+		align-items: stretch;
+		text-align: center;
+		gap: 8px;
+	}
+
+	.stock-card {
+		flex-wrap: wrap;
+		gap: 8px;
+	}
+
+	.stock-order {
+		order: -1;
+	}
+
+	.stock-info {
+		flex: 1;
+		min-width: 150px;
+	}
+
+	.stock-actions {
+		width: 100%;
+		justify-content: space-between;
+	}
+
+	.stock-reorder {
+		flex-direction: row;
+		gap: 6px;
+	}
+
+	.stock-reorder button {
+		flex: 1;
+		min-height: 40px;
+	}
+
+	.cycle-separator::after {
+		font-size: 0.7em;
+		padding: 0 10px;
+	}
+}
