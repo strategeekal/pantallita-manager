@@ -93,19 +93,18 @@ function parseStocksCSV(content) {
             continue;
         }
 
-        // Parse: symbol,name,type,display_name,category
+        // Parse: symbol,name,type,display_name
         // Backward compatible with: ticker,company_name
         const parts = trimmedLine.split(',').map(p => p.trim());
 
         if (parts.length >= 2) {
-            if (parts.length >= 5) {
-                // New format: symbol,name,type,display_name,category
+            if (parts.length >= 4) {
+                // New format: symbol,name,type,display_name
                 stocks.push({
                     symbol: parts[0].toUpperCase(),
                     name: parts[1],
                     type: parts[2] || 'stock',
-                    displayName: parts[3] || '',
-                    category: parts[4] || ''
+                    displayName: parts[3] || ''
                 });
             } else {
                 // Old format: ticker,company_name (backward compatibility)
@@ -113,8 +112,7 @@ function parseStocksCSV(content) {
                     symbol: parts[0].toUpperCase(),
                     name: parts.slice(1).join(','), // Handle commas in names
                     type: 'stock',
-                    displayName: '',
-                    category: ''
+                    displayName: ''
                 });
             }
         }
@@ -145,7 +143,7 @@ function renderStocksList() {
         const positionInCycle = (index % cycleSize) + 1;
 
         const displayLabel = stock.displayName || stock.symbol;
-        const typeIcon = stock.type === 'forex' ? '💱' : (stock.type === 'index' ? '📊' : '📈');
+        const typeBadgeClass = stock.type === 'stock' ? 'stock-type-badge-stock' : 'stock-type-badge-other';
 
         html += `
             <div class="stock-card"
@@ -160,11 +158,10 @@ function renderStocksList() {
                 <div class="stock-cycle-badge">Cycle ${cycleNumber}</div>
                 <div class="stock-info">
                     <div class="stock-ticker">
-                        ${typeIcon} ${displayLabel}
-                        ${stock.category ? `<span class="stock-category-badge">${stock.category}</span>` : ''}
+                        ${displayLabel}
+                        <span class="stock-type-badge ${typeBadgeClass}">${stock.type.toUpperCase()}</span>
                     </div>
                     <div class="stock-company">${stock.name}</div>
-                    <div class="stock-meta">Type: ${stock.type}</div>
                 </div>
                 <div class="stock-actions">
                     <button class="btn-pixel btn-small btn-primary" onclick="window.stocksModule.editStock(${index})">✏️</button>
@@ -316,7 +313,6 @@ export function openAddStockDialog() {
     document.getElementById('stock-name').value = '';
     document.getElementById('stock-type').value = 'stock';
     document.getElementById('stock-display-name').value = '';
-    document.getElementById('stock-category').value = '';
     document.getElementById('stock-symbol').dataset.editIndex = '';
     document.getElementById('stock-editor-modal').classList.remove('hidden');
     document.getElementById('stock-symbol').focus();
@@ -335,7 +331,6 @@ export function editStock(index) {
     document.getElementById('stock-name').value = stock.name;
     document.getElementById('stock-type').value = stock.type || 'stock';
     document.getElementById('stock-display-name').value = stock.displayName || '';
-    document.getElementById('stock-category').value = stock.category || '';
     document.getElementById('stock-symbol').dataset.editIndex = index;
     document.getElementById('stock-editor-modal').classList.remove('hidden');
     document.getElementById('stock-symbol').focus();
@@ -350,7 +345,6 @@ export function closeStockEditor() {
     document.getElementById('stock-name').value = '';
     document.getElementById('stock-type').value = 'stock';
     document.getElementById('stock-display-name').value = '';
-    document.getElementById('stock-category').value = '';
     document.getElementById('stock-symbol').dataset.editIndex = '';
 
     // Clear status
@@ -366,7 +360,6 @@ export async function saveStock() {
     const name = document.getElementById('stock-name').value.trim();
     const type = document.getElementById('stock-type').value.trim() || 'stock';
     const displayName = document.getElementById('stock-display-name').value.trim();
-    const category = document.getElementById('stock-category').value.trim();
     const editIndex = document.getElementById('stock-symbol').dataset.editIndex;
 
     if (!symbol) {
@@ -383,8 +376,7 @@ export async function saveStock() {
         symbol,
         name,
         type,
-        displayName,
-        category
+        displayName
     };
 
     if (editIndex !== '') {
@@ -454,7 +446,7 @@ async function saveStocksToGitHub() {
  */
 function buildStocksCSV() {
     let csv = '# Stock Tickers\n';
-    csv += '# Format: symbol,name,type,display_name,category\n';
+    csv += '# Format: symbol,name,type,display_name\n';
     csv += '# Stocks are displayed in cycles of 3 on the matrix\n';
     csv += '\n';
 
@@ -467,7 +459,7 @@ function buildStocksCSV() {
             csv += `# Cycle ${cycleNumber} (stocks ${index + 1}-${Math.min(index + cycleSize, stocksData.length)})\n`;
         }
 
-        csv += `${stock.symbol},${stock.name},${stock.type},${stock.displayName},${stock.category}\n`;
+        csv += `${stock.symbol},${stock.name},${stock.type},${stock.displayName}\n`;
 
         // Add blank line after each cycle except the last
         if ((index + 1) % cycleSize === 0 && index < stocksData.length - 1) {

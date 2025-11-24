@@ -201,44 +201,44 @@ Templates are stored in `schedules/templates/` directory and can be loaded into 
 
 **Format:**
 ```
-symbol,name,type,display_name,category
+symbol,name,type,display_name
 ```
 
 **Fields:**
-- `symbol` - Stock/index/forex symbol (automatically converted to uppercase, e.g., AAPL, SPX, USDMXN)
-- `name` - Full name (e.g., Apple, S&P 500, USD to MXN)
-- `type` - Type: `stock`, `index`, or `forex`
-- `display_name` - Optional short label to show instead of symbol (useful for forex, e.g., MXN)
-- `category` - Optional category for grouping (e.g., tech, index, forex)
+- `symbol` - Stock/forex/commodity/crypto symbol (automatically converted to uppercase, e.g., AAPL, USDMXN, GC, BTC)
+- `name` - Full name (e.g., Apple, USD to MXN, Gold, Bitcoin)
+- `type` - Type: `stock`, `forex`, `commodity`, or `crypto`
+- `display_name` - Optional short label to show instead of symbol (e.g., MXN, Gold, BTC)
 
 **Example:**
 ```csv
 # Stock Tickers
-# Format: symbol,name,type,display_name,category
+# Format: symbol,name,type,display_name
 # Stocks are displayed in cycles of 3 on the matrix
 
 # Cycle 1 (stocks 1-3)
-AAPL,Apple,stock,,tech
-SPX,S&P 500,index,,index
-USDMXN,USD to MXN,forex,MXN,forex
+AAPL,Apple,stock,
+USDMXN,USD to MXN,forex,MXN
+GC,Gold,commodity,Gold
 
 # Cycle 2 (stocks 4-6)
-GOOGL,Alphabet Inc.,stock,,tech
-MSFT,Microsoft Corporation,stock,,tech
-NVDA,NVIDIA Corporation,stock,,tech
+GOOGL,Alphabet Inc.,stock,
+BTCUSD,Bitcoin,crypto,BTC
+MSFT,Microsoft Corporation,stock,
 ```
 
 **Notes:**
 - Stocks are organized in groups of 3 (display cycles)
 - Cycle comments are auto-generated when reordering
-- Empty fields (display_name, category) can be left blank but commas are required
+- Empty display_name can be left blank but comma is required
 - Symbols are automatically converted to uppercase
-- Type icons: 📈 stock, 📊 index, 💱 forex
-- Display name takes priority over symbol in the UI (useful for abbreviating forex pairs)
+- Type badges: **STOCK** (blue), **FOREX/COMMODITY/CRYPTO** (mint green)
+- Display name takes priority over symbol in the UI
 - Use the "🔍 Lookup" button to fetch names and validate symbols
 - Blank lines and lines starting with `#` are ignored
 - Order in CSV matches display order (drag-and-drop to reorder)
 - **Backward compatible**: Old format (`ticker,company_name`) still works
+- **Note**: Index-tracking ETFs should use type `stock` (e.g., SPY for S&P 500)
 
 ### Configuration CSV (`matrix1_config.csv` or `matrix2_config.csv`)
 
