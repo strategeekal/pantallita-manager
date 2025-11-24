@@ -587,20 +587,20 @@
 				</div>
 				<div class="modal-body">
 					<div class="form-group">
-						<label for="stock-ticker">Stock Ticker Symbol *</label>
+						<label for="stock-symbol">Symbol *</label>
 						<div class="ticker-input-group">
 							<input
 								type="text"
-								id="stock-ticker"
-								placeholder="e.g., AAPL"
-								maxlength="10"
+								id="stock-symbol"
+								placeholder="e.g., AAPL, SPX, USDMXN"
+								maxlength="15"
 								style="text-transform: uppercase;"
 								required
 							>
 							<button
 								class="btn-pixel btn-secondary"
-								onclick="window.stocksModule.fetchCompanyName(document.getElementById('stock-ticker').value)"
-								title="Auto-fetch company name"
+								onclick="window.stocksModule.fetchCompanyName(document.getElementById('stock-symbol').value)"
+								title="Auto-fetch name"
 							>
 								🔍 Lookup
 							</button>
@@ -609,13 +609,44 @@
 					</div>
 
 					<div class="form-group">
-						<label for="stock-company-name">Company Name *</label>
+						<label for="stock-name">Name *</label>
 						<input
 							type="text"
-							id="stock-company-name"
-							placeholder="e.g., Apple Inc."
+							id="stock-name"
+							placeholder="e.g., Apple, S&P 500, USD to MXN"
 							required
 						>
+					</div>
+
+					<div class="form-group">
+						<label for="stock-type">Type *</label>
+						<select id="stock-type" required>
+							<option value="stock">Stock</option>
+							<option value="index">Index</option>
+							<option value="forex">Forex</option>
+						</select>
+					</div>
+
+					<div class="form-group">
+						<label for="stock-display-name">Display Name (optional)</label>
+						<input
+							type="text"
+							id="stock-display-name"
+							placeholder="e.g., MXN (for forex)"
+							maxlength="10"
+						>
+						<small class="field-hint">Short label to show instead of symbol (useful for forex)</small>
+					</div>
+
+					<div class="form-group">
+						<label for="stock-category">Category (optional)</label>
+						<input
+							type="text"
+							id="stock-category"
+							placeholder="e.g., tech, index, forex"
+							maxlength="20"
+						>
+						<small class="field-hint">Used for grouping and filtering</small>
 					</div>
 
 					<div class="modal-footer">

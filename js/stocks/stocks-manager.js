@@ -93,13 +93,30 @@ function parseStocksCSV(content) {
             continue;
         }
 
-        // Parse: ticker,company_name
-        const parts = trimmedLine.split(',');
+        // Parse: symbol,name,type,display_name,category
+        // Backward compatible with: ticker,company_name
+        const parts = trimmedLine.split(',').map(p => p.trim());
+
         if (parts.length >= 2) {
-            stocks.push({
-                ticker: parts[0].trim().toUpperCase(),
-                companyName: parts.slice(1).join(',').trim() // Handle commas in company names
-            });
+            if (parts.length >= 5) {
+                // New format: symbol,name,type,display_name,category
+                stocks.push({
+                    symbol: parts[0].toUpperCase(),
+                    name: parts[1],
+                    type: parts[2] || 'stock',
+                    displayName: parts[3] || '',
+                    category: parts[4] || ''
+                });
+            } else {
+                // Old format: ticker,company_name (backward compatibility)
+                stocks.push({
+                    symbol: parts[0].toUpperCase(),
+                    name: parts.slice(1).join(','), // Handle commas in names
+                    type: 'stock',
+                    displayName: '',
+                    category: ''
+                });
+            }
         }
     }
 
@@ -127,6 +144,9 @@ function renderStocksList() {
         const cycleNumber = Math.floor(index / cycleSize) + 1;
         const positionInCycle = (index % cycleSize) + 1;
 
+        const displayLabel = stock.displayName || stock.symbol;
+        const typeIcon = stock.type === 'forex' ? '💱' : (stock.type === 'index' ? '📊' : '📈');
+
         html += `
             <div class="stock-card"
                  draggable="true"
@@ -139,8 +159,12 @@ function renderStocksList() {
                 <div class="stock-drag-handle" title="Drag to reorder">⋮⋮</div>
                 <div class="stock-cycle-badge">Cycle ${cycleNumber}</div>
                 <div class="stock-info">
-                    <div class="stock-ticker">${stock.ticker}</div>
-                    <div class="stock-company">${stock.companyName}</div>
+                    <div class="stock-ticker">
+                        ${typeIcon} ${displayLabel}
+                        ${stock.category ? `<span class="stock-category-badge">${stock.category}</span>` : ''}
+                    </div>
+                    <div class="stock-company">${stock.name}</div>
+                    <div class="stock-meta">Type: ${stock.type}</div>
                 </div>
                 <div class="stock-actions">
                     <button class="btn-pixel btn-small btn-primary" onclick="window.stocksModule.editStock(${index})">✏️</button>
@@ -288,11 +312,14 @@ export function handleDragEnd(event) {
  */
 export function openAddStockDialog() {
     document.getElementById('stock-editor-title').textContent = 'Add New Stock';
-    document.getElementById('stock-ticker').value = '';
-    document.getElementById('stock-company-name').value = '';
-    document.getElementById('stock-ticker').dataset.editIndex = '';
+    document.getElementById('stock-symbol').value = '';
+    document.getElementById('stock-name').value = '';
+    document.getElementById('stock-type').value = 'stock';
+    document.getElementById('stock-display-name').value = '';
+    document.getElementById('stock-category').value = '';
+    document.getElementById('stock-symbol').dataset.editIndex = '';
     document.getElementById('stock-editor-modal').classList.remove('hidden');
-    document.getElementById('stock-ticker').focus();
+    document.getElementById('stock-symbol').focus();
 }
 
 /**
@@ -304,11 +331,14 @@ export function editStock(index) {
     if (!stock) return;
 
     document.getElementById('stock-editor-title').textContent = 'Edit Stock';
-    document.getElementById('stock-ticker').value = stock.ticker;
-    document.getElementById('stock-company-name').value = stock.companyName;
-    document.getElementById('stock-ticker').dataset.editIndex = index;
+    document.getElementById('stock-symbol').value = stock.symbol;
+    document.getElementById('stock-name').value = stock.name;
+    document.getElementById('stock-type').value = stock.type || 'stock';
+    document.getElementById('stock-display-name').value = stock.displayName || '';
+    document.getElementById('stock-category').value = stock.category || '';
+    document.getElementById('stock-symbol').dataset.editIndex = index;
     document.getElementById('stock-editor-modal').classList.remove('hidden');
-    document.getElementById('stock-ticker').focus();
+    document.getElementById('stock-symbol').focus();
 }
 
 /**
@@ -316,9 +346,12 @@ export function editStock(index) {
  */
 export function closeStockEditor() {
     document.getElementById('stock-editor-modal').classList.add('hidden');
-    document.getElementById('stock-ticker').value = '';
-    document.getElementById('stock-company-name').value = '';
-    document.getElementById('stock-ticker').dataset.editIndex = '';
+    document.getElementById('stock-symbol').value = '';
+    document.getElementById('stock-name').value = '';
+    document.getElementById('stock-type').value = 'stock';
+    document.getElementById('stock-display-name').value = '';
+    document.getElementById('stock-category').value = '';
+    document.getElementById('stock-symbol').dataset.editIndex = '';
 
     // Clear status
     const statusEl = document.getElementById('fetch-status');
@@ -329,23 +362,29 @@ export function closeStockEditor() {
  * Save stock (add or update)
  */
 export async function saveStock() {
-    const ticker = document.getElementById('stock-ticker').value.trim().toUpperCase();
-    const companyName = document.getElementById('stock-company-name').value.trim();
-    const editIndex = document.getElementById('stock-ticker').dataset.editIndex;
+    const symbol = document.getElementById('stock-symbol').value.trim().toUpperCase();
+    const name = document.getElementById('stock-name').value.trim();
+    const type = document.getElementById('stock-type').value.trim() || 'stock';
+    const displayName = document.getElementById('stock-display-name').value.trim();
+    const category = document.getElementById('stock-category').value.trim();
+    const editIndex = document.getElementById('stock-symbol').dataset.editIndex;
 
-    if (!ticker) {
-        alert('Please enter a stock ticker');
+    if (!symbol) {
+        alert('Please enter a symbol');
         return;
     }
 
-    if (!companyName) {
-        alert('Please enter a company name');
+    if (!name) {
+        alert('Please enter a name');
         return;
     }
 
     const stockObj = {
-        ticker,
-        companyName
+        symbol,
+        name,
+        type,
+        displayName,
+        category
     };
 
     if (editIndex !== '') {
@@ -371,7 +410,7 @@ export async function deleteStock(index) {
     const stock = stocksData[index];
     if (!stock) return;
 
-    if (!confirm(`Delete ${stock.ticker} (${stock.companyName})?`)) {
+    if (!confirm(`Delete ${stock.symbol} (${stock.name})?`)) {
         return;
     }
 
@@ -415,7 +454,7 @@ async function saveStocksToGitHub() {
  */
 function buildStocksCSV() {
     let csv = '# Stock Tickers\n';
-    csv += '# Format: ticker,company_name\n';
+    csv += '# Format: symbol,name,type,display_name,category\n';
     csv += '# Stocks are displayed in cycles of 3 on the matrix\n';
     csv += '\n';
 
@@ -428,7 +467,7 @@ function buildStocksCSV() {
             csv += `# Cycle ${cycleNumber} (stocks ${index + 1}-${Math.min(index + cycleSize, stocksData.length)})\n`;
         }
 
-        csv += `${stock.ticker},${stock.companyName}\n`;
+        csv += `${stock.symbol},${stock.name},${stock.type},${stock.displayName},${stock.category}\n`;
 
         // Add blank line after each cycle except the last
         if ((index + 1) % cycleSize === 0 && index < stocksData.length - 1) {
@@ -440,18 +479,18 @@ function buildStocksCSV() {
 }
 
 /**
- * Fetch company name from ticker using local reference and validate with Twelve Data API
- * @param {string} ticker - Stock ticker symbol
+ * Fetch company name from symbol using local reference and validate with Twelve Data API
+ * @param {string} symbol - Stock ticker symbol
  */
-export async function fetchCompanyName(ticker) {
-    const companyNameInput = document.getElementById('stock-company-name');
+export async function fetchCompanyName(symbol) {
+    const nameInput = document.getElementById('stock-name');
     const statusEl = document.getElementById('fetch-status');
 
-    if (!ticker || ticker.length < 1) {
+    if (!symbol || symbol.length < 1) {
         return;
     }
 
-    ticker = ticker.trim().toUpperCase();
+    symbol = symbol.trim().toUpperCase();
 
     try {
         statusEl.textContent = 'Looking up...';
@@ -459,11 +498,11 @@ export async function fetchCompanyName(ticker) {
 
         // First try local reference
         const reference = await loadStockReference();
-        let companyName = reference[ticker];
+        let companyName = reference[symbol];
         let foundInLocal = !!companyName;
 
         if (foundInLocal) {
-            companyNameInput.value = companyName;
+            nameInput.value = companyName;
             statusEl.textContent = 'Validating with Twelve Data...';
         }
 
@@ -471,7 +510,7 @@ export async function fetchCompanyName(ticker) {
         try {
             // Twelve Data API - Symbol Search endpoint (free tier)
             // Note: Replace with your API key or use the free tier endpoint
-            const apiUrl = `https://api.twelvedata.com/symbol_search?symbol=${ticker}&outputsize=1`;
+            const apiUrl = `https://api.twelvedata.com/symbol_search?symbol=${symbol}&outputsize=1`;
             const response = await fetch(apiUrl);
 
             if (response.ok) {
@@ -483,7 +522,7 @@ export async function fetchCompanyName(ticker) {
                     // If we didn't find in local reference, use API data
                     if (!foundInLocal && stockInfo.instrument_name) {
                         companyName = stockInfo.instrument_name;
-                        companyNameInput.value = companyName;
+                        nameInput.value = companyName;
                     }
 
                     // Show success with validation
@@ -493,7 +532,7 @@ export async function fetchCompanyName(ticker) {
                         statusEl.classList.add('hidden');
                     }, 3000);
                 } else {
-                    throw new Error('Ticker not found in Twelve Data');
+                    throw new Error('Symbol not found in Twelve Data');
                 }
             } else if (response.status === 429) {
                 // Rate limit hit - still OK if we found it locally

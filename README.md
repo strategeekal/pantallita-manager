@@ -201,38 +201,44 @@ Templates are stored in `schedules/templates/` directory and can be loaded into 
 
 **Format:**
 ```
-ticker,company_name
+symbol,name,type,display_name,category
 ```
 
 **Fields:**
-- `ticker` - Stock ticker symbol (automatically converted to uppercase)
-- `company_name` - Company name (can contain commas)
+- `symbol` - Stock/index/forex symbol (automatically converted to uppercase, e.g., AAPL, SPX, USDMXN)
+- `name` - Full name (e.g., Apple, S&P 500, USD to MXN)
+- `type` - Type: `stock`, `index`, or `forex`
+- `display_name` - Optional short label to show instead of symbol (useful for forex, e.g., MXN)
+- `category` - Optional category for grouping (e.g., tech, index, forex)
 
 **Example:**
 ```csv
 # Stock Tickers
-# Format: ticker,company_name
+# Format: symbol,name,type,display_name,category
 # Stocks are displayed in cycles of 3 on the matrix
 
 # Cycle 1 (stocks 1-3)
-AAPL,Apple Inc.
-GOOGL,Alphabet Inc.
-TSLA,Tesla, Inc.
+AAPL,Apple,stock,,tech
+SPX,S&P 500,index,,index
+USDMXN,USD to MXN,forex,MXN,forex
 
 # Cycle 2 (stocks 4-6)
-MSFT,Microsoft Corporation
-AMZN,Amazon.com, Inc.
-NVDA,NVIDIA Corporation
+GOOGL,Alphabet Inc.,stock,,tech
+MSFT,Microsoft Corporation,stock,,tech
+NVDA,NVIDIA Corporation,stock,,tech
 ```
 
 **Notes:**
 - Stocks are organized in groups of 3 (display cycles)
 - Cycle comments are auto-generated when reordering
-- Company names can contain commas (they will be preserved)
-- Ticker symbols are automatically converted to uppercase
-- Use the "🔍 Lookup" button to fetch company names and validate tickers
+- Empty fields (display_name, category) can be left blank but commas are required
+- Symbols are automatically converted to uppercase
+- Type icons: 📈 stock, 📊 index, 💱 forex
+- Display name takes priority over symbol in the UI (useful for abbreviating forex pairs)
+- Use the "🔍 Lookup" button to fetch names and validate symbols
 - Blank lines and lines starting with `#` are ignored
 - Order in CSV matches display order (drag-and-drop to reorder)
+- **Backward compatible**: Old format (`ticker,company_name`) still works
 
 ### Configuration CSV (`matrix1_config.csv` or `matrix2_config.csv`)
 
