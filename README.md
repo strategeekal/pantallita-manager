@@ -205,11 +205,11 @@ symbol,name,type,display_name,category
 ```
 
 **Fields:**
-- `symbol` - Stock/index/forex symbol (automatically converted to uppercase, e.g., AAPL, SPX, USDMXN)
-- `name` - Full name (e.g., Apple, S&P 500, USD to MXN)
-- `type` - Type: `stock`, `index`, or `forex`
-- `display_name` - Optional short label to show instead of symbol (useful for forex, e.g., MXN)
-- `category` - Optional category for grouping (e.g., tech, index, forex)
+- `symbol` - Stock/index/forex/commodity symbol (automatically converted to uppercase, e.g., AAPL, SPX, USDMXN, GC)
+- `name` - Full name (e.g., Apple, S&P 500, USD to MXN, Gold)
+- `type` - Type: `stock`, `index`, `forex`, or `commodity`
+- `display_name` - Optional short label to show instead of symbol (useful for forex/commodities, e.g., MXN, Gold)
+- `category` - Optional category for grouping (e.g., tech, index, forex, metals)
 
 **Example:**
 ```csv
@@ -233,8 +233,8 @@ NVDA,NVIDIA Corporation,stock,,tech
 - Cycle comments are auto-generated when reordering
 - Empty fields (display_name, category) can be left blank but commas are required
 - Symbols are automatically converted to uppercase
-- Type icons: 📈 stock, 📊 index, 💱 forex
-- Display name takes priority over symbol in the UI (useful for abbreviating forex pairs)
+- Type icons: 📈 stock, 📊 index, 💱 forex/commodity
+- Display name takes priority over symbol in the UI (useful for abbreviating forex pairs and commodities)
 - Use the "🔍 Lookup" button to fetch names and validate symbols
 - Blank lines and lines starting with `#` are ignored
 - Order in CSV matches display order (drag-and-drop to reorder)

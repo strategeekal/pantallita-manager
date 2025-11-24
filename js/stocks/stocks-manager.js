@@ -145,7 +145,7 @@ function renderStocksList() {
         const positionInCycle = (index % cycleSize) + 1;
 
         const displayLabel = stock.displayName || stock.symbol;
-        const typeIcon = stock.type === 'forex' ? '💱' : (stock.type === 'index' ? '📊' : '📈');
+        const typeIcon = (stock.type === 'forex' || stock.type === 'commodity') ? '💱' : (stock.type === 'index' ? '📊' : '📈');
 
         html += `
             <div class="stock-card"
