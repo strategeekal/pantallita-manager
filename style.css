@@ -3498,17 +3498,25 @@ header p {
 	font-style: italic;
 }
 
-.stock-category-badge {
+.stock-type-badge {
 	display: inline-block;
-	background: #00FFAA;
-	color: #000;
 	padding: 2px 6px;
-	font-size: 0.7em;
+	font-size: 0.65em;
 	font-weight: bold;
 	border-radius: 0;
-	border: 1px solid #000;
+	border: 2px solid #000;
 	margin-left: 6px;
 	vertical-align: middle;
+}
+
+.stock-type-badge-stock {
+	background: #0088FF;
+	color: #fff;
+}
+
+.stock-type-badge-other {
+	background: #00FFAA;
+	color: #000;
 }
 
 /* Stock Actions */
