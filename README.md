@@ -201,7 +201,7 @@ Templates are stored in `schedules/templates/` directory and can be loaded into 
 
 **Format:**
 ```
-symbol,name,type,display_name
+symbol,name,type,display_name,highlighted
 ```
 
 **Fields:**
@@ -209,27 +209,35 @@ symbol,name,type,display_name
 - `name` - Full name (e.g., Apple, USD to MXN, Gold, Bitcoin)
 - `type` - Type: `stock`, `forex`, `commodity`, or `crypto`
 - `display_name` - Optional short label to show instead of symbol (e.g., MXN, Gold, BTC)
+- `highlighted` - Display mode: `0` = group display (3 stocks), `1` = individual display
 
 **Example:**
 ```csv
 # Stock Tickers
-# Format: symbol,name,type,display_name
-# Stocks are displayed in cycles of 3 on the matrix
+# Format: symbol,name,type,display_name,highlighted
+# Regular stocks displayed in cycles of 3, highlighted stocks shown individually
+# Display sequence follows CSV order: 3-stock group → highlighted → 3-stock group → ...
 
-# Cycle 1 (stocks 1-3)
-AAPL,Apple,stock,
-USDMXN,USD to MXN,forex,MXN
-GC,Gold,commodity,Gold
+# Display 1: Cycle 1 (3 stocks)
+AAPL,Apple,stock,,0
+GOOGL,Alphabet Inc.,stock,,0
+MSFT,Microsoft Corporation,stock,,0
 
-# Cycle 2 (stocks 4-6)
-GOOGL,Alphabet Inc.,stock,
-BTCUSD,Bitcoin,crypto,BTC
-MSFT,Microsoft Corporation,stock,
+# Display 2: Individual (highlighted)
+BTCUSD,Bitcoin,crypto,BTC,1
+
+# Display 3: Cycle 2 (3 stocks)
+NVDA,NVIDIA Corporation,stock,,0
+USDMXN,USD to MXN,forex,MXN,0
+GC,Gold,commodity,Gold,0
 ```
 
 **Notes:**
-- Stocks are organized in groups of 3 (display cycles)
-- Cycle comments are auto-generated when reordering
+- **Regular stocks** (`highlighted=0`) are displayed in groups of 3 (cycles)
+- **Highlighted stocks** (`highlighted=1`) are displayed individually for emphasis
+- Display sequence follows CSV order and alternates between group and individual displays
+- Display comments are auto-generated showing the sequence
+- In the UI, highlighted stocks have a gold border and ⭐ icon
 - Empty display_name can be left blank but comma is required
 - Symbols are automatically converted to uppercase
 - Type badges: **STOCK** (blue), **FOREX/COMMODITY/CRYPTO** (mint green)
@@ -237,7 +245,7 @@ MSFT,Microsoft Corporation,stock,
 - Use the "🔍 Lookup" button to fetch names and validate symbols
 - Blank lines and lines starting with `#` are ignored
 - Order in CSV matches display order (drag-and-drop to reorder)
-- **Backward compatible**: Old format (`ticker,company_name`) still works
+- **Backward compatible**: Old 4-field format defaults to `highlighted=0`
 - **Note**: Index-tracking ETFs should use type `stock` (e.g., SPY for S&P 500)
 
 ### Configuration CSV (`matrix1_config.csv` or `matrix2_config.csv`)

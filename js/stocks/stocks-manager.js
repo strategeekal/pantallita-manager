@@ -93,18 +93,28 @@ function parseStocksCSV(content) {
             continue;
         }
 
-        // Parse: symbol,name,type,display_name
-        // Backward compatible with: ticker,company_name
+        // Parse: symbol,name,type,display_name,highlighted
+        // Backward compatible with: symbol,name,type,display_name OR ticker,company_name
         const parts = trimmedLine.split(',').map(p => p.trim());
 
         if (parts.length >= 2) {
-            if (parts.length >= 4) {
-                // New format: symbol,name,type,display_name
+            if (parts.length >= 5) {
+                // New format: symbol,name,type,display_name,highlighted
                 stocks.push({
                     symbol: parts[0].toUpperCase(),
                     name: parts[1],
                     type: parts[2] || 'stock',
-                    displayName: parts[3] || ''
+                    displayName: parts[3] || '',
+                    highlighted: parts[4] === '1'
+                });
+            } else if (parts.length >= 4) {
+                // Format: symbol,name,type,display_name
+                stocks.push({
+                    symbol: parts[0].toUpperCase(),
+                    name: parts[1],
+                    type: parts[2] || 'stock',
+                    displayName: parts[3] || '',
+                    highlighted: false
                 });
             } else {
                 // Old format: ticker,company_name (backward compatibility)
@@ -112,7 +122,8 @@ function parseStocksCSV(content) {
                     symbol: parts[0].toUpperCase(),
                     name: parts.slice(1).join(','), // Handle commas in names
                     type: 'stock',
-                    displayName: ''
+                    displayName: '',
+                    highlighted: false
                 });
             }
         }
@@ -122,7 +133,7 @@ function parseStocksCSV(content) {
 }
 
 /**
- * Render the stocks list with cycle grouping and drag-and-drop
+ * Render the stocks list with timeline-style display organization
  */
 function renderStocksList() {
     const listEl = document.getElementById('stocks-list');
@@ -136,17 +147,30 @@ function renderStocksList() {
     document.getElementById('stocks-empty').classList.add('hidden');
 
     let html = '<div class="stocks-grid">';
-    const cycleSize = 3;
+
+    // Calculate display cycles dynamically
+    let displayNumber = 1;
+    let regularStockBuffer = [];
 
     stocksData.forEach((stock, index) => {
-        const cycleNumber = Math.floor(index / cycleSize) + 1;
-        const positionInCycle = (index % cycleSize) + 1;
-
         const displayLabel = stock.displayName || stock.symbol;
         const typeBadgeClass = stock.type === 'stock' ? 'stock-type-badge-stock' : 'stock-type-badge-other';
+        const cardClass = stock.highlighted ? 'stock-card stock-card-highlighted' : 'stock-card';
+        const starIcon = stock.highlighted ? '⭐ ' : '';
+
+        // Determine badge text
+        let badgeText;
+        if (stock.highlighted) {
+            badgeText = 'HIGHLIGHTED';
+        } else {
+            // Calculate which cycle this stock belongs to
+            const regularIndex = regularStockBuffer.length;
+            const cycleNumber = Math.floor(regularIndex / 3) + 1;
+            badgeText = `Cycle ${cycleNumber}`;
+        }
 
         html += `
-            <div class="stock-card"
+            <div class="${cardClass}"
                  draggable="true"
                  data-index="${index}"
                  ondragstart="window.stocksModule.handleDragStart(event)"
@@ -155,10 +179,10 @@ function renderStocksList() {
                  ondrop="window.stocksModule.handleDrop(event)"
                  ondragend="window.stocksModule.handleDragEnd(event)">
                 <div class="stock-drag-handle" title="Drag to reorder">⋮⋮</div>
-                <div class="stock-cycle-badge">Cycle ${cycleNumber}</div>
+                <div class="stock-cycle-badge ${stock.highlighted ? 'stock-highlighted-badge' : ''}">${badgeText}</div>
                 <div class="stock-info">
                     <div class="stock-ticker">
-                        ${displayLabel}
+                        ${starIcon}${displayLabel}
                         <span class="stock-type-badge ${typeBadgeClass}">${stock.type.toUpperCase()}</span>
                     </div>
                     <div class="stock-company">${stock.name}</div>
@@ -170,9 +194,9 @@ function renderStocksList() {
             </div>
         `;
 
-        // Add cycle separator after every 3 stocks (except the last group)
-        if ((index + 1) % cycleSize === 0 && index < stocksData.length - 1) {
-            html += '<div class="cycle-row-separator"></div>';
+        // Track regular stocks for cycle calculation
+        if (!stock.highlighted) {
+            regularStockBuffer.push(stock);
         }
     });
 
@@ -313,6 +337,7 @@ export function openAddStockDialog() {
     document.getElementById('stock-name').value = '';
     document.getElementById('stock-type').value = 'stock';
     document.getElementById('stock-display-name').value = '';
+    document.getElementById('stock-highlighted').checked = false;
     document.getElementById('stock-symbol').dataset.editIndex = '';
     document.getElementById('stock-editor-modal').classList.remove('hidden');
     document.getElementById('stock-symbol').focus();
@@ -331,6 +356,7 @@ export function editStock(index) {
     document.getElementById('stock-name').value = stock.name;
     document.getElementById('stock-type').value = stock.type || 'stock';
     document.getElementById('stock-display-name').value = stock.displayName || '';
+    document.getElementById('stock-highlighted').checked = stock.highlighted || false;
     document.getElementById('stock-symbol').dataset.editIndex = index;
     document.getElementById('stock-editor-modal').classList.remove('hidden');
     document.getElementById('stock-symbol').focus();
@@ -345,6 +371,7 @@ export function closeStockEditor() {
     document.getElementById('stock-name').value = '';
     document.getElementById('stock-type').value = 'stock';
     document.getElementById('stock-display-name').value = '';
+    document.getElementById('stock-highlighted').checked = false;
     document.getElementById('stock-symbol').dataset.editIndex = '';
 
     // Clear status
@@ -360,6 +387,7 @@ export async function saveStock() {
     const name = document.getElementById('stock-name').value.trim();
     const type = document.getElementById('stock-type').value.trim() || 'stock';
     const displayName = document.getElementById('stock-display-name').value.trim();
+    const highlighted = document.getElementById('stock-highlighted').checked;
     const editIndex = document.getElementById('stock-symbol').dataset.editIndex;
 
     if (!symbol) {
@@ -376,7 +404,8 @@ export async function saveStock() {
         symbol,
         name,
         type,
-        displayName
+        displayName,
+        highlighted
     };
 
     if (editIndex !== '') {
@@ -441,28 +470,39 @@ async function saveStocksToGitHub() {
 }
 
 /**
- * Build CSV content from stocks data with cycle comments
+ * Build CSV content from stocks data with display sequence
  * @returns {string} CSV content
  */
 function buildStocksCSV() {
     let csv = '# Stock Tickers\n';
-    csv += '# Format: symbol,name,type,display_name\n';
-    csv += '# Stocks are displayed in cycles of 3 on the matrix\n';
+    csv += '# Format: symbol,name,type,display_name,highlighted\n';
+    csv += '# Regular stocks displayed in cycles of 3, highlighted stocks shown individually\n';
+    csv += '# Display sequence follows CSV order: 3-stock group → highlighted → 3-stock group → ...\n';
     csv += '\n';
 
-    const cycleSize = 3;
+    let displayNumber = 1;
+    let regularStockBuffer = [];
 
     stocksData.forEach((stock, index) => {
-        // Add cycle comment at the start of each cycle
-        if (index % cycleSize === 0) {
-            const cycleNumber = Math.floor(index / cycleSize) + 1;
-            csv += `# Cycle ${cycleNumber} (stocks ${index + 1}-${Math.min(index + cycleSize, stocksData.length)})\n`;
+        // Add display comment
+        if (stock.highlighted) {
+            csv += `# Display ${displayNumber}: Individual (highlighted)\n`;
+            displayNumber++;
+        } else {
+            // Check if starting a new 3-stock cycle
+            if (regularStockBuffer.length % 3 === 0) {
+                const cycleNumber = Math.floor(regularStockBuffer.length / 3) + 1;
+                csv += `# Display ${displayNumber}: Cycle ${cycleNumber} (3 stocks)\n`;
+                displayNumber++;
+            }
+            regularStockBuffer.push(stock);
         }
 
-        csv += `${stock.symbol},${stock.name},${stock.type},${stock.displayName}\n`;
+        const highlightedValue = stock.highlighted ? '1' : '0';
+        csv += `${stock.symbol},${stock.name},${stock.type},${stock.displayName},${highlightedValue}\n`;
 
-        // Add blank line after each cycle except the last
-        if ((index + 1) % cycleSize === 0 && index < stocksData.length - 1) {
+        // Add blank line between display groups
+        if (stock.highlighted || (regularStockBuffer.length % 3 === 0 && index < stocksData.length - 1)) {
             csv += '\n';
         }
     });
