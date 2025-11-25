@@ -3474,13 +3474,36 @@ header p {
 
 /* Highlighted Stock Card */
 .stock-card-highlighted {
+	grid-column: 1 / -1; /* Span full width */
 	border: 4px solid #FFD700;
 	background: #FFFEF0;
 	box-shadow: 0 0 0 2px #000, 4px 4px 0px rgba(0, 0, 0, 0.1);
+	display: grid;
+	grid-template-columns: auto 1fr auto;
+	align-items: center;
+	gap: 15px;
+	padding: 20px;
 }
 
 .stock-card-highlighted:hover {
 	box-shadow: 0 0 0 2px #000, 6px 6px 0px rgba(0, 0, 0, 0.15);
+}
+
+/* Highlighted stock layout adjustments */
+.stock-card-highlighted .stock-info {
+	margin-top: 0;
+	display: flex;
+	align-items: center;
+	gap: 20px;
+}
+
+.stock-card-highlighted .stock-ticker {
+	font-size: 1.5em;
+	margin-bottom: 0;
+}
+
+.stock-card-highlighted .stock-company {
+	font-size: 0.9em;
 }
 
 /* Highlighted Badge */
@@ -3488,6 +3511,8 @@ header p {
 	background: #FFD700;
 	color: #000;
 	border-color: #000;
+	position: static;
+	margin-left: auto;
 }
 
 /* Stock Info */
@@ -3627,6 +3652,11 @@ header p {
 	.stocks-grid {
 		grid-template-columns: repeat(2, 1fr);
 	}
+
+	/* Highlighted stocks still span full width on tablet */
+	.stock-card-highlighted {
+		grid-column: 1 / -1;
+	}
 }
 
 @media (max-width: 768px) {
@@ -3654,6 +3684,30 @@ header p {
 		align-items: stretch;
 		/* Allow touch scrolling on mobile */
 		touch-action: pan-y;
+	}
+
+	/* Highlighted stocks use vertical layout on mobile */
+	.stock-card-highlighted {
+		grid-template-columns: 1fr;
+		grid-template-rows: auto auto auto;
+		padding: 15px;
+	}
+
+	.stock-card-highlighted .stock-info {
+		flex-direction: column;
+		align-items: stretch;
+		gap: 10px;
+	}
+
+	.stock-card-highlighted .stock-ticker {
+		font-size: 1.3em;
+	}
+
+	.stock-highlighted-badge {
+		position: absolute;
+		top: 8px;
+		right: 8px;
+		margin-left: 0;
 	}
 
 	.stock-actions {
