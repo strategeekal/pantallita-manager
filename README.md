@@ -1,10 +1,10 @@
 # SCREENY Manager
 
-**Version 1.7.1**
+**Version 1.8.0**
 
 A web-based management interface for SCREENY RGB matrix displays. Manage ephemeral events, daily schedules, and investment stock tickers remotely through GitHub, with full support for desktop and mobile devices.
 
-![SCREENY Manager](https://img.shields.io/badge/status-active-brightgreen) ![Version](https://img.shields.io/badge/version-1.7.1-blue)
+![SCREENY Manager](https://img.shields.io/badge/status-active-brightgreen) ![Version](https://img.shields.io/badge/version-1.8.0-blue)
 
 ## Features
 
@@ -480,7 +480,25 @@ Available colors for event text:
 
 ## Version History
 
-### Version 1.7.1 (Current)
+### Version 1.8.0 (Current)
+- **Highlighted Stocks Feature** ⭐:
+  - **Individual Display Mode**: Mark important stocks for individual display
+    - Add `highlighted` field to CSV (5th field: 0 or 1)
+    - Highlighted stocks display alone instead of in groups of 3
+    - Display sequence follows CSV order (e.g., 3-stock group → highlighted → 3-stock group)
+  - **Visual Emphasis**:
+    - Full-width layout on desktop for dramatic visual separation
+    - Gold border (#FFD700) with light cream background
+    - Star icon (⭐) and "HIGHLIGHTED" badge
+    - Timeline-style organization showing display priority
+  - **Responsive Design**:
+    - Desktop: Full-width horizontal layout spanning all columns
+    - Tablet: Full-width across 2-column grid
+    - Mobile: Vertical layout maintaining consistency
+  - **Smart Cycle Calculation**: Dynamic grouping based on regular vs highlighted stocks
+  - **Backward Compatible**: Old 4-field format defaults to `highlighted=0`
+
+### Version 1.7.1
 - **Stocks Feature Enhancements** 📈:
   - **Drag-and-Drop Reordering**: Smooth, intuitive reordering of stocks
     - Visual feedback with opacity, rotation, and scaling
