@@ -242,7 +242,11 @@ GC,Gold,commodity,Gold,0
 - Symbols are automatically converted to uppercase
 - Type badges: **STOCK** (blue), **FOREX/COMMODITY/CRYPTO** (mint green)
 - Display name takes priority over symbol in the UI
-- Use the "🔍 Lookup" button to fetch names and validate symbols
+- Use the "🔍 Lookup" button to:
+  - Validate symbols with Twelve Data API
+  - Auto-fetch company/instrument names
+  - Auto-detect and populate type (stock/forex/commodity/crypto)
+  - **Note**: Free tier has limited symbols - verify your symbols work with your plan
 - Blank lines and lines starting with `#` are ignored
 - Order in CSV matches display order (drag-and-drop to reorder)
 - **Backward compatible**: Old 4-field format defaults to `highlighted=0`

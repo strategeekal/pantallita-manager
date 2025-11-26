@@ -622,13 +622,13 @@ export async function fetchCompanyName(symbol) {
                         typeInfo = ` ⚠️ Detected as ${detectedType}`;
                     }
 
-                    // Show success with validation
+                    // Show success with validation and free tier reminder
                     const instrumentInfo = stockInfo.instrument_type || stockInfo.exchange || detectedType;
-                    statusEl.textContent = `✓ Validated: ${stockInfo.symbol} (${instrumentInfo})${typeInfo}`;
+                    statusEl.textContent = `✓ Validated: ${stockInfo.symbol} (${instrumentInfo})${typeInfo} • Note: Free tier has limited symbols`;
                     statusEl.classList.remove('error');
                     setTimeout(() => {
                         statusEl.classList.add('hidden');
-                    }, 4000);
+                    }, 5000);
                 } else {
                     throw new Error('Symbol not found in Twelve Data');
                 }
