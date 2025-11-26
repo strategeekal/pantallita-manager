@@ -385,18 +385,35 @@ export function closeStockEditor() {
 export async function saveStock() {
     const symbol = document.getElementById('stock-symbol').value.trim().toUpperCase();
     const name = document.getElementById('stock-name').value.trim();
-    const type = document.getElementById('stock-type').value.trim() || 'stock';
+    const type = document.getElementById('stock-type').value.trim();
     const displayName = document.getElementById('stock-display-name').value.trim();
     const highlighted = document.getElementById('stock-highlighted').checked;
     const editIndex = document.getElementById('stock-symbol').dataset.editIndex;
 
+    // Validation
     if (!symbol) {
         alert('Please enter a symbol');
+        document.getElementById('stock-symbol').focus();
         return;
     }
 
     if (!name) {
-        alert('Please enter a name');
+        alert('Please enter a name. Use the 🔍 Lookup button to auto-fetch.');
+        document.getElementById('stock-name').focus();
+        return;
+    }
+
+    if (!type) {
+        alert('Please select a type (Stock, Forex, Commodity, or Crypto)');
+        document.getElementById('stock-type').focus();
+        return;
+    }
+
+    // Validate type is one of the allowed values
+    const validTypes = ['stock', 'forex', 'commodity', 'crypto'];
+    if (!validTypes.includes(type)) {
+        alert('Invalid type. Please select: Stock, Forex, Commodity, or Crypto');
+        document.getElementById('stock-type').focus();
         return;
     }
 
@@ -511,11 +528,44 @@ function buildStocksCSV() {
 }
 
 /**
+ * Map Twelve Data instrument type to our type system
+ * @param {object} stockInfo - Stock info from Twelve Data API
+ * @returns {string} Type: stock, forex, commodity, or crypto
+ */
+function detectStockType(stockInfo) {
+    const instrumentType = (stockInfo.instrument_type || '').toLowerCase();
+    const symbol = (stockInfo.symbol || '').toUpperCase();
+    const exchange = (stockInfo.exchange || '').toLowerCase();
+
+    // Check for crypto
+    if (instrumentType.includes('crypto') || exchange.includes('crypto') ||
+        symbol.includes('BTC') || symbol.includes('ETH') || symbol.includes('USD') && exchange === '') {
+        return 'crypto';
+    }
+
+    // Check for forex (currency pairs)
+    if (instrumentType.includes('forex') || instrumentType.includes('currency') ||
+        (symbol.length === 6 && /^[A-Z]{6}$/.test(symbol))) {
+        return 'forex';
+    }
+
+    // Check for commodities
+    if (instrumentType.includes('commodity') || instrumentType.includes('future') ||
+        ['GC', 'SI', 'CL', 'NG', 'HG'].includes(symbol.substring(0, 2))) {
+        return 'commodity';
+    }
+
+    // Default to stock
+    return 'stock';
+}
+
+/**
  * Fetch company name from symbol using local reference and validate with Twelve Data API
  * @param {string} symbol - Stock ticker symbol
  */
 export async function fetchCompanyName(symbol) {
     const nameInput = document.getElementById('stock-name');
+    const typeSelect = document.getElementById('stock-type');
     const statusEl = document.getElementById('fetch-status');
 
     if (!symbol || symbol.length < 1) {
@@ -557,12 +607,28 @@ export async function fetchCompanyName(symbol) {
                         nameInput.value = companyName;
                     }
 
-                    // Show success with validation
-                    statusEl.textContent = `✓ Validated: ${stockInfo.symbol} (${stockInfo.exchange || 'Stock'})`;
+                    // Auto-detect and set type
+                    const detectedType = detectStockType(stockInfo);
+                    const currentType = typeSelect.value;
+
+                    // Auto-populate type if it's still default
+                    if (currentType === 'stock' || !currentType) {
+                        typeSelect.value = detectedType;
+                    }
+
+                    // Build validation message
+                    let typeInfo = '';
+                    if (detectedType !== currentType && currentType !== 'stock') {
+                        typeInfo = ` ⚠️ Detected as ${detectedType}`;
+                    }
+
+                    // Show success with validation and free tier reminder
+                    const instrumentInfo = stockInfo.instrument_type || stockInfo.exchange || detectedType;
+                    statusEl.textContent = `✓ Validated: ${stockInfo.symbol} (${instrumentInfo})${typeInfo} • Note: Free tier has limited symbols`;
                     statusEl.classList.remove('error');
                     setTimeout(() => {
                         statusEl.classList.add('hidden');
-                    }, 3000);
+                    }, 5000);
                 } else {
                     throw new Error('Symbol not found in Twelve Data');
                 }
