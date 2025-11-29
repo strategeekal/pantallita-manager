@@ -21,6 +21,8 @@ const configLabels = {
     'show_stocks': 'Show Investment Stocks',
     'stocks_respect_market_hours': 'Stocks: Only During Market Hours',
     'stocks_display_frequency': 'Stocks: Display Cycle Frequency',
+    'show_transit': 'Show Public Transit',
+    'transit_respect_commute_hours': 'Transit: Only During Commute Hours',
     'night_mode_minimal_display': 'Night Mode (Minimal Display)',
     'delayed_start': 'Delayed Start (Safety Feature)'
 };
@@ -36,6 +38,8 @@ const configDescriptions = {
     'show_stocks': 'Display investment stock ticker information',
     'stocks_respect_market_hours': 'On = Show stocks during market hours only',
     'stocks_display_frequency': 'Number of cycles between stock displays',
+    'show_transit': 'Display public transit arrival times',
+    'transit_respect_commute_hours': 'On = Show transit during commute hours only',
     'night_mode_minimal_display': 'Enable minimal display mode during nighttime hours',
     'delayed_start': 'Enable delayed startup for safety'
 };
@@ -51,6 +55,8 @@ const configTypes = {
     'show_stocks': 'boolean',
     'stocks_respect_market_hours': 'boolean',
     'stocks_display_frequency': 'number',
+    'show_transit': 'boolean',
+    'transit_respect_commute_hours': 'boolean',
     'night_mode_minimal_display': 'boolean',
     'delayed_start': 'boolean'
 };
