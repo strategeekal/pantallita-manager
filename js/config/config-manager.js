@@ -21,6 +21,7 @@ const configLabels = {
     'show_stocks': 'Show Investment Stocks',
     'stocks_respect_market_hours': 'Stocks: Only During Market Hours',
     'stocks_display_frequency': 'Stocks: Display Cycle Frequency',
+    'stocks_market_close_grace_period': 'Stocks: After-Hours Grace Period (seconds)',
     'show_transit': 'Show Public Transit',
     'transit_respect_commute_hours': 'Transit: Only During Commute Hours',
     'night_mode_minimal_display': 'Night Mode (Minimal Display)',
@@ -38,6 +39,7 @@ const configDescriptions = {
     'show_stocks': 'Display investment stock ticker information',
     'stocks_respect_market_hours': 'On = Show stocks during market hours only',
     'stocks_display_frequency': 'Number of cycles between stock displays',
+    'stocks_market_close_grace_period': 'Time (in seconds) to continue showing stocks after market closes',
     'show_transit': 'Display public transit arrival times',
     'transit_respect_commute_hours': 'On = Show transit during commute hours only',
     'night_mode_minimal_display': 'Enable minimal display mode during nighttime hours',
@@ -55,6 +57,7 @@ const configTypes = {
     'show_stocks': 'boolean',
     'stocks_respect_market_hours': 'boolean',
     'stocks_display_frequency': 'number',
+    'stocks_market_close_grace_period': 'number',
     'show_transit': 'boolean',
     'transit_respect_commute_hours': 'boolean',
     'night_mode_minimal_display': 'boolean',
@@ -63,7 +66,8 @@ const configTypes = {
 
 // Configuration ranges for numeric fields
 const configRanges = {
-    'stocks_display_frequency': { min: 1, max: 78, default: 3 }
+    'stocks_display_frequency': { min: 1, max: 78, default: 3 },
+    'stocks_market_close_grace_period': { min: 0, max: 7200, default: 900 }
 };
 
 /**
