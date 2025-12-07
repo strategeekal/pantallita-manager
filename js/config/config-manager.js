@@ -39,7 +39,7 @@ const configDescriptions = {
     'show_stocks': 'Display investment stock ticker information',
     'stocks_respect_market_hours': 'On = Show stocks during market hours only',
     'stocks_display_frequency': 'Number of cycles between stock displays',
-    'stocks_display_grace_period_minutes': 'Grace period to continue showing stocks after market closes',
+    'stocks_display_grace_period_minutes': '',  // Dynamic description
     'show_transit': 'Display public transit arrival times',
     'transit_respect_commute_hours': 'On = Show transit during commute hours only',
     'night_mode_minimal_display': 'Enable minimal display mode during nighttime hours',
@@ -69,6 +69,41 @@ const configRanges = {
     'stocks_display_frequency': { min: 1, max: 78, default: 3 },
     'stocks_display_grace_period_minutes': { min: 0, max: 120, default: 60, showTimeHelper: true }
 };
+
+/**
+ * Generate dynamic grace period description
+ * @param {number} minutes - Grace period in minutes
+ * @returns {string} Description text
+ */
+function getGracePeriodDescription(minutes) {
+    const totalMinutes = minutes || 0;
+    const hours = Math.floor(totalMinutes / 60);
+    const mins = totalMinutes % 60;
+
+    // Calculate end time (market closes at 4:00pm ET = 16:00)
+    const marketCloseHour = 16; // 4pm in 24-hour format
+    const endHour = marketCloseHour + hours;
+    const endMinute = mins;
+
+    // Convert to 12-hour format
+    const displayHour = endHour > 12 ? endHour - 12 : endHour;
+    const ampm = endHour >= 12 ? 'pm' : 'am';
+    const timeStr = `${displayHour}:${endMinute.toString().padStart(2, '0')}${ampm}`;
+
+    // Build duration text
+    let durationText = '';
+    if (hours > 0 && mins > 0) {
+        durationText = `${hours} hour${hours > 1 ? 's' : ''} ${mins} minutes`;
+    } else if (hours > 0) {
+        durationText = `${hours} hour${hours > 1 ? 's' : ''}`;
+    } else if (mins > 0) {
+        durationText = `${mins} minutes`;
+    } else {
+        durationText = '0 minutes';
+    }
+
+    return `Stocks will continue to show for ${durationText} after markets close (${timeStr} ET.)`;
+}
 
 /**
  * Initialize the configuration manager
@@ -242,27 +277,20 @@ function renderConfigSettings(matrixName, settings) {
                     const min = setting.range ? setting.range.min : 0;
                     const max = setting.range ? setting.range.max : 100;
 
-                    // Generate time helper text if needed
-                    let timeHelper = '';
-                    if (setting.range && setting.range.showTimeHelper) {
-                        const totalMinutes = setting.value || 0;
-                        const hours = Math.floor(totalMinutes / 60);
-                        const mins = totalMinutes % 60;
+                    // Generate dynamic description for grace period
+                    let description = setting.description;
+                    let onInputHandler = '';
 
-                        if (hours > 0 && mins > 0) {
-                            timeHelper = `<span class="time-helper-text">(${hours} hour${hours > 1 ? 's' : ''} ${mins} min)</span>`;
-                        } else if (hours > 0) {
-                            timeHelper = `<span class="time-helper-text">(${hours} hour${hours > 1 ? 's' : ''})</span>`;
-                        } else if (mins > 0) {
-                            timeHelper = `<span class="time-helper-text">(${mins} min)</span>`;
-                        }
+                    if (setting.name === 'stocks_display_grace_period_minutes') {
+                        description = getGracePeriodDescription(setting.value);
+                        onInputHandler = `oninput="window.configManager.updateGracePeriodDescription('${matrixName}', '${settingId}', parseInt(this.value))"`;
                     }
 
                     html += `
                         <div class="config-setting">
                             <div class="config-setting-info">
                                 <label for="${settingId}" class="config-label">${setting.label}</label>
-                                ${setting.description ? `<span class="config-description">${setting.description}</span>` : ''}
+                                ${description ? `<span class="config-description" id="${settingId}-description">${description}</span>` : ''}
                             </div>
                             <div class="config-number-input">
                                 <input type="number"
@@ -271,8 +299,8 @@ function renderConfigSettings(matrixName, settings) {
                                        value="${setting.value}"
                                        min="${min}"
                                        max="${max}"
+                                       ${onInputHandler}
                                        onchange="window.configManager.updateSetting('${matrixName}', '${setting.name}', parseInt(this.value))">
-                                ${timeHelper}
                             </div>
                         </div>
                     `;
@@ -325,6 +353,19 @@ export function updateSetting(matrixName, settingName, value) {
         if (setting) {
             setting.value = value;
             console.log(`Updated ${matrixName} setting: ${settingName} = ${value}`);
+        }
+}
+
+/**
+ * Update grace period description text in real-time
+ * @param {string} matrixName - 'matrix1' or 'matrix2'
+ * @param {string} settingId - ID of the setting input
+ * @param {number} minutes - Minutes value
+ */
+export function updateGracePeriodDescription(matrixName, settingId, minutes) {
+        const descriptionEl = document.getElementById(`${settingId}-description`);
+        if (descriptionEl) {
+            descriptionEl.textContent = getGracePeriodDescription(minutes);
         }
 }
 
@@ -440,6 +481,7 @@ if (typeof window !== 'undefined') {
         loadConfig,
         saveConfig,
         updateSetting,
+        updateGracePeriodDescription,
         reloadConfig
     };
 }
