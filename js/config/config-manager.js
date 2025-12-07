@@ -39,7 +39,7 @@ const configDescriptions = {
     'show_stocks': 'Display investment stock ticker information',
     'stocks_respect_market_hours': 'On = Show stocks during market hours only',
     'stocks_display_frequency': 'Number of cycles between stock displays',
-    'stocks_market_close_grace_period': 'Time (in seconds) to continue showing stocks after market closes',
+    'stocks_market_close_grace_period': 'Grace period to continue showing stocks after market closes',
     'show_transit': 'Display public transit arrival times',
     'transit_respect_commute_hours': 'On = Show transit during commute hours only',
     'night_mode_minimal_display': 'Enable minimal display mode during nighttime hours',
@@ -67,7 +67,7 @@ const configTypes = {
 // Configuration ranges for numeric fields
 const configRanges = {
     'stocks_display_frequency': { min: 1, max: 78, default: 3 },
-    'stocks_market_close_grace_period': { min: 0, max: 7200, default: 900 }
+    'stocks_market_close_grace_period': { min: 0, max: 7200, default: 3600, displayAsTime: true }
 };
 
 /**
@@ -238,27 +238,68 @@ function renderConfigSettings(matrixName, settings) {
                 const settingId = `${matrixName}-${setting.name}`;
 
                 if (setting.type === 'number') {
-                    // Render number input
-                    const min = setting.range ? setting.range.min : 0;
-                    const max = setting.range ? setting.range.max : 100;
+                    // Check if this should be displayed as time (hours/minutes)
+                    if (setting.range && setting.range.displayAsTime) {
+                        // Convert seconds to hours and minutes
+                        const totalSeconds = setting.value || 0;
+                        const hours = Math.floor(totalSeconds / 3600);
+                        const minutes = Math.floor((totalSeconds % 3600) / 60);
 
-                    html += `
-                        <div class="config-setting">
-                            <div class="config-setting-info">
-                                <label for="${settingId}" class="config-label">${setting.label}</label>
-                                ${setting.description ? `<span class="config-description">${setting.description}</span>` : ''}
+                        html += `
+                            <div class="config-setting">
+                                <div class="config-setting-info">
+                                    <label class="config-label">${setting.label}</label>
+                                    ${setting.description ? `<span class="config-description">${setting.description}</span>` : ''}
+                                </div>
+                                <div class="config-time-input">
+                                    <div class="time-input-group">
+                                        <input type="number"
+                                               id="${settingId}-hours"
+                                               class="time-number-input"
+                                               value="${hours}"
+                                               min="0"
+                                               max="2"
+                                               placeholder="0"
+                                               onchange="window.configManager.updateTimeSettingFromInputs('${matrixName}', '${setting.name}', '${settingId}')">
+                                        <label class="time-unit-label">hours</label>
+                                    </div>
+                                    <div class="time-input-group">
+                                        <input type="number"
+                                               id="${settingId}-minutes"
+                                               class="time-number-input"
+                                               value="${minutes}"
+                                               min="0"
+                                               max="59"
+                                               placeholder="0"
+                                               onchange="window.configManager.updateTimeSettingFromInputs('${matrixName}', '${setting.name}', '${settingId}')">
+                                        <label class="time-unit-label">minutes</label>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="config-number-input">
-                                <input type="number"
-                                       id="${settingId}"
-                                       class="number-input"
-                                       value="${setting.value}"
-                                       min="${min}"
-                                       max="${max}"
-                                       onchange="window.configManager.updateSetting('${matrixName}', '${setting.name}', parseInt(this.value))">
+                        `;
+                    } else {
+                        // Render regular number input
+                        const min = setting.range ? setting.range.min : 0;
+                        const max = setting.range ? setting.range.max : 100;
+
+                        html += `
+                            <div class="config-setting">
+                                <div class="config-setting-info">
+                                    <label for="${settingId}" class="config-label">${setting.label}</label>
+                                    ${setting.description ? `<span class="config-description">${setting.description}</span>` : ''}
+                                </div>
+                                <div class="config-number-input">
+                                    <input type="number"
+                                           id="${settingId}"
+                                           class="number-input"
+                                           value="${setting.value}"
+                                           min="${min}"
+                                           max="${max}"
+                                           onchange="window.configManager.updateSetting('${matrixName}', '${setting.name}', parseInt(this.value))">
+                                </div>
                             </div>
-                        </div>
-                    `;
+                        `;
+                    }
                 } else {
                     // Render toggle for boolean
                     const checked = setting.value ? 'checked' : '';
@@ -309,6 +350,40 @@ export function updateSetting(matrixName, settingName, value) {
             setting.value = value;
             console.log(`Updated ${matrixName} setting: ${settingName} = ${value}`);
         }
+}
+
+/**
+ * Update a time-based setting from hours and minutes inputs
+ * @param {string} matrixName - 'matrix1' or 'matrix2'
+ * @param {string} settingName - Name of the setting
+ * @param {string} settingId - Base ID of the input elements
+ */
+export function updateTimeSettingFromInputs(matrixName, settingName, settingId) {
+        const hoursInput = document.getElementById(`${settingId}-hours`);
+        const minutesInput = document.getElementById(`${settingId}-minutes`);
+
+        if (!hoursInput || !minutesInput) {
+            console.error(`Time inputs not found for ${settingId}`);
+            return;
+        }
+
+        // Get hours and minutes values
+        const hours = parseInt(hoursInput.value) || 0;
+        const minutes = parseInt(minutesInput.value) || 0;
+
+        // Validate ranges
+        const validHours = Math.max(0, Math.min(2, hours));
+        const validMinutes = Math.max(0, Math.min(59, minutes));
+
+        // Update inputs if they were out of range
+        if (hours !== validHours) hoursInput.value = validHours;
+        if (minutes !== validMinutes) minutesInput.value = validMinutes;
+
+        // Convert to total seconds
+        const totalSeconds = (validHours * 3600) + (validMinutes * 60);
+
+        // Update the setting
+        updateSetting(matrixName, settingName, totalSeconds);
 }
 
 /**
@@ -423,6 +498,7 @@ if (typeof window !== 'undefined') {
         loadConfig,
         saveConfig,
         updateSetting,
+        updateTimeSettingFromInputs,
         reloadConfig
     };
 }
