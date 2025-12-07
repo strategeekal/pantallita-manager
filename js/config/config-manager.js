@@ -21,7 +21,7 @@ const configLabels = {
     'show_stocks': 'Show Investment Stocks',
     'stocks_respect_market_hours': 'Stocks: Only During Market Hours',
     'stocks_display_frequency': 'Stocks: Display Cycle Frequency',
-    'stocks_market_close_grace_period': 'Stocks: After-Hours Grace Period (seconds)',
+    'stocks_market_close_grace_period': 'Stocks: After-Hours Grace Period',
     'show_transit': 'Show Public Transit',
     'transit_respect_commute_hours': 'Transit: Only During Commute Hours',
     'night_mode_minimal_display': 'Night Mode (Minimal Display)',
@@ -67,7 +67,7 @@ const configTypes = {
 // Configuration ranges for numeric fields
 const configRanges = {
     'stocks_display_frequency': { min: 1, max: 78, default: 3 },
-    'stocks_market_close_grace_period': { min: 0, max: 7200, default: 3600, displayAsTime: true }
+    'stocks_market_close_grace_period': { min: 0, max: 120, default: 60, displayAsTime: true }
 };
 
 /**
@@ -240,10 +240,10 @@ function renderConfigSettings(matrixName, settings) {
                 if (setting.type === 'number') {
                     // Check if this should be displayed as time (hours/minutes)
                     if (setting.range && setting.range.displayAsTime) {
-                        // Convert seconds to hours and minutes
-                        const totalSeconds = setting.value || 0;
-                        const hours = Math.floor(totalSeconds / 3600);
-                        const minutes = Math.floor((totalSeconds % 3600) / 60);
+                        // Convert total minutes to hours and minutes
+                        const totalMinutes = setting.value || 0;
+                        const hours = Math.floor(totalMinutes / 60);
+                        const minutes = totalMinutes % 60;
 
                         html += `
                             <div class="config-setting">
@@ -379,11 +379,11 @@ export function updateTimeSettingFromInputs(matrixName, settingName, settingId) 
         if (hours !== validHours) hoursInput.value = validHours;
         if (minutes !== validMinutes) minutesInput.value = validMinutes;
 
-        // Convert to total seconds
-        const totalSeconds = (validHours * 3600) + (validMinutes * 60);
+        // Convert to total minutes
+        const totalMinutes = (validHours * 60) + validMinutes;
 
         // Update the setting
-        updateSetting(matrixName, settingName, totalSeconds);
+        updateSetting(matrixName, settingName, totalMinutes);
 }
 
 /**
