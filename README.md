@@ -1,10 +1,10 @@
 # SCREENY Manager
 
-**Version 1.8.0**
+**Version 1.9.0**
 
 A web-based management interface for SCREENY RGB matrix displays. Manage ephemeral events, daily schedules, and investment stock tickers remotely through GitHub, with full support for desktop and mobile devices.
 
-![SCREENY Manager](https://img.shields.io/badge/status-active-brightgreen) ![Version](https://img.shields.io/badge/version-1.8.0-blue)
+![SCREENY Manager](https://img.shields.io/badge/status-active-brightgreen) ![Version](https://img.shields.io/badge/version-1.9.0-blue)
 
 ## Features
 
@@ -95,10 +95,17 @@ A web-based management interface for SCREENY RGB matrix displays. Manage ephemer
   - Show/hide scheduled displays
   - Show/hide events between schedules
   - Show/hide investment stocks
+  - Stocks: Only during market hours (toggle)
+  - Stocks: Display cycle frequency (1-78 cycles)
+  - Stocks: After-hours grace period with timezone detection
+  - Show/hide public transit
+  - Transit: Only during commute hours (toggle)
   - Enable/disable night mode (minimal display during nighttime hours)
   - Enable/disable delayed start (safety feature)
+- **Smart Timezone Detection**: Grace period times automatically convert to user's local timezone
 - **GitHub Integration**: Configuration files (CSV format) stored in repository
 - **Real-time Updates**: Save and reload configurations on the fly
+- **Dual Status Indicators**: Save confirmation appears at both top and bottom of page
 - **Grouped Settings**: Settings organized by logical sections for clarity
 - **Visual Feedback**: Loading states and error messages for save/reload operations
 
@@ -270,9 +277,18 @@ show_events,1
 show_weekday_indicator,1
 show_scheduled_displays,1
 show_events_in_between_schedules,1
+
+# Stock settings
 show_stocks,1
 stocks_respect_market_hours,0
 stocks_display_frequency,3
+stocks_display_grace_period_minutes,60
+
+# Transit settings
+show_transit,1
+transit_respect_commute_hours,1
+
+# Display modes
 night_mode_minimal_display,1
 
 # Safety features
@@ -281,7 +297,7 @@ delayed_start,0
 
 **Fields:**
 - `setting` - Configuration setting name
-- `value` - Boolean value (`1` = enabled, `0` = disabled) or numeric value (for frequency settings)
+- `value` - Boolean value (`1` = enabled, `0` = disabled) or numeric value (for numeric settings)
 
 **Available Settings:**
 - `show_weather` - Display current weather information
@@ -293,6 +309,9 @@ delayed_start,0
 - `show_stocks` - Display investment stock ticker information
 - `stocks_respect_market_hours` - On = Show stocks during market hours only
 - `stocks_display_frequency` - Number of cycles between stock displays (numeric: 1-78, default: 3)
+- `stocks_display_grace_period_minutes` - Minutes to continue showing stocks after market close (numeric: 0-120, default: 60)
+- `show_transit` - Display public transit arrival times
+- `transit_respect_commute_hours` - On = Show transit during commute hours only
 - `night_mode_minimal_display` - Enable minimal display mode during nighttime hours
 - `delayed_start` - Enable delayed startup for safety
 
@@ -311,9 +330,18 @@ show_events,1
 show_weekday_indicator,1
 show_scheduled_displays,1
 show_events_in_between_schedules,0
+
+# Stock settings
 show_stocks,1
 stocks_respect_market_hours,1
 stocks_display_frequency,5
+stocks_display_grace_period_minutes,90
+
+# Transit settings
+show_transit,1
+transit_respect_commute_hours,1
+
+# Display modes
 night_mode_minimal_display,1
 
 # Safety features
@@ -484,7 +512,25 @@ Available colors for event text:
 
 ## Version History
 
-### Version 1.8.0 (Current)
+### Version 1.9.0 (Current)
+- **Transit Configuration** 🚇:
+  - New `show_transit` toggle to enable/disable public transit display
+  - New `transit_respect_commute_hours` toggle for commute-hours-only display
+  - Integrated into Configuration tab for both Matrix 1 and Matrix 2
+- **Stocks After-Hours Grace Period** ⏰:
+  - New `stocks_display_grace_period_minutes` setting (0-120 minutes, default: 60)
+  - Control how long stocks continue to show after market close (4:00 PM ET)
+  - Smart timezone detection automatically converts times to user's local timezone
+  - Live-updating description shows end time as user adjusts grace period
+  - Format: "Stocks will show until 5:00 PM EST (1 hour after market close)"
+  - Works for all US timezones (PT, MT, CT, ET) and international users
+- **Enhanced Configuration UX** ✨:
+  - Dual save status indicators (top and bottom of page)
+  - Users can see save confirmation without scrolling on long pages
+  - Status messages appear in both locations: "Saving...", "✓ Saved successfully", error messages
+  - Better organization of stock and transit settings in CSV with section comments
+
+### Version 1.8.0
 - **Highlighted Stocks Feature** ⭐:
   - **Individual Display Mode**: Mark important stocks for individual display
     - Add `highlighted` field to CSV (5th field: 0 or 1)
