@@ -80,24 +80,37 @@ function getGracePeriodDescription(minutes) {
     const hours = Math.floor(totalMinutes / 60);
     const mins = totalMinutes % 60;
 
-    // Create a date object for market close (4:00pm ET)
     const now = new Date();
-    const marketCloseET = new Date(now);
-    marketCloseET.setHours(16, 0, 0, 0); // 4:00pm in 24-hour format
-
-    // Convert market close time from ET to user's local timezone
     const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-    // Create formatter for ET timezone
-    const etFormatter = new Intl.DateTimeFormat('en-US', {
+    // Calculate the offset between ET and UTC
+    // Get current time in ET
+    const etHour = parseInt(now.toLocaleString('en-US', {
         timeZone: 'America/New_York',
-        hour: 'numeric',
-        minute: '2-digit',
-        hour12: true
-    });
+        hour: '2-digit',
+        hour12: false
+    }));
 
-    // Create formatter for user's local timezone
-    const localFormatter = new Intl.DateTimeFormat('en-US', {
+    const utcHour = now.getUTCHours();
+    const etOffset = utcHour - etHour; // Hours to add to ET to get UTC
+
+    // Create a Date object for 4:00 PM ET (16:00 ET)
+    // Convert to UTC by adding the offset
+    const marketCloseUTC = new Date(Date.UTC(
+        now.getUTCFullYear(),
+        now.getUTCMonth(),
+        now.getUTCDate(),
+        16 + etOffset,
+        0,
+        0
+    ));
+
+    // Add grace period to get end time
+    const endTime = new Date(marketCloseUTC);
+    endTime.setMinutes(endTime.getMinutes() + totalMinutes);
+
+    // Format the end time in user's local timezone
+    const endTimeStr = endTime.toLocaleString('en-US', {
         timeZone: userTimeZone,
         hour: 'numeric',
         minute: '2-digit',
@@ -109,15 +122,8 @@ function getGracePeriodDescription(minutes) {
         timeZone: userTimeZone,
         timeZoneName: 'short'
     });
-    const tzParts = tzFormatter.formatToParts(marketCloseET);
+    const tzParts = tzFormatter.formatToParts(endTime);
     const tzAbbr = tzParts.find(part => part.type === 'timeZoneName')?.value || '';
-
-    // Calculate end time (market close + grace period)
-    const endTime = new Date(marketCloseET);
-    endTime.setMinutes(endTime.getMinutes() + totalMinutes);
-
-    // Format the end time in user's local timezone
-    const endTimeStr = localFormatter.format(endTime);
 
     // Build duration text
     let durationText = '';
@@ -131,7 +137,7 @@ function getGracePeriodDescription(minutes) {
         durationText = '0 minutes';
     }
 
-    return `Stocks will continue to show for ${durationText} after markets close (${endTimeStr} ${tzAbbr})`;
+    return `Stocks will show until ${endTimeStr} ${tzAbbr} (${durationText} after market close)`;
 }
 
 /**
