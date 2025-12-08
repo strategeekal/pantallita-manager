@@ -21,7 +21,7 @@ const configLabels = {
     'show_stocks': 'Show Investment Stocks',
     'stocks_respect_market_hours': 'Stocks: Only During Market Hours',
     'stocks_display_frequency': 'Stocks: Display Cycle Frequency',
-    'stocks_display_grace_period_minutes': 'Stocks: After-Hours Grace Period',
+    'stocks_display_grace_period_minutes': 'Stocks: After-Hrs. Grace Period (min)',
     'show_transit': 'Show Public Transit',
     'transit_respect_commute_hours': 'Transit: Only During Commute Hours',
     'night_mode_minimal_display': 'Night Mode (Minimal Display)',
@@ -80,15 +80,44 @@ function getGracePeriodDescription(minutes) {
     const hours = Math.floor(totalMinutes / 60);
     const mins = totalMinutes % 60;
 
-    // Calculate end time (market closes at 4:00pm ET = 16:00)
-    const marketCloseHour = 16; // 4pm in 24-hour format
-    const endHour = marketCloseHour + hours;
-    const endMinute = mins;
+    // Create a date object for market close (4:00pm ET)
+    const now = new Date();
+    const marketCloseET = new Date(now);
+    marketCloseET.setHours(16, 0, 0, 0); // 4:00pm in 24-hour format
 
-    // Convert to 12-hour format
-    const displayHour = endHour > 12 ? endHour - 12 : endHour;
-    const ampm = endHour >= 12 ? 'pm' : 'am';
-    const timeStr = `${displayHour}:${endMinute.toString().padStart(2, '0')}${ampm}`;
+    // Convert market close time from ET to user's local timezone
+    const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+    // Create formatter for ET timezone
+    const etFormatter = new Intl.DateTimeFormat('en-US', {
+        timeZone: 'America/New_York',
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+    });
+
+    // Create formatter for user's local timezone
+    const localFormatter = new Intl.DateTimeFormat('en-US', {
+        timeZone: userTimeZone,
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+    });
+
+    // Get timezone abbreviation
+    const tzFormatter = new Intl.DateTimeFormat('en-US', {
+        timeZone: userTimeZone,
+        timeZoneName: 'short'
+    });
+    const tzParts = tzFormatter.formatToParts(marketCloseET);
+    const tzAbbr = tzParts.find(part => part.type === 'timeZoneName')?.value || '';
+
+    // Calculate end time (market close + grace period)
+    const endTime = new Date(marketCloseET);
+    endTime.setMinutes(endTime.getMinutes() + totalMinutes);
+
+    // Format the end time in user's local timezone
+    const endTimeStr = localFormatter.format(endTime);
 
     // Build duration text
     let durationText = '';
@@ -102,7 +131,7 @@ function getGracePeriodDescription(minutes) {
         durationText = '0 minutes';
     }
 
-    return `Stocks will continue to show for ${durationText} after markets close (${timeStr} ET.)`;
+    return `Stocks will continue to show for ${durationText} after markets close (${endTimeStr} ${tzAbbr})`;
 }
 
 /**
