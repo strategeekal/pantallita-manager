@@ -411,10 +411,16 @@ export function updateGracePeriodDescription(matrixName, settingId, minutes) {
 export async function saveConfig(matrixName) {
         const statusEl = document.getElementById(`${matrixName}-status`);
         const errorEl = document.getElementById(`${matrixName}-error`);
+        const statusElBottom = document.getElementById(`${matrixName}-status-bottom`);
+        const errorElBottom = document.getElementById(`${matrixName}-error-bottom`);
 
         if (!configState[matrixName] || !configState[matrixName].settings) {
             errorEl.textContent = 'No configuration loaded to save';
             errorEl.classList.remove('hidden');
+            if (errorElBottom) {
+                errorElBottom.textContent = 'No configuration loaded to save';
+                errorElBottom.classList.remove('hidden');
+            }
             return;
         }
 
@@ -422,6 +428,13 @@ export async function saveConfig(matrixName) {
         statusEl.textContent = 'Saving...';
         statusEl.classList.remove('hidden');
         errorEl.classList.add('hidden');
+        if (statusElBottom) {
+            statusElBottom.textContent = 'Saving...';
+            statusElBottom.classList.remove('hidden');
+        }
+        if (errorElBottom) {
+            errorElBottom.classList.add('hidden');
+        }
 
         try {
             // Build the CSV content
@@ -443,8 +456,14 @@ export async function saveConfig(matrixName) {
 
             // Show success message
             statusEl.textContent = '✓ Saved successfully';
+            if (statusElBottom) {
+                statusElBottom.textContent = '✓ Saved successfully';
+            }
             setTimeout(() => {
                 statusEl.classList.add('hidden');
+                if (statusElBottom) {
+                    statusElBottom.classList.add('hidden');
+                }
             }, 3000);
 
             console.log(`Configuration saved successfully: ${filename}`);
@@ -454,6 +473,13 @@ export async function saveConfig(matrixName) {
             statusEl.classList.add('hidden');
             errorEl.textContent = `Failed to save: ${error.message}`;
             errorEl.classList.remove('hidden');
+            if (statusElBottom) {
+                statusElBottom.classList.add('hidden');
+            }
+            if (errorElBottom) {
+                errorElBottom.textContent = `Failed to save: ${error.message}`;
+                errorElBottom.classList.remove('hidden');
+            }
         }
 }
 
