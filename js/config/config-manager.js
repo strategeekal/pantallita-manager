@@ -272,6 +272,50 @@ function parseConfigCSV(content) {
             }
         }
 
+        // Add missing settings with defaults for backward compatibility
+        const existingSettingNames = new Set(settings.map(s => s.name));
+        const allKnownSettings = Object.keys(configLabels);
+
+        for (const settingName of allKnownSettings) {
+            if (!existingSettingNames.has(settingName)) {
+                // Setting is missing from CSV, add it with default value
+                const fieldType = configTypes[settingName] || 'boolean';
+                let defaultValue;
+                let defaultSection = 'General';
+
+                if (fieldType === 'number' && configRanges[settingName]) {
+                    defaultValue = configRanges[settingName].default;
+                } else {
+                    defaultValue = false; // Default for boolean
+                }
+
+                // Determine section based on setting name
+                if (settingName.startsWith('show_weather') || settingName.startsWith('show_forecast') || settingName.startsWith('show_events')) {
+                    defaultSection = 'Core displays';
+                } else if (settingName.startsWith('stocks_')) {
+                    defaultSection = 'Stock settings';
+                } else if (settingName.startsWith('transit_')) {
+                    defaultSection = 'Transit settings';
+                } else if (settingName.includes('night_mode')) {
+                    defaultSection = 'Display modes';
+                } else if (settingName === 'delayed_start') {
+                    defaultSection = 'Safety features';
+                } else if (settingName.startsWith('show_')) {
+                    defaultSection = 'Display elements';
+                }
+
+                settings.push({
+                    name: settingName,
+                    value: defaultValue,
+                    type: fieldType,
+                    section: defaultSection,
+                    label: configLabels[settingName] || settingName.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+                    description: configDescriptions[settingName] || '',
+                    range: configRanges[settingName] || null
+                });
+            }
+        }
+
         return { settings, comments };
 }
 
