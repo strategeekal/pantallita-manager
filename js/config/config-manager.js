@@ -66,8 +66,8 @@ const configTypes = {
 
 // Configuration ranges for numeric fields
 const configRanges = {
-    'stocks_display_frequency': { min: 1, max: 78, default: 3 },
-    'stocks_display_grace_period_minutes': { min: 0, max: 120, default: 60, showTimeHelper: true }
+    'stocks_display_frequency': { min: 1, max: 78 },
+    'stocks_display_grace_period_minutes': { min: 0, max: 120, showTimeHelper: true }
 };
 
 /**
@@ -248,13 +248,6 @@ function parseConfigCSV(content) {
 
                 if (fieldType === 'number') {
                     parsedValue = parseInt(settingValue, 10);
-                    // Validate range if defined
-                    if (configRanges[settingName]) {
-                        const range = configRanges[settingName];
-                        if (isNaN(parsedValue) || parsedValue < range.min || parsedValue > range.max) {
-                            parsedValue = range.default;
-                        }
-                    }
                 } else {
                     // Boolean type
                     parsedValue = settingValue === '1';
@@ -265,50 +258,6 @@ function parseConfigCSV(content) {
                     value: parsedValue,
                     type: fieldType,
                     section: currentSection,
-                    label: configLabels[settingName] || settingName.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
-                    description: configDescriptions[settingName] || '',
-                    range: configRanges[settingName] || null
-                });
-            }
-        }
-
-        // Add missing settings with defaults for backward compatibility
-        const existingSettingNames = new Set(settings.map(s => s.name));
-        const allKnownSettings = Object.keys(configLabels);
-
-        for (const settingName of allKnownSettings) {
-            if (!existingSettingNames.has(settingName)) {
-                // Setting is missing from CSV, add it with default value
-                const fieldType = configTypes[settingName] || 'boolean';
-                let defaultValue;
-                let defaultSection = 'General';
-
-                if (fieldType === 'number' && configRanges[settingName]) {
-                    defaultValue = configRanges[settingName].default;
-                } else {
-                    defaultValue = false; // Default for boolean
-                }
-
-                // Determine section based on setting name
-                if (settingName.startsWith('show_weather') || settingName.startsWith('show_forecast') || settingName.startsWith('show_events')) {
-                    defaultSection = 'Core displays';
-                } else if (settingName.startsWith('stocks_')) {
-                    defaultSection = 'Stock settings';
-                } else if (settingName.startsWith('transit_')) {
-                    defaultSection = 'Transit settings';
-                } else if (settingName.includes('night_mode')) {
-                    defaultSection = 'Display modes';
-                } else if (settingName === 'delayed_start') {
-                    defaultSection = 'Safety features';
-                } else if (settingName.startsWith('show_')) {
-                    defaultSection = 'Display elements';
-                }
-
-                settings.push({
-                    name: settingName,
-                    value: defaultValue,
-                    type: fieldType,
-                    section: defaultSection,
                     label: configLabels[settingName] || settingName.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
                     description: configDescriptions[settingName] || '',
                     range: configRanges[settingName] || null
