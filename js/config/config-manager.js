@@ -546,6 +546,7 @@ export function reloadConfig() {
 // Expose to window for onclick handlers
 if (typeof window !== 'undefined') {
     window.configManager = {
+        init,
         loadConfig,
         saveConfig,
         reloadConfig,
