@@ -419,6 +419,15 @@
 									</div>
 
 									<div class="form-group">
+										<label for="mobile-edit-item-nightmode">Night Mode:</label>
+										<select id="mobile-edit-item-nightmode" class="form-input" onchange="window.schedulesModule.liveUpdateItemMobile('nightmode', parseInt(this.value))">
+											<option value="0">Normal Weather</option>
+											<option value="1">Time + Temp Only</option>
+											<option value="2">Clock Only</option>
+										</select>
+									</div>
+
+									<div class="form-group">
 										<button class="btn-pixel btn-danger" onclick="window.schedulesModule.deleteScheduleItemFromPanelMobile()">Delete Item</button>
 									</div>
 								</div>
@@ -468,6 +477,12 @@
 											<input type="checkbox" id="edit-item-progressbar" onchange="window.schedulesModule.liveUpdateItem('progressBar', this.checked)">
 											Show Progress Bar
 										</label>
+										<label for="edit-item-nightmode">Night Mode:</label>
+										<select id="edit-item-nightmode" class="form-input" onchange="window.schedulesModule.liveUpdateItem('nightmode', parseInt(this.value))">
+											<option value="0">Normal Weather</option>
+											<option value="1">Time + Temp Only</option>
+											<option value="2">Clock Only</option>
+										</select>
 									</div>
 								</div>
 							</div>

@@ -376,6 +376,7 @@ export function showEditPanel(index) {
 	document.getElementById('edit-item-name').value = item.name || '';
 	document.getElementById('edit-item-enabled').checked = item.enabled !== false;
 	document.getElementById('edit-item-progressbar').checked = item.progressBar || false;
+	document.getElementById('edit-item-nightmode').value = item.nightmode || 0;
 
 	// Populate time fields
 	document.getElementById('edit-start-hour').value = item.startHour || 0;
@@ -588,6 +589,7 @@ export function populateMobileEditPanel(index) {
 	document.getElementById('mobile-edit-item-name').value = item.name || '';
 	document.getElementById('mobile-edit-item-enabled').checked = item.enabled !== false;
 	document.getElementById('mobile-edit-item-progressbar').checked = item.progressBar || false;
+	document.getElementById('mobile-edit-item-nightmode').value = item.nightmode || 0;
 
 	// Populate time fields
 	document.getElementById('mobile-edit-start-hour').value = item.startHour || 0;
