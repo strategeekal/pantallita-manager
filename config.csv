@@ -1,0 +1,35 @@
+# Pantallita 3.0 - Display Configuration
+# This file controls which displays are shown and temperature units
+# Edit values and save - changes apply on next cycle
+#
+# GitHub Remote Config:
+# - Configure CONFIG_GITHUB_URL in settings.toml to enable remote control
+# - GitHub config will override this local file
+# - If GitHub fetch fails, local config is used as fallback
+
+setting,value
+
+# Display toggles (true/false)
+display_weather,false
+display_forecast,true
+display_stocks,true
+display_clock,false
+display_schedules,true
+display_events,true
+
+# Temperature unit (F or C)
+temperature_unit,C
+
+# Stock display settings
+stocks_display_frequency,1
+stocks_respect_market_hours,true
+stocks_grace_period_minutes,90
+
+# Weekday indicator settings
+show_weekday_indicator,true
+
+# Transit display settings
+display_transit,true
+transit_respect_commute_hours,true
+transit_display_frequency,1
+ 
