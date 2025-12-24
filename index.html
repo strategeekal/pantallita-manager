@@ -76,6 +76,7 @@
 				<button class="tab active" data-tab="events">Events</button>
 				<button class="tab" data-tab="schedules">Schedules</button>
 				<button class="tab" data-tab="stocks">Stocks</button>
+				<button class="tab" data-tab="transits">Transits</button>
 				<button class="tab" data-tab="configuration">Configuration</button>
 			</nav>
 
@@ -519,10 +520,104 @@
 			</div>
 		</div>
 
+		<!-- Transits Tab -->
+		<section id="transits-tab" class="tab-content">
+			<h2>CTA Transit Routes</h2>
+			<p class="tab-description">Manage bus and train routes displayed on your matrix</p>
+
+			<div class="transits-section">
+				<div class="transits-header">
+					<h3>Your Transit Routes</h3>
+					<div class="list-actions">
+						<button id="add-transit-btn" class="btn-pixel btn-primary">+ Add Route</button>
+						<button onclick="window.transitsManager.reloadTransits()" class="btn-pixel btn-secondary">🔄 Reload</button>
+					</div>
+				</div>
+
+				<div id="transits-status" class="status-message hidden"></div>
+				<div id="transits-list"></div>
+
+				<!-- Add/Edit Transit Form -->
+				<div id="transit-form-container" class="form-container hidden">
+					<h3 id="transit-form-title">Add New Transit Route</h3>
+					<form id="transit-form" class="transit-form">
+						<div class="form-row">
+							<div class="form-group">
+								<label for="transit-type">Type *</label>
+								<select id="transit-type" class="form-input" required>
+									<option value="train">Train</option>
+									<option value="bus">Bus</option>
+								</select>
+							</div>
+
+							<div class="form-group">
+								<label for="transit-route">Route *</label>
+								<input type="text" id="transit-route" class="form-input" placeholder="Red, 8, Brn..." required>
+							</div>
+						</div>
+
+						<div class="form-row">
+							<div class="form-group">
+								<label for="transit-destination">Destination *</label>
+								<input type="text" id="transit-destination" class="form-input" placeholder="96St, Loop, 79st..." required>
+							</div>
+
+							<div class="form-group">
+								<label for="transit-stop-id">Stop ID *</label>
+								<input type="text" id="transit-stop-id" class="form-input" placeholder="41220" required>
+							</div>
+						</div>
+
+						<div class="form-row">
+							<div class="form-group">
+								<label for="transit-min-threshold">Min Threshold (minutes) *</label>
+								<input type="number" id="transit-min-threshold" class="form-input" min="0" max="60" value="10" required>
+							</div>
+
+							<div class="form-group">
+								<label for="transit-color">Color *</label>
+								<input type="text" id="transit-color" class="form-input" placeholder="RED, BROWN, AQUA..." required>
+							</div>
+						</div>
+
+						<div class="form-row">
+							<div class="form-group">
+								<label for="transit-time-filter">Time Filter *</label>
+								<input type="text" id="transit-time-filter" class="form-input" placeholder="6-10 (6am-10am)" required>
+							</div>
+
+							<div class="form-group">
+								<label for="transit-alt-color">Alt Color (optional)</label>
+								<input type="text" id="transit-alt-color" class="form-input" placeholder="PURPLE">
+							</div>
+						</div>
+
+						<div class="form-group">
+							<label>Days *</label>
+							<div class="days-checkboxes">
+								<label class="day-label"><input type="checkbox" class="day-checkbox" value="0"> Mon</label>
+								<label class="day-label"><input type="checkbox" class="day-checkbox" value="1"> Tue</label>
+								<label class="day-label"><input type="checkbox" class="day-checkbox" value="2"> Wed</label>
+								<label class="day-label"><input type="checkbox" class="day-checkbox" value="3"> Thu</label>
+								<label class="day-label"><input type="checkbox" class="day-checkbox" value="4"> Fri</label>
+								<label class="day-label"><input type="checkbox" class="day-checkbox" value="5"> Sat</label>
+								<label class="day-label"><input type="checkbox" class="day-checkbox" value="6"> Sun</label>
+							</div>
+						</div>
+
+						<div class="form-actions">
+							<button type="submit" class="btn-pixel btn-primary">💾 Save</button>
+							<button type="button" id="cancel-transit-btn" class="btn-pixel btn-secondary">Cancel</button>
+						</div>
+					</form>
+				</div>
+			</div>
+		</section>
+
 		<!-- Configuration Tab -->
 		<section id="configuration-tab" class="tab-content">
 			<h2>Display Configuration</h2>
-			<p class="tab-description">Control what displays on each matrix independently</p>
+			<p class="tab-description">Control display settings for your matrix</p>
 
 			<div class="config-container">
 				<!-- Matrix 1 Configuration -->
