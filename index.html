@@ -22,12 +22,24 @@
 				</div>
 
 				<div class="token-form">
-					<h3>Enter GitHub Access Token</h3>
+					<h3>Connect to Your GitHub Repository</h3>
 					<form id="token-form" onsubmit="window.handleTokenSubmit(event)">
+						<input
+							type="text"
+							id="landing-username-input"
+							placeholder="GitHub Username"
+							required
+						>
+						<input
+							type="text"
+							id="landing-repo-input"
+							placeholder="Repository Name (e.g., pantallita-events)"
+							required
+						>
 						<input
 							type="password"
 							id="landing-token-input"
-							placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
+							placeholder="Personal Access Token (ghp_...)"
 							required
 						>
 						<button type="submit" class="btn-pixel btn-primary">Unlock App</button>

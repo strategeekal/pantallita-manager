@@ -1,5 +1,5 @@
 // Main App Entry Point - Coordinates all modules with mobile optimization
-import { hasToken, getToken } from './core/config.js';
+import { hasToken, getToken, getUsername, getRepo } from './core/config.js';
 import { isMobileDevice } from './core/utils.js';
 import { setupTabs, handleTabSwitch } from './ui/tabs.js';
 import { showApp, scrollToAbout, createPixelBackground, handleTokenSubmit, logout } from './ui/landing.js';
@@ -128,12 +128,16 @@ document.addEventListener('DOMContentLoaded', async () => {
 	// Setup tabs
 	setupTabs();
 
-	// Pre-fill token if exists
+	// Pre-fill credentials if they exist
 	if (hasToken()) {
+		const usernameInput = document.getElementById('landing-username-input');
+		const repoInput = document.getElementById('landing-repo-input');
 		const tokenInput = document.getElementById('landing-token-input');
-		if (tokenInput) {
-			tokenInput.value = getToken();
-		}
+
+		if (usernameInput) usernameInput.value = getUsername();
+		if (repoInput) repoInput.value = getRepo();
+		if (tokenInput) tokenInput.value = getToken();
+
 		// Auto-show app if token exists
 		await showApp();
 
