@@ -293,6 +293,7 @@ function parseScheduleCSV(content) {
 			endMin: parseInt(parts[6].trim()),
 			image: parts[7].trim(),
 			progressBar: parts[8].trim() === '1',
+			nightmode: parts.length >= 10 ? parseInt(parts[9].trim()) : 0,
 			index: index
 		};
 	}).filter(item => item !== null);
@@ -1110,14 +1111,15 @@ function validateAllImagesSelected() {
 }
 
 function generateScheduleCSV() {
-	const header = `# Format: name,enabled,days,start_hour,start_min,end_hour,end_min,image,progressbar
+	const header = `# Format: name,enabled,days,start_hour,start_min,end_hour,end_min,image,progressbar,nightmode
 # enabled: 1=true, 0=false
 # days: 0-6 for Mon-Sun (e.g., "01234" = Mon-Fri)
 # progressbar: 1=true, 0=false
+# nightmode: 0=normal weather, 1=time+temp only, 2=clock only
 `;
 
 	const lines = currentScheduleData.items.map(item =>
-		`${item.name},${item.enabled ? 1 : 0},${item.days},${item.startHour},${item.startMin},${item.endHour},${item.endMin},${item.image},${item.progressBar ? 1 : 0}`
+		`${item.name},${item.enabled ? 1 : 0},${item.days},${item.startHour},${item.startMin},${item.endHour},${item.endMin},${item.image},${item.progressBar ? 1 : 0},${item.nightmode || 0}`
 	);
 
 	return header + lines.join('\n');
