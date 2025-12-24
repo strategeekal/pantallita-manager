@@ -53,6 +53,10 @@ export async function handleTabSwitch(targetTab) {
 		if (window.stocksModule && window.stocksModule.initializeStocks) {
 			await window.stocksModule.initializeStocks();
 		}
+	} else if (targetTab === 'transits') {
+		if (window.transitsManager && window.transitsManager.init) {
+			window.transitsManager.init();
+		}
 	}
 
 	// Clean up when leaving editor tab

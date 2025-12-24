@@ -620,49 +620,25 @@
 			<p class="tab-description">Control display settings for your matrix</p>
 
 			<div class="config-container">
-				<!-- Matrix 1 Configuration -->
+				<!-- Configuration Settings -->
 				<div class="config-panel">
-					<h3>Matrix 1 Configuration</h3>
 					<div class="config-status">
-						<span id="matrix1-status" class="loading-message hidden">Loading...</span>
-						<span id="matrix1-error" class="error-message hidden"></span>
+						<span id="config-status" class="loading-message hidden">Loading...</span>
+						<span id="config-error" class="error-message hidden"></span>
 					</div>
-					
-					<div id="matrix1-config" class="config-settings">
+
+					<div id="config-settings" class="config-settings">
 						<!-- Settings will be populated here -->
 					</div>
 
 					<div class="config-status">
-						<span id="matrix1-status-bottom" class="loading-message hidden">Loading...</span>
-						<span id="matrix1-error-bottom" class="error-message hidden"></span>
+						<span id="config-status-bottom" class="loading-message hidden">Loading...</span>
+						<span id="config-error-bottom" class="error-message hidden"></span>
 					</div>
 
 					<div class="config-actions">
-						<button class="btn-pixel btn-primary" onclick="window.configManager.saveConfig('matrix1')">💾 Save Matrix 1</button>
-						<button class="btn-pixel btn-secondary" onclick="window.configManager.loadConfig('matrix1')">🔄 Reload</button>
-					</div>
-				</div>
-
-				<!-- Matrix 2 Configuration -->
-				<div class="config-panel">
-					<h3>Matrix 2 Configuration</h3>
-					<div class="config-status">
-						<span id="matrix2-status" class="loading-message hidden">Loading...</span>
-						<span id="matrix2-error" class="error-message hidden"></span>
-					</div>
-					
-					<div id="matrix2-config" class="config-settings">
-						<!-- Settings will be populated here -->
-					</div>
-
-					<div class="config-status">
-						<span id="matrix2-status-bottom" class="loading-message hidden">Loading...</span>
-						<span id="matrix2-error-bottom" class="error-message hidden"></span>
-					</div>
-
-					<div class="config-actions">
-						<button class="btn-pixel btn-primary" onclick="window.configManager.saveConfig('matrix2')">💾 Save Matrix 2</button>
-						<button class="btn-pixel btn-secondary" onclick="window.configManager.loadConfig('matrix2')">🔄 Reload</button>
+						<button class="btn-pixel btn-primary" onclick="window.configManager.saveConfig()">💾 Save Configuration</button>
+						<button class="btn-pixel btn-secondary" onclick="window.configManager.loadConfig()">🔄 Reload</button>
 					</div>
 				</div>
 			</div>

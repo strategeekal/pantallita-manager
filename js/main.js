@@ -26,6 +26,9 @@ import * as configManager from './config/config-manager.js';
 // Import stocks module
 import * as stocksModule from './stocks/stocks-manager.js';
 
+// Import transits module
+import * as transitsManager from './transits/transits-manager.js';
+
 // Detect mobile at startup
 const IS_MOBILE = isMobileDevice();
 
