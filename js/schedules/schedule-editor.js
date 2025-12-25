@@ -861,23 +861,21 @@ function renderScheduleItems() {
 							${imageOptions}
 						</select>
 					</div>
-					<div class="schedule-item-row">
+					<div class="schedule-item-row" style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
 						<label class="progress-label">
 							<input type="checkbox"
 								${item.progressBar ? 'checked' : ''}
 								onchange="window.schedulesModule.updateScheduleItem(${index}, 'progressBar', this.checked)">
 							Show Progress Bar
 						</label>
-						</div>
-						<div class="schedule-item-row">
-							<span class="item-label">Night Mode:</span>
+						<div style="display: flex; align-items: center; gap: 8px;">
+							<span class="item-label" style="margin: 0;">Night Mode:</span>
 							<select class="nightmode-select" onchange="window.schedulesModule.updateScheduleItem(${index}, 'nightmode', parseInt(this.value))">
 								<option value="0" ${(item.nightmode || 0) === 0 ? 'selected' : ''}>Normal Weather</option>
 								<option value="1" ${(item.nightmode || 0) === 1 ? 'selected' : ''}>Time + Temp Only</option>
 								<option value="2" ${(item.nightmode || 0) === 2 ? 'selected' : ''}>Clock Only</option>
 							</select>
 						</div>
-						<div class="schedule-item-row">
 						<button class="btn-pixel btn-secondary btn-sm" onclick="window.schedulesModule.deleteScheduleItem(${index})">
 							🗑️ Delete
 						</button>

@@ -172,9 +172,16 @@ export async function loadScheduleBMPImage(imageName) {
 		}
 
 		const data = await response.json();
-		const downloadUrl = data.download_url;
 
-		const result = await fetchAndParseBMP(downloadUrl, cacheKey);
+		// Decode base64 content directly instead of using download_url (avoids CORS issues)
+		const base64Content = data.content.replace(/\n/g, '');
+		const binaryString = atob(base64Content);
+		const bytes = new Uint8Array(binaryString.length);
+		for (let i = 0; i < binaryString.length; i++) {
+			bytes[i] = binaryString.charCodeAt(i);
+		}
+
+		const result = await parseBMPFromBytes(bytes.buffer, cacheKey);
 		return result;
 
 	} catch (error) {
@@ -211,9 +218,16 @@ export async function loadWeatherColumnImage(imageName) {
 		}
 
 		const data = await response.json();
-		const downloadUrl = data.download_url;
 
-		const result = await fetchAndParseBMP(downloadUrl, cacheKey);
+		// Decode base64 content directly instead of using download_url (avoids CORS issues)
+		const base64Content = data.content.replace(/\n/g, '');
+		const binaryString = atob(base64Content);
+		const bytes = new Uint8Array(binaryString.length);
+		for (let i = 0; i < binaryString.length; i++) {
+			bytes[i] = binaryString.charCodeAt(i);
+		}
+
+		const result = await parseBMPFromBytes(bytes.buffer, cacheKey);
 		return result;
 
 	} catch (error) {
@@ -222,6 +236,7 @@ export async function loadWeatherColumnImage(imageName) {
 	}
 }
 
+// Wrapper function for fetching from URL then parsing
 async function fetchAndParseBMP(url, cacheKey) {
 	try {
 		const response = await fetch(url);
@@ -232,7 +247,16 @@ async function fetchAndParseBMP(url, cacheKey) {
 		}
 
 		const arrayBuffer = await response.arrayBuffer();
-		console.log('Downloaded', arrayBuffer.byteLength, 'bytes');
+		return await parseBMPFromBytes(arrayBuffer, cacheKey);
+	} catch (error) {
+		console.error('Error fetching BMP:', error);
+		return null;
+	}
+}
+
+async function parseBMPFromBytes(arrayBuffer, cacheKey) {
+	try {
+		console.log('Parsing BMP:', arrayBuffer.byteLength, 'bytes');
 
 		const dataView = new DataView(arrayBuffer);
 
