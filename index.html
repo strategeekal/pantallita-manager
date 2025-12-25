@@ -541,90 +541,114 @@
 				<div class="transits-header">
 					<h3>Your Transit Routes</h3>
 					<div class="list-actions">
-						<button id="add-transit-btn" class="btn-pixel btn-primary">+ Add Route</button>
-						<button onclick="window.transitsManager.reloadTransits()" class="btn-pixel btn-secondary">🔄 Reload</button>
+						<button class="btn-pixel btn-primary" onclick="window.transitsManager.openAddTransitDialog()">➕ Add Route</button>
+						<button class="btn-pixel btn-secondary" onclick="window.transitsManager.reloadTransits()">🔄 Refresh</button>
 					</div>
 				</div>
 
-				<div id="transits-status" class="status-message hidden"></div>
-				<div id="transits-list"></div>
+				<div id="transits-loading" class="loading-message hidden">
+					Loading transit routes from GitHub...
+				</div>
 
-				<!-- Add/Edit Transit Form -->
-				<div id="transit-form-container" class="form-container hidden">
-					<h3 id="transit-form-title">Add New Transit Route</h3>
-					<form id="transit-form" class="transit-form">
-						<div class="form-row">
-							<div class="form-group">
-								<label for="transit-type">Type *</label>
-								<select id="transit-type" class="form-input" required>
-									<option value="train">Train</option>
-									<option value="bus">Bus</option>
-								</select>
-							</div>
+				<div id="transits-status" class="loading-message hidden"></div>
 
-							<div class="form-group">
-								<label for="transit-route">Route *</label>
-								<input type="text" id="transit-route" class="form-input" placeholder="Red, 8, Brn..." required>
-							</div>
+				<div id="transits-error" class="error-message hidden"></div>
+
+				<div id="transits-empty" class="empty-message hidden">
+					No transit routes configured. Click "+ Add Route" to add your first route!
+				</div>
+
+				<div id="transits-list" class="transits-grid"></div>
+			</div>
+		</section>
+
+		<!-- Transit Editor Modal -->
+		<div id="transit-editor-modal" class="modal hidden">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h3 id="transit-editor-title">Add New Transit Route</h3>
+					<button class="modal-close" onclick="window.transitsManager.closeTransitEditor()">×</button>
+				</div>
+				<div class="modal-body">
+					<form id="transit-form">
+						<div class="form-group">
+							<label for="transit-type">Type *</label>
+							<select id="transit-type" class="form-input" required>
+								<option value="train">🚇 Train</option>
+								<option value="bus">🚌 Bus</option>
+							</select>
 						</div>
 
-						<div class="form-row">
-							<div class="form-group">
-								<label for="transit-destination">Destination *</label>
-								<input type="text" id="transit-destination" class="form-input" placeholder="96St, Loop, 79st..." required>
-							</div>
-
-							<div class="form-group">
-								<label for="transit-stop-id">Stop ID *</label>
-								<input type="text" id="transit-stop-id" class="form-input" placeholder="41220" required>
-							</div>
+						<div class="form-group">
+							<label for="transit-route">Route *</label>
+							<input type="text" id="transit-route" class="form-input" placeholder="Red, 8, Brn..." required>
 						</div>
 
-						<div class="form-row">
-							<div class="form-group">
-								<label for="transit-min-threshold">Min Threshold (minutes) *</label>
-								<input type="number" id="transit-min-threshold" class="form-input" min="0" max="60" value="10" required>
-							</div>
-
-							<div class="form-group">
-								<label for="transit-color">Color *</label>
-								<input type="text" id="transit-color" class="form-input" placeholder="RED, BROWN, AQUA..." required>
-							</div>
+						<div class="form-group">
+							<label for="transit-destination">Destination *</label>
+							<input type="text" id="transit-destination" class="form-input" placeholder="96St, Loop, 79st..." required>
 						</div>
 
-						<div class="form-row">
-							<div class="form-group">
-								<label for="transit-time-filter">Time Filter *</label>
-								<input type="text" id="transit-time-filter" class="form-input" placeholder="6-10 (6am-10am)" required>
-							</div>
+						<div class="form-group">
+							<label for="transit-stop-id">Stop ID *</label>
+							<input type="text" id="transit-stop-id" class="form-input" placeholder="41220" required>
+						</div>
 
-							<div class="form-group">
-								<label for="transit-alt-color">Alt Color (optional)</label>
-								<input type="text" id="transit-alt-color" class="form-input" placeholder="PURPLE">
-							</div>
+						<div class="form-group">
+							<label for="transit-min-threshold">Min Threshold (minutes) *</label>
+							<input type="number" id="transit-min-threshold" class="form-input" min="0" max="60" value="10" required>
+						</div>
+
+						<div class="form-group">
+							<label for="transit-color">Color *</label>
+							<input type="text" id="transit-color" class="form-input" placeholder="RED, BROWN, AQUA..." required>
+						</div>
+
+						<div class="form-group">
+							<label for="transit-time-filter">Time Filter *</label>
+							<input type="text" id="transit-time-filter" class="form-input" placeholder="6-10 (6am-10am)" required>
+						</div>
+
+						<div class="form-group">
+							<label for="transit-alt-color">Alt Color (optional)</label>
+							<input type="text" id="transit-alt-color" class="form-input" placeholder="PURPLE">
 						</div>
 
 						<div class="form-group">
 							<label>Days *</label>
 							<div class="days-checkboxes">
-								<label class="day-label"><input type="checkbox" class="day-checkbox" value="0"> Mon</label>
-								<label class="day-label"><input type="checkbox" class="day-checkbox" value="1"> Tue</label>
-								<label class="day-label"><input type="checkbox" class="day-checkbox" value="2"> Wed</label>
-								<label class="day-label"><input type="checkbox" class="day-checkbox" value="3"> Thu</label>
-								<label class="day-label"><input type="checkbox" class="day-checkbox" value="4"> Fri</label>
-								<label class="day-label"><input type="checkbox" class="day-checkbox" value="5"> Sat</label>
-								<label class="day-label"><input type="checkbox" class="day-checkbox" value="6"> Sun</label>
+								<label class="day-checkbox-label">
+									<input type="checkbox" class="day-checkbox" value="0"> Mon
+								</label>
+								<label class="day-checkbox-label">
+									<input type="checkbox" class="day-checkbox" value="1"> Tue
+								</label>
+								<label class="day-checkbox-label">
+									<input type="checkbox" class="day-checkbox" value="2"> Wed
+								</label>
+								<label class="day-checkbox-label">
+									<input type="checkbox" class="day-checkbox" value="3"> Thu
+								</label>
+								<label class="day-checkbox-label">
+									<input type="checkbox" class="day-checkbox" value="4"> Fri
+								</label>
+								<label class="day-checkbox-label">
+									<input type="checkbox" class="day-checkbox" value="5"> Sat
+								</label>
+								<label class="day-checkbox-label">
+									<input type="checkbox" class="day-checkbox" value="6"> Sun
+								</label>
 							</div>
 						</div>
 
 						<div class="form-actions">
-							<button type="submit" class="btn-pixel btn-primary">💾 Save</button>
-							<button type="button" id="cancel-transit-btn" class="btn-pixel btn-secondary">Cancel</button>
+							<button type="submit" class="btn-pixel btn-primary">💾 Save Route</button>
+							<button type="button" class="btn-pixel btn-secondary" onclick="window.transitsManager.closeTransitEditor()">Cancel</button>
 						</div>
 					</form>
 				</div>
 			</div>
-		</section>
+		</div>
 
 		<!-- Configuration Tab -->
 		<section id="configuration-tab" class="tab-content">

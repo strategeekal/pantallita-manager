@@ -24,9 +24,9 @@ export function init() {
  */
 function setupEventListeners() {
 	// Add transit button
-	const addBtn = document.getElementById('add-transit-btn');
+	// Modal-based, no inline button needed
 	if (addBtn) {
-		addBtn.addEventListener('click', showAddTransitForm);
+		// openAddTransitDialog called via onclick
 	}
 
 	// Form submit
@@ -36,9 +36,9 @@ function setupEventListeners() {
 	}
 
 	// Cancel button
-	const cancelBtn = document.getElementById('cancel-transit-btn');
+	// Modal close via onclick
 	if (cancelBtn) {
-		cancelBtn.addEventListener('click', hideTransitForm);
+		// closeTransitEditor called via onclick
 	}
 }
 
@@ -46,14 +46,13 @@ function setupEventListeners() {
  * Load transits from GitHub
  */
 async function loadTransits() {
-	const statusEl = document.getElementById('transits-status');
+	const loadingEl = document.getElementById('transits-loading');
+	const errorEl = document.getElementById('transits-error');
 	const listEl = document.getElementById('transits-list');
 
 	try {
-		if (statusEl) {
-			statusEl.textContent = 'Loading transits...';
-			statusEl.classList.remove('hidden');
-		}
+		if (loadingEl) loadingEl.classList.remove('hidden');
+		if (errorEl) errorEl.classList.add('hidden');
 
 		const response = await fetchGitHubFile('transits.csv');
 
@@ -66,18 +65,16 @@ async function loadTransits() {
 
 		renderTransitsList();
 
-		if (statusEl) {
-			statusEl.classList.add('hidden');
-		}
+		if (loadingEl) loadingEl.classList.add('hidden');
 
 	} catch (error) {
 		console.error('Error loading transits:', error);
-		if (statusEl) {
-			statusEl.textContent = `Error: ${error.message}`;
+		if (loadingEl) loadingEl.classList.add('hidden');
+		if (errorEl) {
+			errorEl.textContent = `Error: ${error.message}`;
+			errorEl.classList.remove('hidden');
 		}
-		if (listEl) {
-			listEl.innerHTML = '<p class="info-message">No transits found. Add your first transit route!</p>';
-		}
+		if (listEl) listEl.innerHTML = '';
 	}
 }
 
@@ -136,13 +133,17 @@ function buildTransitsCSV() {
  */
 function renderTransitsList() {
 	const listEl = document.getElementById('transits-list');
+	const emptyEl = document.getElementById('transits-empty');
 
 	if (!listEl) return;
 
 	if (transitsData.length === 0) {
-		listEl.innerHTML = '<p class="info-message">No transits found. Add your first transit route!</p>';
+		listEl.innerHTML = '';
+		if (emptyEl) emptyEl.classList.remove('hidden');
 		return;
 	}
+
+	if (emptyEl) emptyEl.classList.add('hidden');
 
 	let html = '<div class="transits-grid">';
 
@@ -261,10 +262,10 @@ function handleDragEnd(e) {
 /**
  * Show add transit form
  */
-function showAddTransitForm() {
+export function openAddTransitDialog() {
 	editingTransitIndex = null;
-	document.getElementById('transit-form-title').textContent = 'Add New Transit Route';
-	document.getElementById('transit-form-container').classList.remove('hidden');
+	document.getElementById('transit-editor-title').textContent = 'Add New Transit Route';
+	document.getElementById('transit-editor-modal').classList.remove('hidden');
 
 	// Reset form
 	document.getElementById('transit-form').reset();
@@ -281,8 +282,8 @@ function showAddTransitForm() {
 /**
  * Hide transit form
  */
-function hideTransitForm() {
-	document.getElementById('transit-form-container').classList.add('hidden');
+export function closeTransitEditor() {
+	document.getElementById('transit-editor-modal').classList.add('hidden');
 	editingTransitIndex = null;
 }
 
@@ -296,8 +297,8 @@ export function editTransit(index) {
 
 	if (!transit) return;
 
-	document.getElementById('transit-form-title').textContent = 'Edit Transit Route';
-	document.getElementById('transit-form-container').classList.remove('hidden');
+	document.getElementById('transit-editor-title').textContent = 'Edit Transit Route';
+	document.getElementById('transit-editor-modal').classList.remove('hidden');
 
 	// Populate form
 	document.getElementById('transit-type').value = transit.type;
@@ -465,6 +466,8 @@ export function reloadTransits() {
 if (typeof window !== 'undefined') {
 	window.transitsManager = {
 		init,
+		openAddTransitDialog,
+		closeTransitEditor,
 		editTransit,
 		deleteTransit,
 		reloadTransits
