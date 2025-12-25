@@ -3367,7 +3367,7 @@ header p {
 	padding: 20px;
 	background: white;
 	border: 4px solid #000;
-	border-radius: 8px;
+	border-radius: 0;
 	box-shadow: 8px 8px 0px rgba(0, 0, 0, 0.2);
 	position: relative;
 }
@@ -3684,19 +3684,22 @@ header p {
 }
 
 .transit-card {
-	background: var(--color-card-bg);
-	border: 3px solid var(--color-border);
-	border-radius: 8px;
+	background: #f8f9fa;
+	border: 3px solid #000;
+	border-radius: 0;
 	padding: 16px;
-	box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.1);
+	box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.1);
 	transition: all 0.2s ease;
 	cursor: grab;
 	position: relative;
+	user-select: none;
+	-webkit-user-select: none;
+	-moz-user-select: none;
 }
 
 .transit-card:hover {
 	transform: translateY(-2px);
-	box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.15);
+	box-shadow: 6px 6px 0px rgba(0, 0, 0, 0.15);
 }
 
 .transit-card.dragging {
@@ -3705,8 +3708,8 @@ header p {
 }
 
 .transit-card.drag-over {
-	border-color: var(--color-primary);
-	background: var(--color-hover-bg);
+	border-color: #4CAF50;
+	background: #e8f5e9;
 }
 
 .transit-header {
@@ -3715,7 +3718,7 @@ header p {
 	align-items: center;
 	margin-bottom: 12px;
 	padding-bottom: 8px;
-	border-bottom: 2px solid var(--color-border);
+	border-bottom: 2px solid #000;
 }
 
 .transit-type {
@@ -3747,11 +3750,11 @@ header p {
 .alt-color-badge {
 	display: inline-block;
 	padding: 2px 8px;
-	border-radius: 4px;
+	border-radius: 0;
 	font-size: 0.6em;
 	font-weight: bold;
 	color: white;
-	border: 2px solid rgba(0, 0, 0, 0.2);
+	border: 2px solid #000;
 }
 
 .transit-destination {
@@ -3776,22 +3779,22 @@ header p {
 }
 
 .filter-badge {
-	background: var(--color-secondary);
+	background: #6c757d;
 	color: white;
 	padding: 4px 10px;
-	border-radius: 4px;
+	border-radius: 0;
 	font-size: 0.85em;
-	border: 2px solid var(--color-border);
+	border: 2px solid #000;
 }
 
 /* Transit Form Styles */
 .transit-form-container {
-	background: var(--color-card-bg);
-	border: 3px solid var(--color-border);
-	border-radius: 8px;
+	background: #f8f9fa;
+	border: 3px solid #000;
+	border-radius: 0;
 	padding: 20px;
 	margin-bottom: 20px;
-	box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.1);
+	box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.1);
 }
 
 .transit-form-container.hidden {
@@ -3814,8 +3817,8 @@ header p {
 #transit-form select {
 	width: 100%;
 	padding: 8px 12px;
-	border: 2px solid var(--color-border);
-	border-radius: 4px;
+	border: 2px solid #000;
+	border-radius: 0;
 	background: white;
 	font-family: 'Press Start 2P', monospace;
 	font-size: 0.75em;
@@ -3825,7 +3828,7 @@ header p {
 #transit-form input[type="number"]:focus,
 #transit-form select:focus {
 	outline: none;
-	border-color: var(--color-primary);
+	border-color: #4CAF50;
 	box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
 }
 
@@ -3842,15 +3845,15 @@ header p {
 	gap: 6px;
 	cursor: pointer;
 	padding: 6px 10px;
-	border: 2px solid var(--color-border);
-	border-radius: 4px;
+	border: 2px solid #000;
+	border-radius: 0;
 	background: white;
 	transition: all 0.2s ease;
 }
 
 .day-checkbox-label:hover {
-	background: var(--color-hover-bg);
-	border-color: var(--color-primary);
+	background: #e8f5e9;
+	border-color: #4CAF50;
 }
 
 .day-checkbox-label input[type="checkbox"] {
