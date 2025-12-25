@@ -5,6 +5,7 @@
 
 import { fetchGitHubFile, saveGitHubFile } from '../core/api.js';
 import { parseCSV } from '../core/utils.js';
+import { getTrainLines, getTrainStops, getBusRoutes, getLineColor } from './cta-stops-db.js';
 
 let transitsData = [];
 let transitsSha = null;
@@ -271,12 +272,124 @@ export function openAddTransitDialog() {
 	document.getElementById('transit-form').reset();
 
 	// Set default values
-	document.getElementById('transit-type').value = 'train';
+	document.getElementById('transit-type').value = '';
+	document.getElementById('transit-line').value = '';
+	document.getElementById('transit-line').disabled = true;
 	document.getElementById('transit-min-threshold').value = '10';
+	document.getElementById('transit-time-filter').value = '0-23';
+
+	// Hide conditional fields
+	document.getElementById('transit-stop-group').style.display = 'none';
+	document.getElementById('transit-stop-id-group').style.display = 'none';
 
 	// Uncheck all day checkboxes
 	const dayCheckboxes = document.querySelectorAll('.day-checkbox');
 	dayCheckboxes.forEach(cb => cb.checked = false);
+}
+
+/**
+ * Handle transit type change (train/bus)
+ */
+export function handleTypeChange() {
+	const type = document.getElementById('transit-type').value;
+	const lineSelect = document.getElementById('transit-line');
+	const stopGroup = document.getElementById('transit-stop-group');
+	const stopIdGroup = document.getElementById('transit-stop-id-group');
+
+	// Clear previous selections
+	lineSelect.innerHTML = '<option value="">Select...</option>';
+	document.getElementById('transit-stop').innerHTML = '<option value="">Select a line first...</option>';
+	document.getElementById('transit-color').value = '';
+	document.getElementById('transit-stop-id').value = '';
+
+	if (!type) {
+		lineSelect.disabled = true;
+		stopGroup.style.display = 'none';
+		stopIdGroup.style.display = 'none';
+		return;
+	}
+
+	lineSelect.disabled = false;
+
+	if (type === 'train') {
+		// Populate train lines
+		const lines = getTrainLines();
+		lines.forEach(line => {
+			const option = document.createElement('option');
+			option.value = line.route;
+			option.textContent = `${line.route} Line`;
+			option.style.color = line.color;
+			lineSelect.appendChild(option);
+		});
+		stopGroup.style.display = 'block';
+		stopIdGroup.style.display = 'block';
+	} else if (type === 'bus') {
+		// Populate bus routes
+		const routes = getBusRoutes();
+		routes.forEach(route => {
+			const option = document.createElement('option');
+			option.value = route.route;
+			option.textContent = `${route.route} - ${route.name}`;
+			lineSelect.appendChild(option);
+		});
+		stopGroup.style.display = 'none';
+		stopIdGroup.style.display = 'none';
+
+		// For buses, stop ID must be entered manually
+		document.getElementById('transit-destination-group').style.display = 'block';
+	}
+}
+
+/**
+ * Handle line/route change
+ */
+export function handleLineChange() {
+	const type = document.getElementById('transit-type').value;
+	const line = document.getElementById('transit-line').value;
+	const stopSelect = document.getElementById('transit-stop');
+	const colorInput = document.getElementById('transit-color');
+
+	if (!line) return;
+
+	// Auto-fill color based on line
+	const color = getLineColor(line, type);
+	if (color) {
+		// Convert hex to color name approximation
+		colorInput.value = line.toUpperCase();
+	}
+
+	if (type === 'train') {
+		// Populate stops for this line
+		stopSelect.innerHTML = '<option value="">Select stop...</option>';
+		const stops = getTrainStops(line);
+
+		stops.forEach(stop => {
+			const option = document.createElement('option');
+			option.value = stop.id;
+			option.textContent = stop.name;
+			option.dataset.name = stop.name;
+			stopSelect.appendChild(option);
+		});
+	}
+}
+
+/**
+ * Handle stop change
+ */
+export function handleStopChange() {
+	const stopSelect = document.getElementById('transit-stop');
+	const stopId = stopSelect.value;
+	const stopName = stopSelect.options[stopSelect.selectedIndex]?.dataset.name;
+
+	if (stopId) {
+		document.getElementById('transit-stop-id').value = stopId;
+
+		// Optionally pre-fill destination with stop name
+		const destInput = document.getElementById('transit-destination');
+		if (!destInput.value || destInput.value === '') {
+			destInput.value = stopName || '';
+		}
+	}
 }
 
 /**
@@ -300,11 +413,34 @@ export function editTransit(index) {
 	document.getElementById('transit-editor-title').textContent = 'Edit Transit Route';
 	document.getElementById('transit-editor-modal').classList.remove('hidden');
 
-	// Populate form
+	// Populate type first
 	document.getElementById('transit-type').value = transit.type;
-	document.getElementById('transit-route').value = transit.route;
+
+	// Trigger type change to populate line dropdown
+	handleTypeChange();
+
+	// Then set the line/route
+	document.getElementById('transit-line').value = transit.route;
+
+	// If train, trigger line change to populate stops
+	if (transit.type === 'train') {
+		handleLineChange();
+
+		// Then set the stop if we have a stop ID
+		if (transit.stopId) {
+			document.getElementById('transit-stop').value = transit.stopId;
+			handleStopChange();
+		}
+	} else {
+		// For buses, manually fill stop ID field (if visible)
+		const stopIdInput = document.getElementById('transit-stop-id');
+		if (stopIdInput) {
+			stopIdInput.value = transit.stopId;
+		}
+	}
+
+	// Populate other fields
 	document.getElementById('transit-destination').value = transit.destination;
-	document.getElementById('transit-stop-id').value = transit.stopId;
 	document.getElementById('transit-min-threshold').value = transit.minThreshold;
 	document.getElementById('transit-color').value = transit.color;
 	document.getElementById('transit-time-filter').value = transit.timeFilter;
@@ -364,9 +500,10 @@ async function handleTransitFormSubmit(e) {
 	e.preventDefault();
 
 	const type = document.getElementById('transit-type').value;
-	const route = document.getElementById('transit-route').value.trim();
+	const route = document.getElementById('transit-line').value.trim();
 	const destination = document.getElementById('transit-destination').value.trim();
-	const stopId = document.getElementById('transit-stop-id').value.trim();
+	const stopIdField = document.getElementById('transit-stop-id');
+	const stopId = stopIdField && stopIdField.value ? stopIdField.value.trim() : '';
 	const minThreshold = parseInt(document.getElementById('transit-min-threshold').value) || 0;
 	const color = document.getElementById('transit-color').value.trim().toUpperCase();
 	const timeFilter = document.getElementById('transit-time-filter').value.trim();
@@ -387,8 +524,14 @@ async function handleTransitFormSubmit(e) {
 	}
 
 	// Validate required fields
-	if (!route || !destination || !stopId || !color || !timeFilter || !dayFilter) {
+	if (!type || !route || !destination || !color || !timeFilter || !dayFilter) {
 		alert('Please fill in all required fields');
+		return;
+	}
+
+	// For trains, stop ID is required
+	if (type === 'train' && !stopId) {
+		alert('Please select a stop for train routes');
 		return;
 	}
 
@@ -396,7 +539,7 @@ async function handleTransitFormSubmit(e) {
 		type,
 		route,
 		destination,
-		stopId,
+		stopId: stopId || '',
 		minThreshold,
 		color,
 		timeFilter,
@@ -414,7 +557,7 @@ async function handleTransitFormSubmit(e) {
 	}
 
 	renderTransitsList();
-	hideTransitForm();
+	closeTransitEditor();
 	await saveTransits();
 }
 
@@ -470,6 +613,9 @@ if (typeof window !== 'undefined') {
 		closeTransitEditor,
 		editTransit,
 		deleteTransit,
-		reloadTransits
+		reloadTransits,
+		handleTypeChange,
+		handleLineChange,
+		handleStopChange
 	};
 }

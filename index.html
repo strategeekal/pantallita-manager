@@ -573,25 +573,35 @@
 					<form id="transit-form">
 						<div class="form-group">
 							<label for="transit-type">Type *</label>
-							<select id="transit-type" class="form-input" required>
+							<select id="transit-type" class="form-input" onchange="window.transitsManager.handleTypeChange()" required>
+								<option value="">Select type...</option>
 								<option value="train">🚇 Train</option>
 								<option value="bus">🚌 Bus</option>
 							</select>
 						</div>
 
 						<div class="form-group">
-							<label for="transit-route">Route *</label>
-							<input type="text" id="transit-route" class="form-input" placeholder="Red, 8, Brn..." required>
+							<label for="transit-line">Line/Route *</label>
+							<select id="transit-line" class="form-input" onchange="window.transitsManager.handleLineChange()" required disabled>
+								<option value="">Select a type first...</option>
+							</select>
 						</div>
 
-						<div class="form-group">
+						<div class="form-group" id="transit-stop-group" style="display: none;">
+							<label for="transit-stop">Stop *</label>
+							<select id="transit-stop" class="form-input" onchange="window.transitsManager.handleStopChange()">
+								<option value="">Select a line first...</option>
+							</select>
+						</div>
+
+						<div class="form-group" id="transit-destination-group">
 							<label for="transit-destination">Destination *</label>
-							<input type="text" id="transit-destination" class="form-input" placeholder="96St, Loop, 79st..." required>
+							<input type="text" id="transit-destination" class="form-input" placeholder="Loop, 95th, Kimball..." required>
 						</div>
 
-						<div class="form-group">
-							<label for="transit-stop-id">Stop ID *</label>
-							<input type="text" id="transit-stop-id" class="form-input" placeholder="41220" required>
+						<div class="form-group" id="transit-stop-id-group" style="display: none;">
+							<label for="transit-stop-id">Stop ID</label>
+							<input type="text" id="transit-stop-id" class="form-input" placeholder="Auto-filled from stop" readonly>
 						</div>
 
 						<div class="form-group">
@@ -601,17 +611,17 @@
 
 						<div class="form-group">
 							<label for="transit-color">Color *</label>
-							<input type="text" id="transit-color" class="form-input" placeholder="RED, BROWN, AQUA..." required>
+							<input type="text" id="transit-color" class="form-input" placeholder="Auto-filled from line" required>
 						</div>
 
 						<div class="form-group">
 							<label for="transit-time-filter">Time Filter *</label>
-							<input type="text" id="transit-time-filter" class="form-input" placeholder="6-10 (6am-10am)" required>
+							<input type="text" id="transit-time-filter" class="form-input" placeholder="6-10 (6am-10am)" value="0-23" required>
 						</div>
 
 						<div class="form-group">
 							<label for="transit-alt-color">Alt Color (optional)</label>
-							<input type="text" id="transit-alt-color" class="form-input" placeholder="PURPLE">
+							<input type="text" id="transit-alt-color" class="form-input" placeholder="For multi-line routes">
 						</div>
 
 						<div class="form-group">
