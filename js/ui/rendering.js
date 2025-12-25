@@ -14,28 +14,39 @@ export { availableImages, availableScheduleImages };
 export async function loadScheduleImages() {
 	const config = loadConfig();
 
+	console.log('Loading schedule images from:', config.owner, '/', config.repo);
+
 	if (!config.token || !config.owner || !config.repo) {
-		console.log('GitHub not configured - schedule images unavailable');
+		console.error('GitHub not configured - schedule images unavailable');
+		console.log('Config:', { hasToken: !!config.token, owner: config.owner, repo: config.repo });
 		return;
 	}
 
 	try {
-		const response = await fetch(
-			`https://api.github.com/repos/${config.owner}/${config.repo}/contents/img/schedules`,
-			{
-				headers: {
-					'Authorization': `Bearer ${config.token}`,
-					'Accept': 'application/vnd.github.v3+json'
-				}
+		const url = `https://api.github.com/repos/${config.owner}/${config.repo}/contents/img/schedules`;
+		console.log('Fetching from:', url);
+
+		const response = await fetch(url, {
+			headers: {
+				'Authorization': `Bearer ${config.token}`,
+				'Accept': 'application/vnd.github.v3+json'
 			}
-		);
+		});
 
 		if (!response.ok) {
-			console.error('Failed to load schedule images:', response.status);
+			const errorText = await response.text();
+			console.error('Failed to load schedule images:', response.status, response.statusText);
+			console.error('Response:', errorText);
+			if (response.status === 404) {
+				console.error('❌ The img/schedules folder does not exist in your repository!');
+				console.error('Please create: https://github.com/' + config.owner + '/' + config.repo + '/tree/main/img/schedules');
+			}
 			return;
 		}
 
 		const files = await response.json();
+		console.log('Found files in img/schedules:', files);
+
 		availableScheduleImages = files
 			.filter(f => f.name.endsWith('.bmp'))
 			.map(f => ({
@@ -44,7 +55,11 @@ export async function loadScheduleImages() {
 				sha: f.sha
 			}));
 
-		console.log(`Loaded ${availableScheduleImages.length} schedule images from GitHub`);
+		console.log(`✓ Loaded ${availableScheduleImages.length} schedule images:`, availableScheduleImages.map(i => i.name));
+
+		if (availableScheduleImages.length === 0) {
+			console.warn('⚠️ No .bmp files found in img/schedules folder!');
+		}
 
 	} catch (error) {
 		console.error('Error loading schedule images:', error);
