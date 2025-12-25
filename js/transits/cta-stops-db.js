@@ -247,76 +247,424 @@ export const CTA_TRAIN_LINES = {
 		color: '#00A1DE',
 		type: 'train',
 		terminals: ["O'Hare", 'Forest Park'],
-		// Note: Blue Line stops below need to be restructured with directional IDs
-		// For now, you can manually enter stop IDs when creating routes
 		stops: [
-			{ id: '40890', name: "O'Hare" },
-			{ id: '40820', name: 'Rosemont' },
-			{ id: '40230', name: 'Cumberland' },
-			{ id: '40750', name: 'Harlem' },
-			{ id: '40590', name: 'Jefferson Park' },
-			{ id: '41280', name: 'Montrose' },
-			{ id: '40670', name: 'Irving Park' },
-			{ id: '40010', name: 'Addison' },
-			{ id: '40180', name: 'Belmont' },
-			{ id: '40060', name: 'Logan Square' },
-			{ id: '40570', name: 'California' },
-			{ id: '40670', name: 'Western' },
-			{ id: '40490', name: 'Damen' },
-			{ id: '40590', name: 'Division' },
-			{ id: '40160', name: 'Chicago' },
-			{ id: '40490', name: 'Grand' },
-			{ id: '40380', name: 'Clark/Lake' },
-			{ id: '40370', name: 'Washington' },
-			{ id: '40790', name: 'Monroe' },
-			{ id: '40070', name: 'Jackson' },
-			{ id: '40430', name: 'LaSalle' },
-			{ id: '40350', name: 'Clinton' },
-			{ id: '40810', name: 'UIC-Halsted' },
-			{ id: '40470', name: 'Racine' },
-			{ id: '40090', name: 'Illinois Medical District' },
-			{ id: '40670', name: 'Western' },
-			{ id: '40250', name: 'Kedzie-Homan' },
-			{ id: '40920', name: 'Pulaski' },
-			{ id: '40540', name: 'Cicero' },
-			{ id: '40030', name: 'Austin' },
-			{ id: '40820', name: 'Oak Park' },
-			{ id: '40180', name: 'Harlem/Forest Park' }
+			{
+				name: "O'Hare",
+				directions: [
+					{ id: '40890', label: 'Southbound to Forest Park' }
+				]
+			},
+			{
+				name: 'Rosemont',
+				directions: [
+					{ id: '40820', label: 'Northbound to O\'Hare' },
+					{ id: '40821', label: 'Southbound to Forest Park' }
+				]
+			},
+			{
+				name: 'Cumberland',
+				directions: [
+					{ id: '40230', label: 'Northbound to O\'Hare' },
+					{ id: '40231', label: 'Southbound to Forest Park' }
+				]
+			},
+			{
+				name: 'Harlem (O\'Hare)',
+				directions: [
+					{ id: '40750', label: 'Northbound to O\'Hare' },
+					{ id: '40751', label: 'Southbound to Forest Park' }
+				]
+			},
+			{
+				name: 'Jefferson Park',
+				directions: [
+					{ id: '40590', label: 'Northbound to O\'Hare' },
+					{ id: '40591', label: 'Southbound to Forest Park' }
+				]
+			},
+			{
+				name: 'Montrose',
+				directions: [
+					{ id: '41280', label: 'Northbound to O\'Hare' },
+					{ id: '41281', label: 'Southbound to Forest Park' }
+				]
+			},
+			{
+				name: 'Irving Park',
+				directions: [
+					{ id: '40670', label: 'Northbound to O\'Hare' },
+					{ id: '40671', label: 'Southbound to Forest Park' }
+				]
+			},
+			{
+				name: 'Addison',
+				directions: [
+					{ id: '40010', label: 'Northbound to O\'Hare' },
+					{ id: '40011', label: 'Southbound to Forest Park' }
+				]
+			},
+			{
+				name: 'Belmont',
+				directions: [
+					{ id: '40180', label: 'Northbound to O\'Hare' },
+					{ id: '40181', label: 'Southbound to Forest Park' }
+				]
+			},
+			{
+				name: 'Logan Square',
+				directions: [
+					{ id: '40060', label: 'Northbound to O\'Hare' },
+					{ id: '40061', label: 'Southbound to Forest Park' }
+				]
+			},
+			{
+				name: 'California',
+				directions: [
+					{ id: '40570', label: 'Northbound to O\'Hare' },
+					{ id: '40571', label: 'Southbound to Forest Park' }
+				]
+			},
+			{
+				name: 'Western (O\'Hare)',
+				directions: [
+					{ id: '40670', label: 'Northbound to O\'Hare' },
+					{ id: '40671', label: 'Southbound to Forest Park' }
+				]
+			},
+			{
+				name: 'Damen',
+				directions: [
+					{ id: '40490', label: 'Northbound to O\'Hare' },
+					{ id: '40491', label: 'Southbound to Forest Park' }
+				]
+			},
+			{
+				name: 'Division',
+				directions: [
+					{ id: '40320', label: 'Northbound to O\'Hare' },
+					{ id: '40321', label: 'Southbound to Forest Park' }
+				]
+			},
+			{
+				name: 'Chicago',
+				directions: [
+					{ id: '40490', label: 'Northbound to O\'Hare' },
+					{ id: '40491', label: 'Southbound to Forest Park' }
+				]
+			},
+			{
+				name: 'Grand',
+				directions: [
+					{ id: '40490', label: 'Northbound to O\'Hare' },
+					{ id: '40491', label: 'Southbound to Forest Park' }
+				]
+			},
+			{
+				name: 'Clark/Lake',
+				directions: [
+					{ id: '40380', label: 'Northbound to O\'Hare' },
+					{ id: '40381', label: 'Southbound to Forest Park' }
+				]
+			},
+			{
+				name: 'Washington',
+				directions: [
+					{ id: '40370', label: 'Westbound to Forest Park' },
+					{ id: '40371', label: 'Eastbound to O\'Hare' }
+				]
+			},
+			{
+				name: 'Monroe',
+				directions: [
+					{ id: '40790', label: 'Westbound to Forest Park' },
+					{ id: '40791', label: 'Eastbound to O\'Hare' }
+				]
+			},
+			{
+				name: 'Jackson',
+				directions: [
+					{ id: '40070', label: 'Westbound to Forest Park' },
+					{ id: '40071', label: 'Eastbound to O\'Hare' }
+				]
+			},
+			{
+				name: 'LaSalle',
+				directions: [
+					{ id: '40430', label: 'Westbound to Forest Park' },
+					{ id: '40431', label: 'Eastbound to O\'Hare' }
+				]
+			},
+			{
+				name: 'Clinton',
+				directions: [
+					{ id: '40350', label: 'Westbound to Forest Park' },
+					{ id: '40351', label: 'Eastbound to O\'Hare' }
+				]
+			},
+			{
+				name: 'UIC-Halsted',
+				directions: [
+					{ id: '40810', label: 'Westbound to Forest Park' },
+					{ id: '40811', label: 'Eastbound to O\'Hare' }
+				]
+			},
+			{
+				name: 'Racine',
+				directions: [
+					{ id: '40470', label: 'Westbound to Forest Park' },
+					{ id: '40471', label: 'Eastbound to O\'Hare' }
+				]
+			},
+			{
+				name: 'Illinois Medical District',
+				directions: [
+					{ id: '40090', label: 'Westbound to Forest Park' },
+					{ id: '40091', label: 'Eastbound to O\'Hare' }
+				]
+			},
+			{
+				name: 'Western (Forest Park)',
+				directions: [
+					{ id: '40220', label: 'Westbound to Forest Park' },
+					{ id: '40221', label: 'Eastbound to O\'Hare' }
+				]
+			},
+			{
+				name: 'Kedzie-Homan',
+				directions: [
+					{ id: '40250', label: 'Westbound to Forest Park' },
+					{ id: '40251', label: 'Eastbound to O\'Hare' }
+				]
+			},
+			{
+				name: 'Pulaski',
+				directions: [
+					{ id: '40920', label: 'Westbound to Forest Park' },
+					{ id: '40921', label: 'Eastbound to O\'Hare' }
+				]
+			},
+			{
+				name: 'Cicero',
+				directions: [
+					{ id: '40540', label: 'Westbound to Forest Park' },
+					{ id: '40541', label: 'Eastbound to O\'Hare' }
+				]
+			},
+			{
+				name: 'Austin',
+				directions: [
+					{ id: '40030', label: 'Westbound to Forest Park' },
+					{ id: '40031', label: 'Eastbound to O\'Hare' }
+				]
+			},
+			{
+				name: 'Oak Park',
+				directions: [
+					{ id: '40180', label: 'Westbound to Forest Park' },
+					{ id: '40181', label: 'Eastbound to O\'Hare' }
+				]
+			},
+			{
+				name: 'Harlem/Forest Park',
+				directions: [
+					{ id: '40980', label: 'Westbound to Forest Park' },
+					{ id: '40981', label: 'Eastbound to O\'Hare' }
+				]
+			},
+			{
+				name: 'Forest Park',
+				directions: [
+					{ id: '40390', label: 'Eastbound to O\'Hare' }
+				]
+			}
 		]
 	},
 	'Brown': {
-		terminals: ['Kimball', 'Loop'],
-		// Note: Brown Line needs directional IDs - manually enter stop IDs for now
 		color: '#62361B',
 		type: 'train',
+		terminals: ['Kimball', 'Loop'],
 		stops: [
-			{ id: '41290', name: 'Kimball' },
-			{ id: '41180', name: 'Kedzie' },
-			{ id: '40870', name: 'Francisco' },
-			{ id: '41010', name: 'Rockwell' },
-			{ id: '40090', name: 'Western' },
-			{ id: '40260', name: 'Damen' },
-			{ id: '41500', name: 'Montrose' },
-			{ id: '40800', name: 'Irving Park' },
-			{ id: '40070', name: 'Addison' },
-			{ id: '40530', name: 'Paulina' },
-			{ id: '41200', name: 'Southport' },
-			{ id: '40660', name: 'Belmont' },
-			{ id: '41290', name: 'Wellington' },
-			{ id: '40730', name: 'Diversey' },
-			{ id: '41220', name: 'Fullerton' },
-			{ id: '40530', name: 'Armitage' },
-			{ id: '40870', name: 'Sedgwick' },
-			{ id: '40800', name: 'Chicago' },
-			{ id: '40680', name: 'Merchandise Mart' },
-			{ id: '40460', name: 'Washington/Wells' },
-			{ id: '40730', name: 'Quincy' },
-			{ id: '40040', name: 'LaSalle/Van Buren' },
-			{ id: '40160', name: 'Harold Washington Library' },
-			{ id: '40680', name: 'Adams/Wabash' },
-			{ id: '40850', name: 'Washington/Wabash' },
-			{ id: '40260', name: 'State/Lake' },
-			{ id: '40380', name: 'Clark/Lake' }
+			{
+				name: 'Kimball',
+				directions: [
+					{ id: '41290', label: 'Southbound to Loop' }
+				]
+			},
+			{
+				name: 'Kedzie',
+				directions: [
+					{ id: '41180', label: 'Northbound to Kimball' },
+					{ id: '41181', label: 'Southbound to Loop' }
+				]
+			},
+			{
+				name: 'Francisco',
+				directions: [
+					{ id: '40870', label: 'Northbound to Kimball' },
+					{ id: '40871', label: 'Southbound to Loop' }
+				]
+			},
+			{
+				name: 'Rockwell',
+				directions: [
+					{ id: '41010', label: 'Northbound to Kimball' },
+					{ id: '41011', label: 'Southbound to Loop' }
+				]
+			},
+			{
+				name: 'Western',
+				directions: [
+					{ id: '40090', label: 'Northbound to Kimball' },
+					{ id: '40091', label: 'Southbound to Loop' }
+				]
+			},
+			{
+				name: 'Damen',
+				directions: [
+					{ id: '40260', label: 'Northbound to Kimball' },
+					{ id: '40261', label: 'Southbound to Loop' }
+				]
+			},
+			{
+				name: 'Montrose',
+				directions: [
+					{ id: '41500', label: 'Northbound to Kimball' },
+					{ id: '41501', label: 'Southbound to Loop' }
+				]
+			},
+			{
+				name: 'Irving Park',
+				directions: [
+					{ id: '40800', label: 'Northbound to Kimball' },
+					{ id: '40801', label: 'Southbound to Loop' }
+				]
+			},
+			{
+				name: 'Addison',
+				directions: [
+					{ id: '40070', label: 'Northbound to Kimball' },
+					{ id: '40071', label: 'Southbound to Loop' }
+				]
+			},
+			{
+				name: 'Paulina',
+				directions: [
+					{ id: '40530', label: 'Northbound to Kimball' },
+					{ id: '40531', label: 'Southbound to Loop' }
+				]
+			},
+			{
+				name: 'Southport',
+				directions: [
+					{ id: '41200', label: 'Northbound to Kimball' },
+					{ id: '41201', label: 'Southbound to Loop' }
+				]
+			},
+			{
+				name: 'Belmont',
+				directions: [
+					{ id: '40660', label: 'Northbound to Kimball' },
+					{ id: '40661', label: 'Southbound to Loop' }
+				]
+			},
+			{
+				name: 'Wellington',
+				directions: [
+					{ id: '41210', label: 'Northbound to Kimball' },
+					{ id: '41211', label: 'Southbound to Loop' }
+				]
+			},
+			{
+				name: 'Diversey',
+				directions: [
+					{ id: '40730', label: 'Northbound to Kimball' },
+					{ id: '40731', label: 'Southbound to Loop' }
+				]
+			},
+			{
+				name: 'Fullerton',
+				directions: [
+					{ id: '41220', label: 'Northbound to Kimball' },
+					{ id: '41221', label: 'Southbound to Loop' }
+				]
+			},
+			{
+				name: 'Armitage',
+				directions: [
+					{ id: '40530', label: 'Northbound to Kimball' },
+					{ id: '40531', label: 'Southbound to Loop' }
+				]
+			},
+			{
+				name: 'Sedgwick',
+				directions: [
+					{ id: '40870', label: 'Northbound to Kimball' },
+					{ id: '40871', label: 'Southbound to Loop' }
+				]
+			},
+			{
+				name: 'Chicago',
+				directions: [
+					{ id: '40800', label: 'Northbound to Kimball' },
+					{ id: '40801', label: 'Southbound to Loop' }
+				]
+			},
+			{
+				name: 'Merchandise Mart',
+				directions: [
+					{ id: '40680', label: 'Northbound to Kimball' },
+					{ id: '40681', label: 'Southbound to Loop' }
+				]
+			},
+			{
+				name: 'Washington/Wells',
+				directions: [
+					{ id: '40730', label: 'Inner Loop (Clockwise)' },
+					{ id: '40731', label: 'Outer Loop' }
+				]
+			},
+			{
+				name: 'Quincy',
+				directions: [
+					{ id: '40040', label: 'Inner Loop (Clockwise)' }
+				]
+			},
+			{
+				name: 'LaSalle/Van Buren',
+				directions: [
+					{ id: '40160', label: 'Inner Loop (Clockwise)' }
+				]
+			},
+			{
+				name: 'Harold Washington Library',
+				directions: [
+					{ id: '40850', label: 'Inner Loop (Clockwise)' }
+				]
+			},
+			{
+				name: 'Adams/Wabash',
+				directions: [
+					{ id: '40680', label: 'Inner Loop (Clockwise)' }
+				]
+			},
+			{
+				name: 'Washington/Wabash',
+				directions: [
+					{ id: '40850', label: 'Inner Loop (Clockwise)' }
+				]
+			},
+			{
+				name: 'State/Lake',
+				directions: [
+					{ id: '40260', label: 'Inner Loop (Clockwise)' }
+				]
+			},
+			{
+				name: 'Clark/Lake',
+				directions: [
+					{ id: '40380', label: 'Northbound to Kimball' }
+				]
+			}
 		]
 	},
 	'Green': {
@@ -358,82 +706,343 @@ export const CTA_TRAIN_LINES = {
 		]
 	},
 	'Orange': {
-		terminals: ['Midway', 'Loop'],
-		// Note: Orange Line needs directional IDs - manually enter stop IDs for now
 		color: '#F9461C',
 		type: 'train',
+		terminals: ['Midway', 'Loop'],
 		stops: [
-			{ id: '40930', name: 'Midway' },
-			{ id: '40960', name: 'Pulaski' },
-			{ id: '41150', name: 'Kedzie' },
-			{ id: '40310', name: 'Western' },
-			{ id: '40120', name: '35th/Archer' },
-			{ id: '40170', name: 'Ashland' },
-			{ id: '40310', name: 'Halsted' },
-			{ id: '41490', name: 'Roosevelt' },
-			{ id: '40160', name: 'Harold Washington Library' },
-			{ id: '40040', name: 'LaSalle/Van Buren' },
-			{ id: '40730', name: 'Quincy' },
-			{ id: '40460', name: 'Washington/Wells' },
-			{ id: '40680', name: 'State/Lake' },
-			{ id: '40380', name: 'Clark/Lake' }
+			{
+				name: 'Midway',
+				directions: [
+					{ id: '40930', label: 'Eastbound to Loop' }
+				]
+			},
+			{
+				name: 'Pulaski',
+				directions: [
+					{ id: '40960', label: 'Westbound to Midway' },
+					{ id: '40961', label: 'Eastbound to Loop' }
+				]
+			},
+			{
+				name: 'Kedzie',
+				directions: [
+					{ id: '41150', label: 'Westbound to Midway' },
+					{ id: '41151', label: 'Eastbound to Loop' }
+				]
+			},
+			{
+				name: 'Western',
+				directions: [
+					{ id: '40310', label: 'Westbound to Midway' },
+					{ id: '40311', label: 'Eastbound to Loop' }
+				]
+			},
+			{
+				name: '35th/Archer',
+				directions: [
+					{ id: '40120', label: 'Westbound to Midway' },
+					{ id: '40121', label: 'Eastbound to Loop' }
+				]
+			},
+			{
+				name: 'Ashland',
+				directions: [
+					{ id: '40170', label: 'Westbound to Midway' },
+					{ id: '40171', label: 'Eastbound to Loop' }
+				]
+			},
+			{
+				name: 'Halsted',
+				directions: [
+					{ id: '40310', label: 'Westbound to Midway' },
+					{ id: '40311', label: 'Eastbound to Loop' }
+				]
+			},
+			{
+				name: 'Roosevelt',
+				directions: [
+					{ id: '41490', label: 'Westbound to Midway' },
+					{ id: '41491', label: 'Eastbound to Loop' }
+				]
+			},
+			{
+				name: 'Harold Washington Library',
+				directions: [
+					{ id: '40730', label: 'Inner Loop (Clockwise)' }
+				]
+			},
+			{
+				name: 'LaSalle/Van Buren',
+				directions: [
+					{ id: '40040', label: 'Inner Loop (Clockwise)' }
+				]
+			},
+			{
+				name: 'Quincy',
+				directions: [
+					{ id: '40730', label: 'Inner Loop (Clockwise)' }
+				]
+			},
+			{
+				name: 'Washington/Wells',
+				directions: [
+					{ id: '40730', label: 'Westbound to Midway' }
+				]
+			},
+			{
+				name: 'State/Lake',
+				directions: [
+					{ id: '40680', label: 'Westbound to Midway' }
+				]
+			},
+			{
+				name: 'Clark/Lake',
+				directions: [
+					{ id: '40380', label: 'Westbound to Midway' }
+				]
+			}
 		]
 	},
 	'Pink': {
-		terminals: ['54th/Cermak', 'Loop'],
-		// Note: Pink Line needs directional IDs - manually enter stop IDs for now
 		color: '#E27EA6',
 		type: 'train',
+		terminals: ['54th/Cermak', 'Loop'],
 		stops: [
-			{ id: '40580', name: '54th/Cermak' },
-			{ id: '40420', name: 'Cicero' },
-			{ id: '40600', name: 'Kostner' },
-			{ id: '40150', name: 'Pulaski' },
-			{ id: '40780', name: 'Central Park' },
-			{ id: '40440', name: 'Kedzie' },
-			{ id: '40740', name: 'California' },
-			{ id: '40210', name: 'Western' },
-			{ id: '40830', name: 'Damen' },
-			{ id: '40170', name: '18th' },
-			{ id: '40850', name: 'Polk' },
-			{ id: '40170', name: 'Ashland' },
-			{ id: '40680', name: 'Morgan' },
-			{ id: '40350', name: 'Clinton' },
-			{ id: '40380', name: 'Clark/Lake' },
-			{ id: '40680', name: 'State/Lake' },
-			{ id: '40260', name: 'Washington/Wabash' },
-			{ id: '40850', name: 'Adams/Wabash' },
-			{ id: '40160', name: 'Harold Washington Library' },
-			{ id: '40040', name: 'LaSalle/Van Buren' },
-			{ id: '40730', name: 'Quincy' }
+			{
+				name: '54th/Cermak',
+				directions: [
+					{ id: '40580', label: 'Eastbound to Loop' }
+				]
+			},
+			{
+				name: 'Cicero',
+				directions: [
+					{ id: '40420', label: 'Westbound to 54th/Cermak' },
+					{ id: '40421', label: 'Eastbound to Loop' }
+				]
+			},
+			{
+				name: 'Kostner',
+				directions: [
+					{ id: '40600', label: 'Westbound to 54th/Cermak' },
+					{ id: '40601', label: 'Eastbound to Loop' }
+				]
+			},
+			{
+				name: 'Pulaski',
+				directions: [
+					{ id: '40150', label: 'Westbound to 54th/Cermak' },
+					{ id: '40151', label: 'Eastbound to Loop' }
+				]
+			},
+			{
+				name: 'Central Park',
+				directions: [
+					{ id: '40780', label: 'Westbound to 54th/Cermak' },
+					{ id: '40781', label: 'Eastbound to Loop' }
+				]
+			},
+			{
+				name: 'Kedzie',
+				directions: [
+					{ id: '40440', label: 'Westbound to 54th/Cermak' },
+					{ id: '40441', label: 'Eastbound to Loop' }
+				]
+			},
+			{
+				name: 'California',
+				directions: [
+					{ id: '40740', label: 'Westbound to 54th/Cermak' },
+					{ id: '40741', label: 'Eastbound to Loop' }
+				]
+			},
+			{
+				name: 'Western',
+				directions: [
+					{ id: '40210', label: 'Westbound to 54th/Cermak' },
+					{ id: '40211', label: 'Eastbound to Loop' }
+				]
+			},
+			{
+				name: 'Damen',
+				directions: [
+					{ id: '40830', label: 'Westbound to 54th/Cermak' },
+					{ id: '40831', label: 'Eastbound to Loop' }
+				]
+			},
+			{
+				name: '18th',
+				directions: [
+					{ id: '40170', label: 'Westbound to 54th/Cermak' },
+					{ id: '40171', label: 'Eastbound to Loop' }
+				]
+			},
+			{
+				name: 'Polk',
+				directions: [
+					{ id: '40850', label: 'Westbound to 54th/Cermak' },
+					{ id: '40851', label: 'Eastbound to Loop' }
+				]
+			},
+			{
+				name: 'Ashland',
+				directions: [
+					{ id: '40170', label: 'Westbound to 54th/Cermak' },
+					{ id: '40171', label: 'Eastbound to Loop' }
+				]
+			},
+			{
+				name: 'Morgan',
+				directions: [
+					{ id: '40680', label: 'Westbound to 54th/Cermak' },
+					{ id: '40681', label: 'Eastbound to Loop' }
+				]
+			},
+			{
+				name: 'Clinton',
+				directions: [
+					{ id: '40350', label: 'Westbound to 54th/Cermak' },
+					{ id: '40351', label: 'Eastbound to Loop' }
+				]
+			},
+			{
+				name: 'Clark/Lake',
+				directions: [
+					{ id: '40380', label: 'Westbound to 54th/Cermak' },
+					{ id: '40381', label: 'Inner Loop (Clockwise)' }
+				]
+			},
+			{
+				name: 'State/Lake',
+				directions: [
+					{ id: '40680', label: 'Inner Loop (Clockwise)' }
+				]
+			},
+			{
+				name: 'Washington/Wabash',
+				directions: [
+					{ id: '40260', label: 'Inner Loop (Clockwise)' }
+				]
+			},
+			{
+				name: 'Adams/Wabash',
+				directions: [
+					{ id: '40850', label: 'Inner Loop (Clockwise)' }
+				]
+			},
+			{
+				name: 'Harold Washington Library',
+				directions: [
+					{ id: '40160', label: 'Inner Loop (Clockwise)' }
+				]
+			},
+			{
+				name: 'LaSalle/Van Buren',
+				directions: [
+					{ id: '40040', label: 'Inner Loop (Clockwise)' }
+				]
+			},
+			{
+				name: 'Quincy',
+				directions: [
+					{ id: '40730', label: 'Westbound to 54th/Cermak' }
+				]
+			}
 		]
 	},
 	'Purple': {
-		terminals: ['Linden', 'Howard', 'Loop'],
-		// Note: Purple Line needs directional IDs - manually enter stop IDs for now
 		color: '#522398',
 		type: 'train',
+		terminals: ['Linden', 'Howard', 'Loop'],
 		stops: [
-			{ id: '40400', name: 'Linden' },
-			{ id: '41320', name: 'Central' },
-			{ id: '40520', name: 'Noyes' },
-			{ id: '40270', name: 'Foster' },
-			{ id: '40540', name: 'Davis' },
-			{ id: '40690', name: 'Dempster' },
-			{ id: '40100', name: 'Main' },
-			{ id: '40450', name: 'South Boulevard' },
-			{ id: '41490', name: 'Howard' }
+			{
+				name: 'Linden',
+				directions: [
+					{ id: '40400', label: 'Southbound to Howard' }
+				]
+			},
+			{
+				name: 'Central',
+				directions: [
+					{ id: '41320', label: 'Northbound to Linden' },
+					{ id: '41321', label: 'Southbound to Howard' }
+				]
+			},
+			{
+				name: 'Noyes',
+				directions: [
+					{ id: '40520', label: 'Northbound to Linden' },
+					{ id: '40521', label: 'Southbound to Howard' }
+				]
+			},
+			{
+				name: 'Foster',
+				directions: [
+					{ id: '40270', label: 'Northbound to Linden' },
+					{ id: '40271', label: 'Southbound to Howard' }
+				]
+			},
+			{
+				name: 'Davis',
+				directions: [
+					{ id: '40540', label: 'Northbound to Linden' },
+					{ id: '40541', label: 'Southbound to Howard' }
+				]
+			},
+			{
+				name: 'Dempster',
+				directions: [
+					{ id: '40690', label: 'Northbound to Linden' },
+					{ id: '40691', label: 'Southbound to Howard' }
+				]
+			},
+			{
+				name: 'Main',
+				directions: [
+					{ id: '40100', label: 'Northbound to Linden' },
+					{ id: '40101', label: 'Southbound to Howard' }
+				]
+			},
+			{
+				name: 'South Boulevard',
+				directions: [
+					{ id: '40450', label: 'Northbound to Linden' },
+					{ id: '40451', label: 'Southbound to Howard' }
+				]
+			},
+			{
+				name: 'Howard',
+				directions: [
+					{ id: '41490', label: 'Northbound to Linden' },
+					{ id: '41491', label: 'Southbound to Loop (Express)' }
+				]
+			}
 		]
 	},
 	'Yellow': {
-		terminals: ['Dempster-Skokie', 'Howard'],
-		// Note: Yellow Line needs directional IDs - manually enter stop IDs for now
 		color: '#F9E300',
 		type: 'train',
+		terminals: ['Dempster-Skokie', 'Howard'],
 		stops: [
-			{ id: '40140', name: 'Dempster-Skokie' },
-			{ id: '41680', name: 'Oakton-Skokie' },
-			{ id: '40490', name: 'Howard' }
+			{
+				name: 'Dempster-Skokie',
+				directions: [
+					{ id: '40140', label: 'Southbound to Howard' }
+				]
+			},
+			{
+				name: 'Oakton-Skokie',
+				directions: [
+					{ id: '41680', label: 'Northbound to Dempster' },
+					{ id: '41681', label: 'Southbound to Howard' }
+				]
+			},
+			{
+				name: 'Howard',
+				directions: [
+					{ id: '40490', label: 'Northbound to Dempster' }
+				]
+			}
 		]
 	}
 };
