@@ -280,6 +280,7 @@ export function openAddTransitDialog() {
 
 	// Hide conditional fields
 	document.getElementById('transit-stop-group').style.display = 'none';
+	document.getElementById('transit-direction-group').style.display = 'none';
 	document.getElementById('transit-stop-id-group').style.display = 'none';
 
 	// Uncheck all day checkboxes
@@ -347,6 +348,8 @@ export function handleLineChange() {
 	const type = document.getElementById('transit-type').value;
 	const line = document.getElementById('transit-line').value;
 	const stopSelect = document.getElementById('transit-stop');
+	const directionSelect = document.getElementById('transit-direction');
+	const directionGroup = document.getElementById('transit-direction-group');
 	const colorInput = document.getElementById('transit-color');
 
 	if (!line) return;
@@ -358,36 +361,84 @@ export function handleLineChange() {
 		colorInput.value = line.toUpperCase();
 	}
 
+	// Clear direction dropdown
+	directionSelect.innerHTML = '<option value="">Select a station first...</option>';
+	directionGroup.style.display = 'none';
+	document.getElementById('transit-stop-id').value = '';
+
 	if (type === 'train') {
-		// Populate stops for this line
-		stopSelect.innerHTML = '<option value="">Select stop...</option>';
+		// Populate stations for this line
+		stopSelect.innerHTML = '<option value="">Select station...</option>';
 		const stops = getTrainStops(line);
 
 		stops.forEach(stop => {
 			const option = document.createElement('option');
-			option.value = stop.id;
+			option.value = stop.name; // Use name as value
 			option.textContent = stop.name;
-			option.dataset.name = stop.name;
+			option.dataset.stopData = JSON.stringify(stop); // Store full stop data
 			stopSelect.appendChild(option);
 		});
 	}
 }
 
 /**
- * Handle stop change
+ * Handle stop/station change - populates direction dropdown
  */
 export function handleStopChange() {
 	const stopSelect = document.getElementById('transit-stop');
-	const stopId = stopSelect.value;
-	const stopName = stopSelect.options[stopSelect.selectedIndex]?.dataset.name;
+	const selectedStationName = stopSelect.value;
+	const directionSelect = document.getElementById('transit-direction');
+	const directionGroup = document.getElementById('transit-direction-group');
+
+	if (!selectedStationName) {
+		directionGroup.style.display = 'none';
+		return;
+	}
+
+	// Get the stop data from the selected option
+	const selectedOption = stopSelect.options[stopSelect.selectedIndex];
+	const stopData = JSON.parse(selectedOption.dataset.stopData || '{}');
+
+	if (stopData.directions && stopData.directions.length > 0) {
+		// Populate direction dropdown
+		directionSelect.innerHTML = '<option value="">Select direction...</option>';
+
+		stopData.directions.forEach(dir => {
+			const option = document.createElement('option');
+			option.value = dir.id;
+			option.textContent = dir.label;
+			option.dataset.label = dir.label;
+			directionSelect.appendChild(option);
+		});
+
+		directionGroup.style.display = 'block';
+
+		// If only one direction, auto-select it
+		if (stopData.directions.length === 1) {
+			directionSelect.value = stopData.directions[0].id;
+			handleDirectionChange();
+		}
+	}
+}
+
+/**
+ * Handle direction change - auto-fills stop ID
+ */
+export function handleDirectionChange() {
+	const directionSelect = document.getElementById('transit-direction');
+	const stopId = directionSelect.value;
+	const directionLabel = directionSelect.options[directionSelect.selectedIndex]?.dataset.label;
 
 	if (stopId) {
 		document.getElementById('transit-stop-id').value = stopId;
 
-		// Optionally pre-fill destination with stop name
+		// Optionally pre-fill destination from direction label (e.g., "to Howard" -> "Howard")
 		const destInput = document.getElementById('transit-destination');
-		if (!destInput.value || destInput.value === '') {
-			destInput.value = stopName || '';
+		if ((!destInput.value || destInput.value === '') && directionLabel) {
+			const match = directionLabel.match(/to (.+)/);
+			if (match) {
+				destInput.value = match[1];
+			}
 		}
 	}
 }
@@ -616,6 +667,7 @@ if (typeof window !== 'undefined') {
 		reloadTransits,
 		handleTypeChange,
 		handleLineChange,
-		handleStopChange
+		handleStopChange,
+		handleDirectionChange
 	};
 }

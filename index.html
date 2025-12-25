@@ -588,20 +588,28 @@
 						</div>
 
 						<div class="form-group" id="transit-stop-group" style="display: none;">
-							<label for="transit-stop">Stop *</label>
+							<label for="transit-stop">Station/Stop *</label>
 							<select id="transit-stop" class="form-input" onchange="window.transitsManager.handleStopChange()">
 								<option value="">Select a line first...</option>
+							</select>
+						</div>
+
+						<div class="form-group" id="transit-direction-group" style="display: none;">
+							<label for="transit-direction">Direction *</label>
+							<select id="transit-direction" class="form-input" onchange="window.transitsManager.handleDirectionChange()">
+								<option value="">Select a station first...</option>
 							</select>
 						</div>
 
 						<div class="form-group" id="transit-destination-group">
 							<label for="transit-destination">Destination *</label>
 							<input type="text" id="transit-destination" class="form-input" placeholder="Loop, 95th, Kimball..." required>
+							<small style="color: #666; font-size: 0.7em;">Display name (e.g., "Howard", "Loop")</small>
 						</div>
 
 						<div class="form-group" id="transit-stop-id-group" style="display: none;">
 							<label for="transit-stop-id">Stop ID</label>
-							<input type="text" id="transit-stop-id" class="form-input" placeholder="Auto-filled from stop" readonly>
+							<input type="text" id="transit-stop-id" class="form-input" placeholder="Auto-filled from direction" readonly>
 						</div>
 
 						<div class="form-group">

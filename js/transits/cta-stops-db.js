@@ -1,51 +1,254 @@
 /**
  * CTA Stops Database
  * Curated list of CTA train lines and major bus routes with stops
+ *
+ * Note: Stop IDs include direction. Each station typically has 2 stop IDs
+ * (one for each direction). These IDs may need verification with actual CTA data.
  */
 
 export const CTA_TRAIN_LINES = {
 	'Red': {
 		color: '#C60C30',
 		type: 'train',
+		terminals: ['Howard', '95th/Dan Ryan'],
 		stops: [
-			{ id: '30162', name: 'Howard' },
-			{ id: '30161', name: 'Jarvis' },
-			{ id: '30160', name: 'Morse' },
-			{ id: '30159', name: 'Loyola' },
-			{ id: '30158', name: 'Granville' },
-			{ id: '30157', name: 'Thorndale' },
-			{ id: '41380', name: 'Bryn Mawr' },
-			{ id: '41320', name: 'Berwyn' },
-			{ id: '40770', name: 'Argyle' },
-			{ id: '41200', name: 'Lawrence' },
-			{ id: '40910', name: 'Wilson' },
-			{ id: '41220', name: 'Sheridan' },
-			{ id: '40080', name: 'Addison' },
-			{ id: '41420', name: 'Belmont' },
-			{ id: '41320', name: 'Fullerton' },
-			{ id: '41220', name: 'North/Clybourn' },
-			{ id: '40650', name: 'Clark/Division' },
-			{ id: '40330', name: 'Chicago' },
-			{ id: '40460', name: 'Grand' },
-			{ id: '40730', name: 'Lake' },
-			{ id: '40190', name: 'Monroe' },
-			{ id: '40560', name: 'Jackson' },
-			{ id: '40850', name: 'Harrison' },
-			{ id: '41490', name: 'Roosevelt' },
-			{ id: '41000', name: 'Cermak-Chinatown' },
-			{ id: '40190', name: 'Sox-35th' },
-			{ id: '40990', name: '47th' },
-			{ id: '40240', name: 'Garfield' },
-			{ id: '41170', name: '63rd' },
-			{ id: '40910', name: '69th' },
-			{ id: '40100', name: '79th' },
-			{ id: '40180', name: '87th' },
-			{ id: '41430', name: '95th/Dan Ryan' }
+			{
+				name: 'Howard',
+				directions: [
+					{ id: '30162', label: 'Southbound to 95th/Dan Ryan' }
+				]
+			},
+			{
+				name: 'Jarvis',
+				directions: [
+					{ id: '30161', label: 'Northbound to Howard' },
+					{ id: '30278', label: 'Southbound to 95th/Dan Ryan' }
+				]
+			},
+			{
+				name: 'Morse',
+				directions: [
+					{ id: '30160', label: 'Northbound to Howard' },
+					{ id: '30277', label: 'Southbound to 95th/Dan Ryan' }
+				]
+			},
+			{
+				name: 'Loyola',
+				directions: [
+					{ id: '41300', label: 'Northbound to Howard' },
+					{ id: '41301', label: 'Southbound to 95th/Dan Ryan' }
+				]
+			},
+			{
+				name: 'Granville',
+				directions: [
+					{ id: '40760', label: 'Northbound to Howard' },
+					{ id: '40761', label: 'Southbound to 95th/Dan Ryan' }
+				]
+			},
+			{
+				name: 'Thorndale',
+				directions: [
+					{ id: '40880', label: 'Northbound to Howard' },
+					{ id: '40881', label: 'Southbound to 95th/Dan Ryan' }
+				]
+			},
+			{
+				name: 'Bryn Mawr',
+				directions: [
+					{ id: '41380', label: 'Northbound to Howard' },
+					{ id: '41381', label: 'Southbound to 95th/Dan Ryan' }
+				]
+			},
+			{
+				name: 'Berwyn',
+				directions: [
+					{ id: '40340', label: 'Northbound to Howard' },
+					{ id: '40341', label: 'Southbound to 95th/Dan Ryan' }
+				]
+			},
+			{
+				name: 'Argyle',
+				directions: [
+					{ id: '40770', label: 'Northbound to Howard' },
+					{ id: '40771', label: 'Southbound to 95th/Dan Ryan' }
+				]
+			},
+			{
+				name: 'Lawrence',
+				directions: [
+					{ id: '41400', label: 'Northbound to Howard' },
+					{ id: '41401', label: 'Southbound to 95th/Dan Ryan' }
+				]
+			},
+			{
+				name: 'Wilson',
+				directions: [
+					{ id: '40540', label: 'Northbound to Howard' },
+					{ id: '40541', label: 'Southbound to 95th/Dan Ryan' }
+				]
+			},
+			{
+				name: 'Sheridan',
+				directions: [
+					{ id: '40080', label: 'Northbound to Howard' },
+					{ id: '40081', label: 'Southbound to 95th/Dan Ryan' }
+				]
+			},
+			{
+				name: 'Addison',
+				directions: [
+					{ id: '41420', label: 'Northbound to Howard' },
+					{ id: '41421', label: 'Southbound to 95th/Dan Ryan' }
+				]
+			},
+			{
+				name: 'Belmont',
+				directions: [
+					{ id: '41320', label: 'Northbound to Howard' },
+					{ id: '41321', label: 'Southbound to 95th/Dan Ryan' }
+				]
+			},
+			{
+				name: 'Fullerton',
+				directions: [
+					{ id: '41220', label: 'Northbound to Howard' },
+					{ id: '41221', label: 'Southbound to 95th/Dan Ryan' }
+				]
+			},
+			{
+				name: 'North/Clybourn',
+				directions: [
+					{ id: '40650', label: 'Northbound to Howard' },
+					{ id: '40651', label: 'Southbound to 95th/Dan Ryan' }
+				]
+			},
+			{
+				name: 'Clark/Division',
+				directions: [
+					{ id: '40050', label: 'Northbound to Howard' },
+					{ id: '40051', label: 'Southbound to 95th/Dan Ryan' }
+				]
+			},
+			{
+				name: 'Chicago',
+				directions: [
+					{ id: '41450', label: 'Northbound to Howard' },
+					{ id: '41451', label: 'Southbound to 95th/Dan Ryan' }
+				]
+			},
+			{
+				name: 'Grand',
+				directions: [
+					{ id: '40330', label: 'Northbound to Howard' },
+					{ id: '40331', label: 'Southbound to 95th/Dan Ryan' }
+				]
+			},
+			{
+				name: 'Lake',
+				directions: [
+					{ id: '40260', label: 'Northbound to Howard' },
+					{ id: '40261', label: 'Southbound to 95th/Dan Ryan' }
+				]
+			},
+			{
+				name: 'Monroe',
+				directions: [
+					{ id: '40790', label: 'Northbound to Howard' },
+					{ id: '40791', label: 'Southbound to 95th/Dan Ryan' }
+				]
+			},
+			{
+				name: 'Jackson',
+				directions: [
+					{ id: '40070', label: 'Northbound to Howard' },
+					{ id: '40071', label: 'Southbound to 95th/Dan Ryan' }
+				]
+			},
+			{
+				name: 'Harrison',
+				directions: [
+					{ id: '40470', label: 'Northbound to Howard' },
+					{ id: '40471', label: 'Southbound to 95th/Dan Ryan' }
+				]
+			},
+			{
+				name: 'Roosevelt',
+				directions: [
+					{ id: '41400', label: 'Northbound to Howard' },
+					{ id: '41401', label: 'Southbound to 95th/Dan Ryan' }
+				]
+			},
+			{
+				name: 'Cermak-Chinatown',
+				directions: [
+					{ id: '41000', label: 'Northbound to Howard' },
+					{ id: '41001', label: 'Southbound to 95th/Dan Ryan' }
+				]
+			},
+			{
+				name: 'Sox-35th',
+				directions: [
+					{ id: '40190', label: 'Northbound to Howard' },
+					{ id: '40191', label: 'Southbound to 95th/Dan Ryan' }
+				]
+			},
+			{
+				name: '47th',
+				directions: [
+					{ id: '41230', label: 'Northbound to Howard' },
+					{ id: '41231', label: 'Southbound to 95th/Dan Ryan' }
+				]
+			},
+			{
+				name: 'Garfield',
+				directions: [
+					{ id: '41170', label: 'Northbound to Howard' },
+					{ id: '41171', label: 'Southbound to 95th/Dan Ryan' }
+				]
+			},
+			{
+				name: '63rd',
+				directions: [
+					{ id: '40910', label: 'Northbound to Howard' },
+					{ id: '40911', label: 'Southbound to 95th/Dan Ryan' }
+				]
+			},
+			{
+				name: '69th',
+				directions: [
+					{ id: '40990', label: 'Northbound to Howard' },
+					{ id: '40991', label: 'Southbound to 95th/Dan Ryan' }
+				]
+			},
+			{
+				name: '79th',
+				directions: [
+					{ id: '40240', label: 'Northbound to Howard' },
+					{ id: '40241', label: 'Southbound to 95th/Dan Ryan' }
+				]
+			},
+			{
+				name: '87th',
+				directions: [
+					{ id: '41510', label: 'Northbound to Howard' },
+					{ id: '41511', label: 'Southbound to 95th/Dan Ryan' }
+				]
+			},
+			{
+				name: '95th/Dan Ryan',
+				directions: [
+					{ id: '41430', label: 'Northbound to Howard' }
+				]
+			}
 		]
 	},
 	'Blue': {
 		color: '#00A1DE',
 		type: 'train',
+		terminals: ["O'Hare", 'Forest Park'],
+		// Note: Blue Line stops below need to be restructured with directional IDs
+		// For now, you can manually enter stop IDs when creating routes
 		stops: [
 			{ id: '40890', name: "O'Hare" },
 			{ id: '40820', name: 'Rosemont' },
@@ -82,6 +285,8 @@ export const CTA_TRAIN_LINES = {
 		]
 	},
 	'Brown': {
+		terminals: ['Kimball', 'Loop'],
+		// Note: Brown Line needs directional IDs - manually enter stop IDs for now
 		color: '#62361B',
 		type: 'train',
 		stops: [
@@ -115,6 +320,8 @@ export const CTA_TRAIN_LINES = {
 		]
 	},
 	'Green': {
+		terminals: ['Harlem/Lake', 'Cottage Grove', 'Ashland/63rd'],
+		// Note: Green Line needs directional IDs - manually enter stop IDs for now
 		color: '#009B3A',
 		type: 'train',
 		stops: [
@@ -151,6 +358,8 @@ export const CTA_TRAIN_LINES = {
 		]
 	},
 	'Orange': {
+		terminals: ['Midway', 'Loop'],
+		// Note: Orange Line needs directional IDs - manually enter stop IDs for now
 		color: '#F9461C',
 		type: 'train',
 		stops: [
@@ -171,6 +380,8 @@ export const CTA_TRAIN_LINES = {
 		]
 	},
 	'Pink': {
+		terminals: ['54th/Cermak', 'Loop'],
+		// Note: Pink Line needs directional IDs - manually enter stop IDs for now
 		color: '#E27EA6',
 		type: 'train',
 		stops: [
@@ -198,6 +409,8 @@ export const CTA_TRAIN_LINES = {
 		]
 	},
 	'Purple': {
+		terminals: ['Linden', 'Howard', 'Loop'],
+		// Note: Purple Line needs directional IDs - manually enter stop IDs for now
 		color: '#522398',
 		type: 'train',
 		stops: [
@@ -213,6 +426,8 @@ export const CTA_TRAIN_LINES = {
 		]
 	},
 	'Yellow': {
+		terminals: ['Dempster-Skokie', 'Howard'],
+		// Note: Yellow Line needs directional IDs - manually enter stop IDs for now
 		color: '#F9E300',
 		type: 'train',
 		stops: [
