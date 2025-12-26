@@ -383,7 +383,13 @@ async function saveEventsToGitHub() {
 	await saveGitHubFile('ephemeral_events.csv', csvContent);
 
 	// Update CSV version timestamp in config
-	await updateCSVVersion('ephemeral_events');
+	try {
+		console.log('Updating ephemeral_events CSV version timestamp...');
+		await updateCSVVersion('ephemeral_events');
+		console.log('CSV version timestamp updated successfully');
+	} catch (error) {
+		console.error('Failed to update CSV version timestamp:', error);
+	}
 }
 
 function generateEventsCSV() {

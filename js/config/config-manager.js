@@ -564,7 +564,7 @@ export function reloadConfig() {
  */
 export async function updateCSVVersion(csvType) {
     if (!configState || !configState.settings) {
-        console.error('Configuration state not found');
+        console.error('Configuration state not found - config may not be loaded yet');
         return;
     }
 
@@ -579,8 +579,11 @@ export async function updateCSVVersion(csvType) {
 
         // Auto-save the config to persist the timestamp
         await saveConfig();
+
+        // Reload the config to refresh the UI if user is on config tab
+        await loadConfig();
     } else {
-        console.warn(`CSV version key not found: ${versionKey}`);
+        console.warn(`CSV version key not found: ${versionKey}. Make sure '${versionKey}' is in your config.csv file.`);
     }
 }
 
