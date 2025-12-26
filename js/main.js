@@ -1,5 +1,5 @@
 // Main App Entry Point - Coordinates all modules with mobile optimization
-import { hasToken, getToken, getUsername, getRepo } from './core/config.js';
+import { hasToken, getToken, getUsername, getRepo, getCTAApiKey } from './core/config.js';
 import { isMobileDevice } from './core/utils.js';
 import { setupTabs, handleTabSwitch } from './ui/tabs.js';
 import { showApp, scrollToAbout, createPixelBackground, handleTokenSubmit, logout } from './ui/landing.js';
@@ -133,10 +133,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 		const usernameInput = document.getElementById('landing-username-input');
 		const repoInput = document.getElementById('landing-repo-input');
 		const tokenInput = document.getElementById('landing-token-input');
+		const ctaApiKeyInput = document.getElementById('landing-cta-api-key-input');
 
 		if (usernameInput) usernameInput.value = getUsername();
 		if (repoInput) repoInput.value = getRepo();
 		if (tokenInput) tokenInput.value = getToken();
+		if (ctaApiKeyInput) ctaApiKeyInput.value = getCTAApiKey();
 
 		// Auto-show app if token exists
 		await showApp();
