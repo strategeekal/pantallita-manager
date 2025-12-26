@@ -58,7 +58,11 @@ const configTypes = {
     'show_weekday_indicator': 'boolean',
     'display_transit': 'boolean',
     'transit_respect_commute_hours': 'boolean',
-    'transit_display_frequency': 'number'
+    'transit_display_frequency': 'number',
+    'stocks_csv_version': 'timestamp',
+    'events_csv_version': 'timestamp',
+    'transits_csv_version': 'timestamp',
+    'ephemeral_events_csv_version': 'timestamp'
 };
 
 // Configuration ranges for numeric fields
@@ -279,9 +283,13 @@ function renderConfigSettings(settings) {
             return;
         }
 
-        // Group settings by section
+        // Group settings by section (exclude timestamp fields from UI)
         const sections = {};
         settings.forEach(setting => {
+            // Skip timestamp fields - they're metadata, not user settings
+            if (setting.type === 'timestamp') {
+                return;
+            }
             if (!sections[setting.section]) {
                 sections[setting.section] = [];
             }
@@ -501,9 +509,6 @@ export async function saveConfig() {
 function buildConfigCSV(configData) {
         let csv = '';
 
-        // Add header
-        csv += 'setting,value\n\n';
-
         // Group settings by section
         const sections = {};
         configData.settings.forEach(setting => {
@@ -522,6 +527,8 @@ function buildConfigCSV(configData) {
                 if (setting.type === 'number') {
                     value = setting.value;
                 } else if (setting.type === 'select') {
+                    value = setting.value;
+                } else if (setting.type === 'timestamp') {
                     value = setting.value;
                 } else {
                     // Boolean - use true/false strings
@@ -543,6 +550,32 @@ export function reloadConfig() {
     loadConfig();
 }
 
+/**
+ * Update CSV file version timestamp
+ * @param {string} csvType - Type of CSV file ('stocks', 'events', 'transits', 'ephemeral_events')
+ */
+export async function updateCSVVersion(csvType) {
+    if (!configState || !configState.settings) {
+        console.error('Configuration state not found');
+        return;
+    }
+
+    const versionKey = `${csvType}_csv_version`;
+    const timestamp = new Date().toISOString();
+
+    // Update the timestamp in the settings
+    const setting = configState.settings.find(s => s.name === versionKey);
+    if (setting) {
+        setting.value = timestamp;
+        console.log(`Updated CSV version: ${versionKey} = ${timestamp}`);
+
+        // Auto-save the config to persist the timestamp
+        await saveConfig();
+    } else {
+        console.warn(`CSV version key not found: ${versionKey}`);
+    }
+}
+
 // Expose to window for onclick handlers
 if (typeof window !== 'undefined') {
     window.configManager = {
@@ -551,6 +584,7 @@ if (typeof window !== 'undefined') {
         saveConfig,
         reloadConfig,
         updateSetting,
-        updateGracePeriodDescription
+        updateGracePeriodDescription,
+        updateCSVVersion
     };
 }

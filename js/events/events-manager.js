@@ -2,6 +2,7 @@
 import { fetchGitHubFile, saveGitHubFile, deleteGitHubFile } from '../core/api.js';
 import { showStatus, parseCSV, formatDate } from '../core/utils.js';
 import { loadConfig } from '../core/config.js';
+import { updateCSVVersion } from '../config/config-manager.js';
 
 let currentEvents = [];
 let editingEventIndex = null;
@@ -380,6 +381,9 @@ export function clearEventForm() {
 async function saveEventsToGitHub() {
 	const csvContent = generateEventsCSV();
 	await saveGitHubFile('ephemeral_events.csv', csvContent);
+
+	// Update CSV version timestamp in config
+	await updateCSVVersion('ephemeral_events');
 }
 
 function generateEventsCSV() {

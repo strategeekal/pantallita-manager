@@ -4,6 +4,7 @@
  */
 
 import { fetchGitHubFile, saveGitHubFile } from '../core/api.js';
+import { updateCSVVersion } from '../config/config-manager.js';
 
 let stocksData = [];
 let stocksSha = null;
@@ -473,6 +474,9 @@ async function saveStocksToGitHub() {
         if (result && result.content && result.content.sha) {
             stocksSha = result.content.sha;
         }
+
+        // Update CSV version timestamp in config
+        await updateCSVVersion('stocks');
 
         statusEl.textContent = '✓ Saved successfully';
         setTimeout(() => {

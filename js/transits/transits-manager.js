@@ -7,6 +7,7 @@ import { fetchGitHubFile, saveGitHubFile } from '../core/api.js';
 import { parseCSV } from '../core/utils.js';
 import { getTrainLines, getTrainStops, getBusRoutes, getLineColor } from './cta-stops-db.js';
 import { lookupBusStop } from './cta-bus-stops.js';
+import { updateCSVVersion } from '../config/config-manager.js';
 
 let transitsData = [];
 let transitsSha = null;
@@ -681,6 +682,9 @@ async function saveTransits() {
 		if (result && result.content && result.content.sha) {
 			transitsSha = result.content.sha;
 		}
+
+		// Update CSV version timestamp in config
+		await updateCSVVersion('transits');
 
 		if (statusEl) {
 			statusEl.textContent = '✓ Saved successfully';
