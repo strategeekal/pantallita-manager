@@ -6,6 +6,7 @@
 import { fetchGitHubFile, saveGitHubFile } from '../core/api.js';
 import { parseCSV } from '../core/utils.js';
 import { getTrainLines, getTrainStops, getBusRoutes, getLineColor } from './cta-stops-db.js';
+import { lookupBusStop } from './cta-bus-stops.js';
 
 let transitsData = [];
 let transitsSha = null;
@@ -296,17 +297,25 @@ export function handleTypeChange() {
 	const lineSelect = document.getElementById('transit-line');
 	const stopGroup = document.getElementById('transit-stop-group');
 	const stopIdGroup = document.getElementById('transit-stop-id-group');
+	const busStopCodeGroup = document.getElementById('transit-bus-stop-code-group');
+	const directionGroup = document.getElementById('transit-direction-group');
 
 	// Clear previous selections
 	lineSelect.innerHTML = '<option value="">Select...</option>';
 	document.getElementById('transit-stop').innerHTML = '<option value="">Select a line first...</option>';
 	document.getElementById('transit-color').value = '';
 	document.getElementById('transit-stop-id').value = '';
+	if (busStopCodeGroup) {
+		document.getElementById('transit-bus-stop-code').value = '';
+		document.getElementById('bus-stop-lookup-result').innerHTML = '';
+	}
 
 	if (!type) {
 		lineSelect.disabled = true;
 		stopGroup.style.display = 'none';
 		stopIdGroup.style.display = 'none';
+		if (busStopCodeGroup) busStopCodeGroup.style.display = 'none';
+		if (directionGroup) directionGroup.style.display = 'none';
 		return;
 	}
 
@@ -324,6 +333,8 @@ export function handleTypeChange() {
 		});
 		stopGroup.style.display = 'block';
 		stopIdGroup.style.display = 'block';
+		if (busStopCodeGroup) busStopCodeGroup.style.display = 'none';
+		if (directionGroup) directionGroup.style.display = 'none';
 	} else if (type === 'bus') {
 		// Populate bus routes
 		const routes = getBusRoutes();
@@ -334,7 +345,9 @@ export function handleTypeChange() {
 			lineSelect.appendChild(option);
 		});
 		stopGroup.style.display = 'none';
-		stopIdGroup.style.display = 'none';
+		stopIdGroup.style.display = 'block';
+		if (busStopCodeGroup) busStopCodeGroup.style.display = 'block';
+		if (directionGroup) directionGroup.style.display = 'none';
 
 		// For buses, stop ID must be entered manually
 		document.getElementById('transit-destination-group').style.display = 'block';
@@ -440,6 +453,44 @@ export function handleDirectionChange() {
 				destInput.value = match[1];
 			}
 		}
+	}
+}
+
+/**
+ * Handle bus stop code input - validates and looks up stop
+ */
+export function handleBusStopCodeInput() {
+	const stopCodeInput = document.getElementById('transit-bus-stop-code');
+	const stopIdInput = document.getElementById('transit-stop-id');
+	const resultDiv = document.getElementById('bus-stop-lookup-result');
+
+	const stopCode = stopCodeInput.value.trim();
+
+	if (!stopCode) {
+		resultDiv.innerHTML = '';
+		stopIdInput.value = '';
+		return;
+	}
+
+	// Look up the stop
+	const stop = lookupBusStop(stopCode);
+
+	if (stop) {
+		// Valid stop found
+		resultDiv.innerHTML = `<span style="color: #4caf50;">✓ Found: ${stop.name}</span>`;
+		stopIdInput.value = stop.id;
+
+		// Auto-suggest destination from stop name (extract main street/location)
+		const destInput = document.getElementById('transit-destination');
+		if (!destInput.value) {
+			// Try to extract a meaningful destination from stop name
+			const nameParts = stop.name.split(',')[0]; // Take first part before comma
+			destInput.value = nameParts.trim();
+		}
+	} else {
+		// Invalid stop code
+		resultDiv.innerHTML = `<span style="color: #f44336;">✗ Stop code not found</span>`;
+		stopIdInput.value = '';
 	}
 }
 

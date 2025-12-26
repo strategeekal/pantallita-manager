@@ -592,6 +592,15 @@
 							</select>
 						</div>
 
+						<div class="form-group" id="transit-bus-stop-code-group" style="display: none;">
+							<label for="transit-bus-stop-code">Bus Stop Code *</label>
+							<input type="text" id="transit-bus-stop-code" class="form-input" placeholder="Enter 4-5 digit stop code" oninput="window.transitsManager.handleBusStopCodeInput()">
+							<small style="color: #666; font-size: 0.7em;">
+								Find your stop code at <a href="https://www.ctabustracker.com/bustime/home.jsp" target="_blank" style="color: #4a9eff;">ctabustracker.com</a>
+							</small>
+							<div id="bus-stop-lookup-result" style="margin-top: 8px; font-size: 0.85em;"></div>
+						</div>
+
 						<div class="form-group" id="transit-stop-group" style="display: none;">
 							<label for="transit-stop">Station/Stop *</label>
 							<select id="transit-stop" class="form-input" onchange="window.transitsManager.handleStopChange()">
