@@ -2,6 +2,7 @@
 import { fetchGitHubFile, deleteGitHubFile, saveGitHubFile } from '../core/api.js';
 import { showStatus, parseCSV, formatImageName } from '../core/utils.js';
 import { loadScheduleTemplates, scheduleTemplates } from './schedule-manager.js';
+import { updateCSVVersion } from '../config/config-manager.js';
 
 // Import schedule editor to get access to its internal functions
 import * as scheduleEditorModule from './schedule-editor.js';
@@ -459,6 +460,9 @@ async function saveTemplateFromEditor() {
 		// Reload templates
 		await loadScheduleTemplates();
 
+		// Update CSV version timestamp in config
+		await updateCSVVersion('schedules');
+
 		// Close editor and go back to schedules list after a short delay
 		setTimeout(() => {
 			closeTemplateEditor();
@@ -504,6 +508,9 @@ export async function saveAsNewTemplate() {
 
 		// Reload templates
 		await loadScheduleTemplates();
+
+		// Update CSV version timestamp in config
+		await updateCSVVersion('schedules');
 
 		// Close editor and go back to schedules list after a short delay
 		setTimeout(() => {
@@ -598,6 +605,9 @@ export async function deleteTemplate(templateName, displayName) {
 
 		// Reload templates in schedule manager
 		await loadScheduleTemplates();
+
+		// Update CSV version timestamp in config
+		await updateCSVVersion('schedules');
 
 	} catch (error) {
 		showStatus('Failed to delete template: ' + error.message, 'error');

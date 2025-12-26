@@ -3,6 +3,7 @@ import { fetchGitHubFile, saveGitHubFile, deleteGitHubFile } from '../core/api.j
 import { showStatus, parseCSV, getDayOfWeek, formatImageName } from '../core/utils.js';
 import { loadConfig } from '../core/config.js';
 import { loadSchedules, scheduleImages, scheduleTemplates } from './schedule-manager.js';
+import { updateCSVVersion } from '../config/config-manager.js';
 import { updateTimelineView, refreshTimelineViews } from './timeline.js';
 import { updateSchedulePreview } from './preview.js';
 import { TINYBIT_FONT } from '../ui/fonts.js';
@@ -1061,6 +1062,8 @@ export async function saveSchedule() {
 				console.log('Deleted old schedule file:', oldFilename);
 				// Clear sha since we deleted the old file
 				currentScheduleData.sha = null;
+				// Update CSV version timestamp after delete
+				await updateCSVVersion('schedules');
 			} catch (error) {
 				console.error('Failed to delete old schedule file:', error);
 				showStatus('Warning: Could not delete old schedule file', 'warning');
@@ -1074,6 +1077,9 @@ export async function saveSchedule() {
 			currentScheduleData.sha = saveData.content.sha;
 			currentScheduleData.filename = filename;
 		}
+
+		// Update CSV version timestamp after save
+		await updateCSVVersion('schedules');
 
 		showStatus('Schedule saved successfully!', 'success');
 

@@ -60,7 +60,7 @@ const configTypes = {
     'transit_respect_commute_hours': 'boolean',
     'transit_display_frequency': 'number',
     'stocks_csv_version': 'timestamp',
-    'events_csv_version': 'timestamp',
+    'schedules_csv_version': 'timestamp',
     'transits_csv_version': 'timestamp',
     'ephemeral_events_csv_version': 'timestamp'
 };
@@ -552,7 +552,7 @@ export function reloadConfig() {
 
 /**
  * Update CSV file version timestamp
- * @param {string} csvType - Type of CSV file ('stocks', 'events', 'transits', 'ephemeral_events')
+ * @param {string} csvType - Type of CSV file ('stocks', 'schedules', 'transits', 'ephemeral_events')
  */
 export async function updateCSVVersion(csvType) {
     if (!configState || !configState.settings) {
