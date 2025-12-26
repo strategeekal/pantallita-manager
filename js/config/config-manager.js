@@ -242,13 +242,21 @@ function parseConfigCSV(content) {
                 const settingName = parts[0].trim();
                 const settingValue = parts[1].trim();
 
+                // Skip unknown settings (not in configTypes) - they may be legacy or malformed
+                if (!configTypes[settingName]) {
+                    console.warn(`Unknown config setting (skipping): ${settingName}`);
+                    continue;
+                }
+
                 // Determine the type and parse value accordingly
-                const fieldType = configTypes[settingName] || 'boolean';
+                const fieldType = configTypes[settingName];
                 let parsedValue;
 
                 if (fieldType === 'number') {
                     parsedValue = parseInt(settingValue, 10);
                 } else if (fieldType === 'select') {
+                    parsedValue = settingValue;
+                } else if (fieldType === 'timestamp') {
                     parsedValue = settingValue;
                 } else {
                     // Boolean type - handle both true/false strings and 1/0
