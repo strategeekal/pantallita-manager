@@ -201,25 +201,42 @@ function formatCommuteHours(hours) {
 }
 
 /**
- * Format days filter (e.g., "weekday" -> "Mon, Tue, Wed, Thu, Fri" or "0124" -> "Mon, Tue, Fri")
+ * Format days filter for readable display
+ * Examples: "weekday" -> "Weekdays", "weekend" -> "Weekends",
+ *           "01234" -> "Mon - Fri", "0124" -> "Mon, Tue, Fri"
  */
 function formatDays(days) {
 	if (!days) return '';
 
 	if (days === 'weekday') {
-		return 'Mon, Tue, Wed, Thu, Fri';
+		return 'Weekdays';
 	} else if (days === 'weekend') {
-		return 'Sat, Sun';
+		return 'Weekends';
 	} else {
-		// Parse day codes
-		const dayList = [];
+		// Parse day codes into array of numbers
+		const dayNums = [];
 		for (let char of days) {
 			const dayNum = parseInt(char);
 			if (!isNaN(dayNum) && dayNum >= 0 && dayNum <= 6) {
-				dayList.push(DAY_NAMES[dayNum]);
+				dayNums.push(dayNum);
 			}
 		}
-		return dayList.join(', ');
+
+		if (dayNums.length === 0) return '';
+		if (dayNums.length === 1) return DAY_NAMES[dayNums[0]];
+
+		// Check if days are consecutive (for range format like "Mon - Fri")
+		const isConsecutive = dayNums.every((day, i) =>
+			i === 0 || day === dayNums[i - 1] + 1
+		);
+
+		if (isConsecutive && dayNums.length >= 3) {
+			// Use range format for 3+ consecutive days
+			return `${DAY_NAMES[dayNums[0]]} - ${DAY_NAMES[dayNums[dayNums.length - 1]]}`;
+		} else {
+			// List individual days for non-consecutive selections
+			return dayNums.map(d => DAY_NAMES[d]).join(', ');
+		}
 	}
 }
 
