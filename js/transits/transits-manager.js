@@ -27,6 +27,27 @@ const CTA_LINE_COLORS = {
 	'Yellow': '#F9E300'
 };
 
+// CTA Code to Full Name Mapping
+const CTA_LINE_NAMES = {
+	'Red': 'Red',
+	'Blue': 'Blue',
+	'Brn': 'Brown',
+	'Brown': 'Brown',
+	'G': 'Green',
+	'Green': 'Green',
+	'Org': 'Orange',
+	'Orange': 'Orange',
+	'P': 'Purple',
+	'Pexp': 'Purple Express',
+	'Purple': 'Purple',
+	'Pink': 'Pink',
+	'Y': 'Yellow',
+	'Yellow': 'Yellow'
+};
+
+// Day code to name mapping
+const DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
 let transitsData = [];
 let transitsSha = null;
 let editingTransitIndex = null;
@@ -158,6 +179,51 @@ function buildTransitsCSV() {
 }
 
 /**
+ * Format commute hours (e.g., "9-12" -> "9am to 12pm")
+ */
+function formatCommuteHours(hours) {
+	if (!hours) return '';
+
+	const parts = hours.split('-');
+	if (parts.length !== 2) return hours;
+
+	const start = parseInt(parts[0]);
+	const end = parseInt(parts[1]);
+
+	const formatHour = (h) => {
+		if (h === 0) return '12am';
+		if (h < 12) return `${h}am`;
+		if (h === 12) return '12pm';
+		return `${h - 12}pm`;
+	};
+
+	return `${formatHour(start)} to ${formatHour(end)}`;
+}
+
+/**
+ * Format days filter (e.g., "weekday" -> "Mon, Tue, Wed, Thu, Fri" or "0124" -> "Mon, Tue, Fri")
+ */
+function formatDays(days) {
+	if (!days) return '';
+
+	if (days === 'weekday') {
+		return 'Mon, Tue, Wed, Thu, Fri';
+	} else if (days === 'weekend') {
+		return 'Sat, Sun';
+	} else {
+		// Parse day codes
+		const dayList = [];
+		for (let char of days) {
+			const dayNum = parseInt(char);
+			if (!isNaN(dayNum) && dayNum >= 0 && dayNum <= 6) {
+				dayList.push(DAY_NAMES[dayNum]);
+			}
+		}
+		return dayList.join(', ');
+	}
+}
+
+/**
  * Render transits list
  */
 function renderTransitsList() {
@@ -179,20 +245,36 @@ function renderTransitsList() {
 	transitsData.forEach((transit, index) => {
 		const typeIcon = transit.type === 'train' ? '🚇' : '🚌';
 
-		// Get colors for route(s) - handle multiple routes separated by pipes
+		// Get colors and names for route(s) - handle multiple routes separated by pipes
 		const routes = transit.route.split('|');
 		const routeColors = routes.map(r => CTA_LINE_COLORS[r.trim()] || (transit.type === 'bus' ? '#FFFFFF' : '#999999'));
-		const primaryColor = routeColors[0];
+		const routeNames = routes.map(r => CTA_LINE_NAMES[r.trim()] || r.trim());
 
-		// Create route display with color badges
+		// Create route display with color badges and full names
 		let routeDisplay = '';
 		if (transit.type === 'bus') {
 			routeDisplay = `<span style="color: #FFFFFF;">Bus ${transit.route}</span>`;
 		} else {
 			routes.forEach((route, i) => {
 				const color = routeColors[i];
-				routeDisplay += `<span class="route-badge" style="background-color: ${color}; color: white; padding: 2px 6px; border-radius: 3px; margin-right: 4px;">${route.trim()}</span>`;
+				const name = routeNames[i];
+				routeDisplay += `<span class="route-badge" style="background-color: ${color}; color: white; padding: 2px 6px; border-radius: 3px; margin-right: 4px;">${name}</span>`;
 			});
+		}
+
+		// Format the filters text
+		let filtersText = '';
+		if (transit.commuteHours || transit.days) {
+			const timeText = transit.commuteHours ? formatCommuteHours(transit.commuteHours) : '';
+			const daysText = transit.days ? formatDays(transit.days) : '';
+
+			if (timeText && daysText) {
+				filtersText = `Showing arrival times from ${timeText} on ${daysText}`;
+			} else if (timeText) {
+				filtersText = `Showing arrival times from ${timeText}`;
+			} else if (daysText) {
+				filtersText = `Showing on ${daysText}`;
+			}
 		}
 
 		html += `
@@ -211,12 +293,9 @@ function renderTransitsList() {
 					<div class="transit-destination">→ ${transit.displayLabel}</div>
 					<div class="transit-details">
 						<span>Stop: ${transit.stopNumber}</span>
-						<span>Min: ${transit.minTime}m</span>
+						<span>Arrival times &gt; ${transit.minTime} minutes</span>
 					</div>
-					<div class="transit-filters">
-						${transit.commuteHours ? `<span class="filter-badge">${transit.commuteHours}</span>` : ''}
-						${transit.days ? `<span class="filter-badge">${transit.days}</span>` : ''}
-					</div>
+					${filtersText ? `<div class="transit-filters-text" style="margin-top: 8px; font-size: 0.85em; color: #888;">${filtersText}</div>` : ''}
 				</div>
 			</div>
 		`;
