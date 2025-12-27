@@ -518,6 +518,16 @@ export async function saveConfig() {
 function buildConfigCSV(configData) {
         let csv = '';
 
+        console.log('buildConfigCSV: Building CSV from configState');
+        console.log(`buildConfigCSV: Total settings: ${configData.settings.length}`);
+
+        // Log timestamp values before building
+        const timestampSettings = configData.settings.filter(s => s.type === 'timestamp');
+        console.log('buildConfigCSV: Timestamp settings:');
+        timestampSettings.forEach(s => {
+            console.log(`  ${s.name} = ${s.value}`);
+        });
+
         // Group settings by section
         const sections = {};
         configData.settings.forEach(setting => {
@@ -549,6 +559,7 @@ function buildConfigCSV(configData) {
             csv += '\n';
         }
 
+        console.log('buildConfigCSV: CSV built successfully');
         return csv.trim() + '\n';
 }
 
@@ -584,17 +595,28 @@ async function waitForConfig() {
 export async function updateCSVVersion(csvType) {
     // Skip if config not loaded yet - timestamps are optional metadata
     if (!configState || !configState.settings) {
+        console.warn(`updateCSVVersion(${csvType}): Config not loaded yet, skipping`);
         return;
     }
 
     const versionKey = `${csvType}_csv_version`;
     const timestamp = new Date().toISOString();
 
+    console.log(`updateCSVVersion(${csvType}): Looking for setting ${versionKey}`);
+    console.log(`updateCSVVersion(${csvType}): configState has ${configState.settings.length} settings`);
+
     // Update the timestamp in memory only - will be saved when user saves config
     const setting = configState.settings.find(s => s.name === versionKey);
     if (setting) {
+        const oldValue = setting.value;
         setting.value = timestamp;
-        console.log(`Updated CSV version timestamp: ${versionKey} = ${timestamp} (not persisted until config saved)`);
+        console.log(`✓ Updated CSV version timestamp: ${versionKey}`);
+        console.log(`  Old value: ${oldValue}`);
+        console.log(`  New value: ${timestamp}`);
+        console.log(`  (not persisted until config saved)`);
+    } else {
+        console.error(`✗ CSV version setting NOT FOUND: ${versionKey}`);
+        console.log(`  Available settings:`, configState.settings.map(s => s.name));
     }
 }
 
