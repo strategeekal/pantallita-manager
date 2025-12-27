@@ -286,11 +286,11 @@ function renderTransitsList() {
 			const daysText = transit.days ? formatDays(transit.days) : '';
 
 			if (timeText && daysText) {
-				filtersText = `Showing arrival times from ${timeText} on ${daysText}`;
+				filtersText = `Active: ${timeText} on ${daysText}`;
 			} else if (timeText) {
-				filtersText = `Showing arrival times from ${timeText}`;
+				filtersText = `Active: ${timeText}`;
 			} else if (daysText) {
-				filtersText = `Showing on ${daysText}`;
+				filtersText = `Active on ${daysText}`;
 			}
 		}
 
@@ -308,10 +308,8 @@ function renderTransitsList() {
 						${routeDisplay}
 					</div>
 					<div class="transit-destination">→ ${transit.displayLabel}</div>
-					<div class="transit-details">
-						<span>Stop: ${transit.stopNumber}</span>
-						<span>Arrival times &gt; ${transit.minTime} minutes</span>
-					</div>
+					<div class="transit-detail-line">Stop: ${transit.stopNumber} (${transit.displayLabel})</div>
+					<div class="transit-detail-line">Arrival times &gt; ${transit.minTime} minutes</div>
 					${filtersText ? `<div class="transit-filters-text" style="margin-top: 8px; font-size: 0.85em; color: #888;">${filtersText}</div>` : ''}
 				</div>
 			</div>
