@@ -1,5 +1,5 @@
 // Landing Page Module - Handle landing page animations and transitions
-import { saveCredentials, hasToken, getToken, getUsername, getRepo, getCTAApiKey, clearCredentials } from '../core/config.js';
+import { saveCredentials, hasToken, getToken, getUsername, getRepo, clearCredentials } from '../core/config.js';
 import { showStatus } from '../core/utils.js';
 
 export async function handleTokenSubmit(event) {
@@ -8,12 +8,10 @@ export async function handleTokenSubmit(event) {
 	const usernameInput = document.getElementById('landing-username-input');
 	const repoInput = document.getElementById('landing-repo-input');
 	const tokenInput = document.getElementById('landing-token-input');
-	const ctaApiKeyInput = document.getElementById('landing-cta-api-key-input');
 
 	const username = usernameInput.value.trim();
 	const repo = repoInput.value.trim();
 	const token = tokenInput.value.trim();
-	const ctaApiKey = ctaApiKeyInput ? ctaApiKeyInput.value.trim() : '';
 
 	if (!username || !repo || !token) {
 		showStatus('Please fill in all required fields', 'error');
@@ -21,7 +19,7 @@ export async function handleTokenSubmit(event) {
 	}
 
 	// Save credentials and show app
-	saveCredentials(username, repo, token, ctaApiKey);
+	saveCredentials(username, repo, token);
 	await showApp();
 }
 
@@ -57,11 +55,9 @@ export async function logout() {
 	const usernameInput = document.getElementById('landing-username-input');
 	const repoInput = document.getElementById('landing-repo-input');
 	const tokenInput = document.getElementById('landing-token-input');
-	const ctaApiKeyInput = document.getElementById('landing-cta-api-key-input');
 	if (usernameInput) usernameInput.value = '';
 	if (repoInput) repoInput.value = '';
 	if (tokenInput) tokenInput.value = '';
-	if (ctaApiKeyInput) ctaApiKeyInput.value = '';
 
 	showStatus('Logged out successfully', 'success');
 }

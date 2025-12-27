@@ -25,13 +25,13 @@
 					<h3>Connect to Your GitHub Repository</h3>
 					<form id="token-form" onsubmit="window.handleTokenSubmit(event)">
 						<input
-							type="text"
+							type="password"
 							id="landing-username-input"
 							placeholder="GitHub Username"
 							required
 						>
 						<input
-							type="text"
+							type="password"
 							id="landing-repo-input"
 							placeholder="Repository Name (e.g., pantallita-events)"
 							required
@@ -41,11 +41,6 @@
 							id="landing-token-input"
 							placeholder="Personal Access Token (ghp_...)"
 							required
-						>
-						<input
-							type="password"
-							id="landing-cta-api-key-input"
-							placeholder="CTA API Key (optional - for bus routes)"
 						>
 						<button type="submit" class="btn-pixel btn-primary">Unlock App</button>
 					</form>
