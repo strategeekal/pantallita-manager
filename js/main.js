@@ -140,6 +140,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 		if (tokenInput) tokenInput.value = getToken();
 		if (ctaApiKeyInput) ctaApiKeyInput.value = getCTAApiKey();
 
+		// CRITICAL: Initialize config manager BEFORE loading events/schedules
+		// This ensures CSV version tracking works properly
+		configManager.init();
+
 		// Auto-show app if token exists
 		await showApp();
 
