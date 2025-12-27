@@ -559,12 +559,33 @@ export function reloadConfig() {
 }
 
 /**
+ * Wait for config to be loaded
+ * @returns {Promise} Resolves when config is loaded
+ */
+async function waitForConfig() {
+    const maxWait = 5000; // 5 seconds max
+    const checkInterval = 100; // Check every 100ms
+    let elapsed = 0;
+
+    while (!configState || !configState.settings) {
+        if (elapsed >= maxWait) {
+            throw new Error('Config failed to load within 5 seconds');
+        }
+        await new Promise(resolve => setTimeout(resolve, checkInterval));
+        elapsed += checkInterval;
+    }
+}
+
+/**
  * Update CSV file version timestamp
  * @param {string} csvType - Type of CSV file ('stocks', 'schedules', 'transits', 'ephemeral_events')
  */
 export async function updateCSVVersion(csvType) {
-    if (!configState || !configState.settings) {
-        console.error('Configuration state not found - config may not be loaded yet');
+    try {
+        // Wait for config to load if it hasn't yet
+        await waitForConfig();
+    } catch (error) {
+        console.error('Cannot update CSV version - config not loaded:', error.message);
         return;
     }
 
