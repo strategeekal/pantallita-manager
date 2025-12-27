@@ -579,9 +579,6 @@ export async function updateCSVVersion(csvType) {
 
         // Auto-save the config to persist the timestamp
         await saveConfig();
-
-        // Reload the config to refresh the UI if user is on config tab
-        await loadConfig();
     } else {
         console.warn(`CSV version key not found: ${versionKey}. Make sure '${versionKey}' is in your config.csv file.`);
     }
