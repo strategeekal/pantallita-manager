@@ -615,39 +615,32 @@
 							</select>
 						</div>
 
-						<div class="form-group" id="transit-destination-group">
-							<label for="transit-destination">Destination *</label>
-							<input type="text" id="transit-destination" class="form-input" placeholder="Loop, 95th, Kimball..." required>
-							<small style="color: #666; font-size: 0.7em;">Display name (e.g., "Howard", "Loop")</small>
+						<div class="form-group" id="transit-display-label-group">
+							<label for="transit-display-label">Display Label *</label>
+							<input type="text" id="transit-display-label" class="form-input" placeholder="96St, Loop, 79st..." required>
+							<small style="color: #666; font-size: 0.7em;">Custom label shown on display (e.g., "96St", "Loop")</small>
 						</div>
 
-						<div class="form-group" id="transit-stop-id-group" style="display: none;">
-							<label for="transit-stop-id">Stop ID</label>
-							<input type="text" id="transit-stop-id" class="form-input" placeholder="Auto-filled from direction" readonly>
-						</div>
-
-						<div class="form-group">
-							<label for="transit-min-threshold">Min Threshold (minutes) *</label>
-							<input type="number" id="transit-min-threshold" class="form-input" min="0" max="60" value="10" required>
+						<div class="form-group" id="transit-stop-number-group" style="display: none;">
+							<label for="transit-stop-number">Stop Number</label>
+							<input type="text" id="transit-stop-number" class="form-input" placeholder="Auto-filled from selection">
+							<small style="color: #666; font-size: 0.7em;">Can be pipe-separated for multiple stops (e.g., "41220|40530")</small>
 						</div>
 
 						<div class="form-group">
-							<label for="transit-color">Color *</label>
-							<input type="text" id="transit-color" class="form-input" placeholder="Auto-filled from line" required>
+							<label for="transit-min-time">Min Time (minutes) *</label>
+							<input type="number" id="transit-min-time" class="form-input" min="0" max="60" value="10" required>
+							<small style="color: #666; font-size: 0.7em;">Minimum arrival time to show</small>
 						</div>
 
 						<div class="form-group">
-							<label for="transit-time-filter">Time Filter *</label>
-							<input type="text" id="transit-time-filter" class="form-input" placeholder="6-10 (6am-10am)" value="0-23" required>
+							<label for="transit-commute-hours">Commute Hours (optional)</label>
+							<input type="text" id="transit-commute-hours" class="form-input" placeholder="9-12 (9am-12pm) or leave empty">
+							<small style="color: #666; font-size: 0.7em;">Hour range to display, empty = all day</small>
 						</div>
 
 						<div class="form-group">
-							<label for="transit-alt-color">Alt Color (optional)</label>
-							<input type="text" id="transit-alt-color" class="form-input" placeholder="For multi-line routes">
-						</div>
-
-						<div class="form-group">
-							<label>Days *</label>
+							<label>Days (optional)</label>
 							<div class="days-checkboxes">
 								<label class="day-checkbox-label">
 									<input type="checkbox" class="day-checkbox" value="0"> Mon
