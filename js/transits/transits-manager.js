@@ -5,7 +5,7 @@
 
 import { fetchGitHubFile, saveGitHubFile } from '../core/api.js';
 import { parseCSV } from '../core/utils.js';
-import { getTrainLines, getTrainStops, getBusRoutes, getLineColor } from './cta-stops-db.js';
+import { getTrainLines, getTrainStops, getBusRoutes, getLineColor, CTA_TRAIN_LINES } from './cta-stops-db.js';
 import { lookupBusStop } from './cta-bus-stops.js';
 import { updateCSVVersion } from '../config/config-manager.js';
 
@@ -241,6 +241,45 @@ function formatDays(days) {
 }
 
 /**
+ * Get stop name from database
+ * @param {string} stopNumber - Stop ID (can be pipe-separated)
+ * @param {string} type - 'train' or 'bus'
+ * @returns {string} Stop name or empty string if not found
+ */
+function getStopName(stopNumber, type) {
+	if (!stopNumber) return '';
+
+	// Handle multiple stops - use the first one
+	const firstStopId = stopNumber.split('|')[0].trim();
+
+	if (type === 'train') {
+		// Search through all train lines for this stop ID
+		for (const lineData of Object.values(CTA_TRAIN_LINES)) {
+			for (const stop of lineData.stops) {
+				// Check if this stop has the ID in any of its directions
+				if (stop.directions) {
+					for (const direction of stop.directions) {
+						if (direction.id === firstStopId) {
+							return stop.name;
+						}
+					}
+				} else if (stop.id === firstStopId) {
+					// Some stops might just have an id field directly
+					return stop.name;
+				}
+			}
+		}
+		return ''; // Not found
+	} else if (type === 'bus') {
+		// Look up bus stop
+		const busStop = lookupBusStop(firstStopId);
+		return busStop ? busStop.name : '';
+	}
+
+	return '';
+}
+
+/**
  * Render transits list
  */
 function renderTransitsList() {
@@ -279,6 +318,9 @@ function renderTransitsList() {
 			});
 		}
 
+		// Get the actual stop name from database
+		const stopName = getStopName(transit.stopNumber, transit.type);
+
 		// Format the filters text
 		let filtersText = '';
 		if (transit.commuteHours || transit.days) {
@@ -308,7 +350,7 @@ function renderTransitsList() {
 						${routeDisplay}
 					</div>
 					<div class="transit-destination">→ ${transit.displayLabel}</div>
-					<div class="transit-detail-line">Stop: ${transit.stopNumber} (${transit.displayLabel})</div>
+					<div class="transit-detail-line">Stop: ${transit.stopNumber}${stopName ? ` (${stopName})` : ''}</div>
 					<div class="transit-detail-line">Arrival times &gt; ${transit.minTime} minutes</div>
 					${filtersText ? `<div class="transit-filters-text" style="margin-top: 8px; font-size: 0.85em; color: #888;">${filtersText}</div>` : ''}
 				</div>
