@@ -65,22 +65,10 @@ export function init() {
  * Set up event listeners
  */
 function setupEventListeners() {
-	// Add transit button
-	// Modal-based, no inline button needed
-	if (addBtn) {
-		// openAddTransitDialog called via onclick
-	}
-
 	// Form submit
 	const form = document.getElementById('transit-form');
 	if (form) {
 		form.addEventListener('submit', handleTransitFormSubmit);
-	}
-
-	// Cancel button
-	// Modal close via onclick
-	if (cancelBtn) {
-		// closeTransitEditor called via onclick
 	}
 }
 
@@ -447,221 +435,19 @@ export function openAddTransitDialog() {
 	document.getElementById('transit-editor-modal').classList.remove('hidden');
 
 	// Reset form
-	document.getElementById('transit-form').reset();
+	const form = document.getElementById('transit-form');
+	if (form) form.reset();
 
 	// Set default values
 	document.getElementById('transit-type').value = '';
-	document.getElementById('transit-line').value = '';
-	document.getElementById('transit-line').disabled = true;
+	document.getElementById('transit-route').value = '';
+	document.getElementById('transit-display-label').value = '';
+	document.getElementById('transit-stop-number').value = '';
 	document.getElementById('transit-min-time').value = '10';
 	document.getElementById('transit-commute-hours').value = '';
-
-	// Hide conditional fields
-	document.getElementById('transit-stop-group').style.display = 'none';
-	document.getElementById('transit-direction-group').style.display = 'none';
-	document.getElementById('transit-stop-number-group').style.display = 'none';
-
-	// Uncheck all day checkboxes
-	const dayCheckboxes = document.querySelectorAll('.day-checkbox');
-	dayCheckboxes.forEach(cb => cb.checked = false);
+	document.getElementById('transit-days').value = '';
 }
 
-/**
- * Handle transit type change (train/bus)
- */
-export function handleTypeChange() {
-	const type = document.getElementById('transit-type').value;
-	const lineSelect = document.getElementById('transit-line');
-	const stopGroup = document.getElementById('transit-stop-group');
-	const stopNumberGroup = document.getElementById('transit-stop-number-group');
-	const busStopCodeGroup = document.getElementById('transit-bus-stop-code-group');
-	const directionGroup = document.getElementById('transit-direction-group');
-
-	// Clear previous selections
-	lineSelect.innerHTML = '<option value="">Select...</option>';
-	document.getElementById('transit-stop').innerHTML = '<option value="">Select a line first...</option>';
-	document.getElementById('transit-stop-number').value = '';
-	if (busStopCodeGroup) {
-		document.getElementById('transit-bus-stop-code').value = '';
-		document.getElementById('bus-stop-lookup-result').innerHTML = '';
-	}
-
-	if (!type) {
-		lineSelect.disabled = true;
-		stopGroup.style.display = 'none';
-		stopNumberGroup.style.display = 'none';
-		if (busStopCodeGroup) busStopCodeGroup.style.display = 'none';
-		if (directionGroup) directionGroup.style.display = 'none';
-		return;
-	}
-
-	lineSelect.disabled = false;
-
-	if (type === 'train') {
-		// Populate train lines
-		const lines = getTrainLines();
-		lines.forEach(line => {
-			const option = document.createElement('option');
-			option.value = line.route;
-			option.textContent = `${line.route} Line`;
-			const color = CTA_LINE_COLORS[line.route] || '#999';
-			option.style.color = color;
-			lineSelect.appendChild(option);
-		});
-		stopGroup.style.display = 'block';
-		stopNumberGroup.style.display = 'block';
-		if (busStopCodeGroup) busStopCodeGroup.style.display = 'none';
-		if (directionGroup) directionGroup.style.display = 'none';
-	} else if (type === 'bus') {
-		// Populate bus routes
-		const routes = getBusRoutes();
-		routes.forEach(route => {
-			const option = document.createElement('option');
-			option.value = route.route;
-			option.textContent = `${route.route} - ${route.name}`;
-			lineSelect.appendChild(option);
-		});
-		stopGroup.style.display = 'none';
-		stopNumberGroup.style.display = 'block';
-		if (busStopCodeGroup) busStopCodeGroup.style.display = 'block';
-		if (directionGroup) directionGroup.style.display = 'none';
-
-		// For buses, display label must be entered manually
-		document.getElementById('transit-display-label-group').style.display = 'block';
-	}
-}
-
-/**
- * Handle line/route change
- */
-export function handleLineChange() {
-	const type = document.getElementById('transit-type').value;
-	const line = document.getElementById('transit-line').value;
-	const stopSelect = document.getElementById('transit-stop');
-	const directionSelect = document.getElementById('transit-direction');
-	const directionGroup = document.getElementById('transit-direction-group');
-
-	if (!line) return;
-
-	// Clear direction dropdown
-	directionSelect.innerHTML = '<option value="">Select a station first...</option>';
-	directionGroup.style.display = 'none';
-	document.getElementById('transit-stop-number').value = '';
-
-	if (type === 'train') {
-		// Populate stations for this line
-		stopSelect.innerHTML = '<option value="">Select station...</option>';
-		const stops = getTrainStops(line);
-
-		stops.forEach(stop => {
-			const option = document.createElement('option');
-			option.value = stop.name; // Use name as value
-			option.textContent = stop.name;
-			option.dataset.stopData = JSON.stringify(stop); // Store full stop data
-			stopSelect.appendChild(option);
-		});
-	}
-}
-
-/**
- * Handle stop/station change - populates direction dropdown
- */
-export function handleStopChange() {
-	const stopSelect = document.getElementById('transit-stop');
-	const selectedStationName = stopSelect.value;
-	const directionSelect = document.getElementById('transit-direction');
-	const directionGroup = document.getElementById('transit-direction-group');
-
-	if (!selectedStationName) {
-		directionGroup.style.display = 'none';
-		return;
-	}
-
-	// Get the stop data from the selected option
-	const selectedOption = stopSelect.options[stopSelect.selectedIndex];
-	const stopData = JSON.parse(selectedOption.dataset.stopData || '{}');
-
-	if (stopData.directions && stopData.directions.length > 0) {
-		// Populate direction dropdown
-		directionSelect.innerHTML = '<option value="">Select direction...</option>';
-
-		stopData.directions.forEach(dir => {
-			const option = document.createElement('option');
-			option.value = dir.id;
-			option.textContent = dir.label;
-			option.dataset.label = dir.label;
-			directionSelect.appendChild(option);
-		});
-
-		directionGroup.style.display = 'block';
-
-		// If only one direction, auto-select it
-		if (stopData.directions.length === 1) {
-			directionSelect.value = stopData.directions[0].id;
-			handleDirectionChange();
-		}
-	}
-}
-
-/**
- * Handle direction change - auto-fills stop ID
- */
-export function handleDirectionChange() {
-	const directionSelect = document.getElementById('transit-direction');
-	const stopNumber = directionSelect.value;
-	const directionLabel = directionSelect.options[directionSelect.selectedIndex]?.dataset.label;
-
-	if (stopNumber) {
-		document.getElementById('transit-stop-number').value = stopNumber;
-
-		// Optionally pre-fill display label from direction label (e.g., "to Howard" -> "Howard")
-		const labelInput = document.getElementById('transit-display-label');
-		if ((!labelInput.value || labelInput.value === '') && directionLabel) {
-			const match = directionLabel.match(/to (.+)/);
-			if (match) {
-				labelInput.value = match[1];
-			}
-		}
-	}
-}
-
-/**
- * Handle bus stop code input - validates and looks up stop
- */
-export function handleBusStopCodeInput() {
-	const stopCodeInput = document.getElementById('transit-bus-stop-code');
-	const stopNumberInput = document.getElementById('transit-stop-number');
-	const resultDiv = document.getElementById('bus-stop-lookup-result');
-
-	const stopCode = stopCodeInput.value.trim();
-
-	if (!stopCode) {
-		resultDiv.innerHTML = '';
-		stopNumberInput.value = '';
-		return;
-	}
-
-	// Look up the stop
-	const stop = lookupBusStop(stopCode);
-
-	if (stop) {
-		// Valid stop found
-		resultDiv.innerHTML = `<span style="color: #4caf50;">✓ Found: ${stop.name}</span>`;
-		stopNumberInput.value = stop.id;
-
-		// Auto-suggest display label from stop name (extract main street/location)
-		const labelInput = document.getElementById('transit-display-label');
-		if (!labelInput.value) {
-			// Try to extract a meaningful label from stop name
-			const nameParts = stop.name.split(',')[0]; // Take first part before comma
-			labelInput.value = nameParts.trim();
-		}
-	} else {
-		// Invalid stop code
-		resultDiv.innerHTML = `<span style="color: #f44336;">✗ Stop code not found</span>`;
-		stopNumberInput.value = '';
-	}
-}
 
 /**
  * Hide transit form
@@ -684,69 +470,14 @@ export function editTransit(index) {
 	document.getElementById('transit-editor-title').textContent = 'Edit Transit Route';
 	document.getElementById('transit-editor-modal').classList.remove('hidden');
 
-	// Populate type first
-	document.getElementById('transit-type').value = transit.type;
-
-	// Trigger type change to populate line dropdown
-	handleTypeChange();
-
-	// Then set the line/route
-	document.getElementById('transit-line').value = transit.route;
-
-	// If train, trigger line change to populate stops
-	if (transit.type === 'train') {
-		handleLineChange();
-
-		// Then set the stop if we have a stop number
-		if (transit.stopNumber) {
-			document.getElementById('transit-stop').value = transit.stopNumber;
-			handleStopChange();
-		}
-	} else {
-		// For buses, manually fill stop number field (if visible)
-		const stopNumberInput = document.getElementById('transit-stop-number');
-		if (stopNumberInput) {
-			stopNumberInput.value = transit.stopNumber;
-		}
-	}
-
-	// Populate other fields
-	document.getElementById('transit-display-label').value = transit.displayLabel;
-	document.getElementById('transit-min-time').value = transit.minTime;
+	// Populate all 7 fields directly
+	document.getElementById('transit-type').value = transit.type || '';
+	document.getElementById('transit-route').value = transit.route || '';
+	document.getElementById('transit-display-label').value = transit.displayLabel || '';
+	document.getElementById('transit-stop-number').value = transit.stopNumber || '';
+	document.getElementById('transit-min-time').value = transit.minTime || 10;
 	document.getElementById('transit-commute-hours').value = transit.commuteHours || '';
-
-	// Handle day filter
-	const dayFilter = transit.days;
-	const dayCheckboxes = document.querySelectorAll('.day-checkbox');
-
-	// Uncheck all first
-	dayCheckboxes.forEach(cb => cb.checked = false);
-
-	if (dayFilter) {
-		// Check based on day filter value
-		if (dayFilter === 'weekday') {
-			// Check Mon-Fri (0-4)
-			for (let i = 0; i <= 4; i++) {
-				const cb = document.querySelector(`.day-checkbox[value="${i}"]`);
-				if (cb) cb.checked = true;
-			}
-		} else if (dayFilter === 'weekend') {
-			// Check Sat-Sun (5-6)
-			for (let i = 5; i <= 6; i++) {
-				const cb = document.querySelector(`.day-checkbox[value="${i}"]`);
-				if (cb) cb.checked = true;
-			}
-		} else {
-			// Parse day codes (e.g., "012456")
-			for (let char of dayFilter) {
-				const day = parseInt(char);
-				if (!isNaN(day) && day >= 0 && day <= 6) {
-					const cb = document.querySelector(`.day-checkbox[value="${day}"]`);
-					if (cb) cb.checked = true;
-				}
-			}
-		}
-	}
+	document.getElementById('transit-days').value = transit.days || '';
 }
 
 /**
@@ -770,39 +501,18 @@ export function deleteTransit(index) {
 async function handleTransitFormSubmit(e) {
 	e.preventDefault();
 
-	const type = document.getElementById('transit-type').value;
-	const route = document.getElementById('transit-line').value.trim();
+	// Read all 7 fields directly from the form
+	const type = document.getElementById('transit-type').value.trim();
+	const route = document.getElementById('transit-route').value.trim();
 	const displayLabel = document.getElementById('transit-display-label').value.trim();
-	const stopNumberField = document.getElementById('transit-stop-number');
-	const stopNumber = stopNumberField && stopNumberField.value ? stopNumberField.value.trim() : '';
-	const minTime = parseInt(document.getElementById('transit-min-time').value) || 0;
+	const stopNumber = document.getElementById('transit-stop-number').value.trim();
+	const minTime = parseInt(document.getElementById('transit-min-time').value) || 10;
 	const commuteHours = document.getElementById('transit-commute-hours').value.trim();
-
-	// Get checked days
-	const dayCheckboxes = document.querySelectorAll('.day-checkbox:checked');
-	const checkedDays = Array.from(dayCheckboxes).map(cb => parseInt(cb.value)).sort();
-
-	// Convert to day filter string (optional)
-	let days = '';
-	if (checkedDays.length > 0) {
-		if (checkedDays.length === 5 && checkedDays.every((d, i) => d === i)) {
-			days = 'weekday';
-		} else if (checkedDays.length === 2 && checkedDays[0] === 5 && checkedDays[1] === 6) {
-			days = 'weekend';
-		} else {
-			days = checkedDays.join('');
-		}
-	}
+	const days = document.getElementById('transit-days').value.trim();
 
 	// Validate required fields
-	if (!type || !route || !displayLabel) {
-		alert('Please fill in all required fields (Type, Route, Display Label)');
-		return;
-	}
-
-	// For trains, stop number is required
-	if (type === 'train' && !stopNumber) {
-		alert('Please select a stop for train routes');
+	if (!type || !route || !displayLabel || !stopNumber) {
+		alert('Please fill in all required fields (Type, Route, Display Label, Stop Number)');
 		return;
 	}
 
@@ -810,7 +520,7 @@ async function handleTransitFormSubmit(e) {
 		type,
 		route,
 		displayLabel,
-		stopNumber: stopNumber || '',
+		stopNumber,
 		minTime,
 		commuteHours: commuteHours || '',
 		days: days || ''
@@ -885,11 +595,6 @@ if (typeof window !== 'undefined') {
 		closeTransitEditor,
 		editTransit,
 		deleteTransit,
-		reloadTransits,
-		handleTypeChange,
-		handleLineChange,
-		handleStopChange,
-		handleDirectionChange,
-		handleBusStopCodeInput
+		reloadTransits
 	};
 }

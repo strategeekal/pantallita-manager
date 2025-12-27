@@ -106,6 +106,11 @@ export async function showApp() {
 	if (window.schedulesModule && window.schedulesModule.initializeSchedules) {
 		await window.schedulesModule.initializeSchedules();
 	}
+
+	// Initialize transits
+	if (window.transitsManager && window.transitsManager.init) {
+		window.transitsManager.init();
+	}
 }
 
 export function scrollToAbout() {

@@ -576,94 +576,57 @@
 				</div>
 				<div class="modal-body">
 					<form id="transit-form">
+						<!-- Type Field -->
 						<div class="form-group">
 							<label for="transit-type">Type *</label>
-							<select id="transit-type" class="form-input" onchange="window.transitsManager.handleTypeChange()" required>
+							<select id="transit-type" class="form-input" required>
 								<option value="">Select type...</option>
 								<option value="train">🚇 Train</option>
 								<option value="bus">🚌 Bus</option>
 							</select>
+							<small style="color: #666; font-size: 0.7em;">Train or Bus</small>
 						</div>
 
+						<!-- Route Field -->
 						<div class="form-group">
-							<label for="transit-line">Line/Route *</label>
-							<select id="transit-line" class="form-input" onchange="window.transitsManager.handleLineChange()" required disabled>
-								<option value="">Select a type first...</option>
-							</select>
+							<label for="transit-route">Route *</label>
+							<input type="text" id="transit-route" class="form-input" placeholder="Red, Blue, Brn, G, Org, P, Pink, Y, or bus number" required>
+							<small style="color: #666; font-size: 0.7em;">CTA route code (e.g., "Red", "Brn|P" for multiple, "8" for bus)</small>
 						</div>
 
-						<div class="form-group" id="transit-bus-stop-code-group" style="display: none;">
-							<label for="transit-bus-stop-code">Bus Stop Code *</label>
-							<input type="text" id="transit-bus-stop-code" class="form-input" placeholder="Enter 4-5 digit stop code" oninput="window.transitsManager.handleBusStopCodeInput()">
-							<small style="color: #666; font-size: 0.7em;">
-								Find your stop code at <a href="https://www.ctabustracker.com/bustime/home.jsp" target="_blank" style="color: #4a9eff;">ctabustracker.com</a>
-							</small>
-							<div id="bus-stop-lookup-result" style="margin-top: 8px; font-size: 0.85em;"></div>
-						</div>
-
-						<div class="form-group" id="transit-stop-group" style="display: none;">
-							<label for="transit-stop">Station/Stop *</label>
-							<select id="transit-stop" class="form-input" onchange="window.transitsManager.handleStopChange()">
-								<option value="">Select a line first...</option>
-							</select>
-						</div>
-
-						<div class="form-group" id="transit-direction-group" style="display: none;">
-							<label for="transit-direction">Direction *</label>
-							<select id="transit-direction" class="form-input" onchange="window.transitsManager.handleDirectionChange()">
-								<option value="">Select a station first...</option>
-							</select>
-						</div>
-
-						<div class="form-group" id="transit-display-label-group">
+						<!-- Display Label Field -->
+						<div class="form-group">
 							<label for="transit-display-label">Display Label *</label>
 							<input type="text" id="transit-display-label" class="form-input" placeholder="96St, Loop, 79st..." required>
-							<small style="color: #666; font-size: 0.7em;">Custom label shown on display (e.g., "96St", "Loop")</small>
+							<small style="color: #666; font-size: 0.7em;">Custom label shown on display</small>
 						</div>
 
-						<div class="form-group" id="transit-stop-number-group" style="display: none;">
-							<label for="transit-stop-number">Stop Number</label>
-							<input type="text" id="transit-stop-number" class="form-input" placeholder="Auto-filled from selection">
-							<small style="color: #666; font-size: 0.7em;">Can be pipe-separated for multiple stops (e.g., "41220|40530")</small>
+						<!-- Stop Number Field -->
+						<div class="form-group">
+							<label for="transit-stop-number">Stop Number *</label>
+							<input type="text" id="transit-stop-number" class="form-input" placeholder="41220 or 41220|40530 for multiple" required>
+							<small style="color: #666; font-size: 0.7em;">CTA stop ID(s), pipe-separated for multiple</small>
 						</div>
 
+						<!-- Min Time Field -->
 						<div class="form-group">
 							<label for="transit-min-time">Min Time (minutes) *</label>
 							<input type="number" id="transit-min-time" class="form-input" min="0" max="60" value="10" required>
 							<small style="color: #666; font-size: 0.7em;">Minimum arrival time to show</small>
 						</div>
 
+						<!-- Commute Hours Field -->
 						<div class="form-group">
 							<label for="transit-commute-hours">Commute Hours (optional)</label>
-							<input type="text" id="transit-commute-hours" class="form-input" placeholder="9-12 (9am-12pm) or leave empty">
-							<small style="color: #666; font-size: 0.7em;">Hour range to display, empty = all day</small>
+							<input type="text" id="transit-commute-hours" class="form-input" placeholder="9-12 or leave empty">
+							<small style="color: #666; font-size: 0.7em;">Hour range (e.g., "9-12" for 9am-12pm), empty = all day</small>
 						</div>
 
+						<!-- Days Field -->
 						<div class="form-group">
-							<label>Days (optional)</label>
-							<div class="days-checkboxes">
-								<label class="day-checkbox-label">
-									<input type="checkbox" class="day-checkbox" value="0"> Mon
-								</label>
-								<label class="day-checkbox-label">
-									<input type="checkbox" class="day-checkbox" value="1"> Tue
-								</label>
-								<label class="day-checkbox-label">
-									<input type="checkbox" class="day-checkbox" value="2"> Wed
-								</label>
-								<label class="day-checkbox-label">
-									<input type="checkbox" class="day-checkbox" value="3"> Thu
-								</label>
-								<label class="day-checkbox-label">
-									<input type="checkbox" class="day-checkbox" value="4"> Fri
-								</label>
-								<label class="day-checkbox-label">
-									<input type="checkbox" class="day-checkbox" value="5"> Sat
-								</label>
-								<label class="day-checkbox-label">
-									<input type="checkbox" class="day-checkbox" value="6"> Sun
-								</label>
-							</div>
+							<label for="transit-days">Days (optional)</label>
+							<input type="text" id="transit-days" class="form-input" placeholder="weekday, weekend, or 01234">
+							<small style="color: #666; font-size: 0.7em;">Use "weekday", "weekend", or day codes 0-6 (Mon=0, Sun=6), empty = all days</small>
 						</div>
 
 						<div class="form-actions">
