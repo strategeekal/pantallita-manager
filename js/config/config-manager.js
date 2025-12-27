@@ -6,6 +6,7 @@
 import { fetchGitHubFile, saveGitHubFile } from '../core/api.js';
 
 let configState = null;
+let saveQueue = Promise.resolve(); // Queue for sequential saves
 
 // Configuration metadata for user-friendly labels
 const configLabels = {
@@ -581,27 +582,19 @@ async function waitForConfig() {
  * @param {string} csvType - Type of CSV file ('stocks', 'schedules', 'transits', 'ephemeral_events')
  */
 export async function updateCSVVersion(csvType) {
-    try {
-        // Wait for config to load if it hasn't yet
-        await waitForConfig();
-    } catch (error) {
-        console.error('Cannot update CSV version - config not loaded:', error.message);
+    // Skip if config not loaded yet - timestamps are optional metadata
+    if (!configState || !configState.settings) {
         return;
     }
 
     const versionKey = `${csvType}_csv_version`;
     const timestamp = new Date().toISOString();
 
-    // Update the timestamp in the settings
+    // Update the timestamp in memory only - will be saved when user saves config
     const setting = configState.settings.find(s => s.name === versionKey);
     if (setting) {
         setting.value = timestamp;
-        console.log(`Updated CSV version: ${versionKey} = ${timestamp}`);
-
-        // Auto-save the config to persist the timestamp
-        await saveConfig();
-    } else {
-        console.warn(`CSV version key not found: ${versionKey}. Make sure '${versionKey}' is in your config.csv file.`);
+        console.log(`Updated CSV version timestamp: ${versionKey} = ${timestamp} (not persisted until config saved)`);
     }
 }
 
