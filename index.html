@@ -101,7 +101,13 @@
 					<div class="event-list-header">
 						<h3>Current Events</h3>
 						<div class="list-actions">
-							<button class="btn-pixel btn-primary" onclick="createNewEvent()">➕ New</button>
+							<div class="new-event-dropdown">
+								<button class="btn-pixel btn-primary dropdown-toggle" onclick="toggleNewEventDropdown()">➕ New ▼</button>
+								<div class="dropdown-menu hidden" id="new-event-dropdown-menu">
+									<button class="dropdown-item" onclick="createNewRecurringEvent(); closeNewEventDropdown();">🔄 Recurring Event</button>
+									<button class="dropdown-item" onclick="createNewEvent(); closeNewEventDropdown();">📅 One-Time Event</button>
+								</div>
+							</div>
 							<button class="btn-pixel btn-secondary" onclick="loadEvents()">🔄 Refresh</button>
 							<button class="btn-pixel btn-secondary" onclick="clearPastEvents()">🗑️ Clear Past Events</button>
 						</div>
@@ -114,8 +120,13 @@
 							<input type="text" id="event-search" placeholder="Search events..." oninput="window.eventsModule.applyFilters()">
 						</div>
 						<div class="filter-controls">
-							<select id="event-date-filter" onchange="window.eventsModule.applyFilters()">
+							<select id="event-type-filter" onchange="window.eventsModule.applyFilters()">
 								<option value="all">All Events</option>
+								<option value="recurring">🔄 Recurring Only</option>
+								<option value="ephemeral">📅 One-Time Only</option>
+							</select>
+							<select id="event-date-filter" onchange="window.eventsModule.applyFilters()">
+								<option value="all">All Dates</option>
 								<option value="upcoming">Upcoming</option>
 								<option value="past">Past</option>
 								<option value="today">Today</option>
@@ -164,11 +175,66 @@
 					<div class="event-form-container">
 						<div class="event-form">
 							<div class="form-group">
-								<label for="editor-event-date">Date *</label>
-								<div class="date-input-wrapper">
+								<label for="editor-event-date" id="editor-date-label">Date *</label>
+								<!-- Ephemeral date input -->
+								<div class="date-input-wrapper" id="editor-date-input-wrapper">
 									<input type="date" id="editor-event-date" required>
 									<!-- <span class="date-placeholder">YYYY-MM-DD</span> -->
 								</div>
+								<!-- Recurring date selectors (hidden by default) -->
+								<div class="recurring-date-wrapper hidden" id="editor-recurring-date-wrapper">
+									<select id="editor-recurring-month" class="recurring-date-select">
+										<option value="">Month...</option>
+										<option value="1">January</option>
+										<option value="2">February</option>
+										<option value="3">March</option>
+										<option value="4">April</option>
+										<option value="5">May</option>
+										<option value="6">June</option>
+										<option value="7">July</option>
+										<option value="8">August</option>
+										<option value="9">September</option>
+										<option value="10">October</option>
+										<option value="11">November</option>
+										<option value="12">December</option>
+									</select>
+									<select id="editor-recurring-day" class="recurring-date-select">
+										<option value="">Day...</option>
+										<option value="1">1</option>
+										<option value="2">2</option>
+										<option value="3">3</option>
+										<option value="4">4</option>
+										<option value="5">5</option>
+										<option value="6">6</option>
+										<option value="7">7</option>
+										<option value="8">8</option>
+										<option value="9">9</option>
+										<option value="10">10</option>
+										<option value="11">11</option>
+										<option value="12">12</option>
+										<option value="13">13</option>
+										<option value="14">14</option>
+										<option value="15">15</option>
+										<option value="16">16</option>
+										<option value="17">17</option>
+										<option value="18">18</option>
+										<option value="19">19</option>
+										<option value="20">20</option>
+										<option value="21">21</option>
+										<option value="22">22</option>
+										<option value="23">23</option>
+										<option value="24">24</option>
+										<option value="25">25</option>
+										<option value="26">26</option>
+										<option value="27">27</option>
+										<option value="28">28</option>
+										<option value="29">29</option>
+										<option value="30">30</option>
+										<option value="31">31</option>
+									</select>
+								</div>
+								<!-- Duplicate warning -->
+								<div class="duplicate-warning hidden" id="editor-duplicate-warning"></div>
 							</div>
 
 							<div class="form-group">
@@ -205,6 +271,7 @@
 									<option value="PINK">Pink</option>
 									<option value="AQUA">Aqua</option>
 									<option value="WHITE">White</option>
+									<option value="DIMMEST_WHITE">Dimmest White</option>
 								</select>
 								<div class="color-preview" id="editor-event-color-preview"></div>
 							</div>
@@ -229,7 +296,7 @@
 							</div>
 
 							<div class="form-actions">
-								<button type="button" class="btn-pixel btn-primary" onclick="saveEvent()">Save Event</button>
+								<button type="button" class="btn-pixel btn-primary" onclick="handleEventSave()">Save Event</button>
 								<button type="button" class="btn-pixel btn-secondary" onclick="closeEventEditor()">Cancel</button>
 							</div>
 						</div>

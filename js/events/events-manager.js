@@ -3,25 +3,40 @@ import { fetchGitHubFile, saveGitHubFile, deleteGitHubFile } from '../core/api.j
 import { showStatus, parseCSV, formatDate } from '../core/utils.js';
 import { loadConfig } from '../core/config.js';
 import { updateCSVVersion } from '../config/config-manager.js';
+import {
+	loadRecurringEvents,
+	getCurrentRecurringEvents,
+	setCurrentRecurringEvents,
+	saveRecurringEventsToGitHub,
+	getNextOccurrence,
+	findRecurringEventByMonthDay,
+	addRecurringEvent,
+	updateRecurringEvent,
+	deleteRecurringEventByIndex
+} from './recurring-events-manager.js';
 
 let currentEvents = [];
 let editingEventIndex = null;
+let editorMode = 'ephemeral'; // 'ephemeral' or 'recurring'
+let editingRecurringIndex = null;
 
 // Filter state
 let eventFilters = {
 	search: '',
 	dateFilter: 'all',
-	sort: 'date-asc'
+	sort: 'date-asc',
+	typeFilter: 'all' // 'all', 'recurring', 'ephemeral'
 };
 
 export async function initializeEvents() {
-	await loadEvents();
+	await loadAllEvents();
 	setupEventFormHandlers();
 	// Initialize color preview on first load
 	initializeColorPreview();
 }
 
-export async function loadEvents() {
+// Load both ephemeral and recurring events
+export async function loadAllEvents() {
 	const config = loadConfig();
 
 	if (!config.token || !config.owner || !config.repo) {
@@ -32,8 +47,12 @@ export async function loadEvents() {
 	showEventsLoading();
 
 	try {
-		const { content } = await fetchGitHubFile('ephemeral_events.csv');
-		currentEvents = parseEventsCSV(content);
+		// Load both types in parallel
+		await Promise.all([
+			loadEphemeralEvents(),
+			loadRecurringEventsData()
+		]);
+
 		displayEvents();
 
 		// Update validation badge after loading events
@@ -41,13 +60,38 @@ export async function loadEvents() {
 			window.updateValidationBadge();
 		}
 	} catch (error) {
+		showEventsError('Failed to load events: ' + error.message);
+	}
+}
+
+// Load ephemeral events only
+async function loadEphemeralEvents() {
+	try {
+		const { content } = await fetchGitHubFile('ephemeral_events.csv');
+		currentEvents = parseEventsCSV(content);
+	} catch (error) {
 		if (error.message.includes('404')) {
-			showEventsEmpty();
 			currentEvents = [];
 		} else {
-			showEventsError('Failed to load events: ' + error.message);
+			throw error;
 		}
 	}
+}
+
+// Load recurring events only
+async function loadRecurringEventsData() {
+	try {
+		await loadRecurringEvents();
+	} catch (error) {
+		if (!error.message.includes('404')) {
+			console.error('Failed to load recurring events:', error);
+		}
+	}
+}
+
+// Wrapper for backward compatibility - now loads all events
+export async function loadEvents() {
+	await loadAllEvents();
 }
 
 function parseEventsCSV(content) {
@@ -68,9 +112,36 @@ function parseEventsCSV(content) {
 			colorName: parts[4].trim(),
 			startHour: parts.length > 5 ? parseInt(parts[5].trim()) : 0,
 			endHour: parts.length > 6 ? parseInt(parts[6].trim()) : 23,
-			startMin: 0 // Not used in this format
+			startMin: 0, // Not used in this format
+			type: 'ephemeral' // Type identifier
 		};
 	}).filter(e => e !== null);
+}
+
+// Get merged list of recurring and ephemeral events sorted by date
+function getMergedEventsList() {
+	const recurringEvents = getCurrentRecurringEvents();
+
+	// Convert recurring events to display format with computed next occurrence
+	const displayableRecurring = recurringEvents.map(event => {
+		const nextDate = getNextOccurrence(event.monthDay);
+		return {
+			...event,
+			date: nextDate,
+			displayDate: nextDate,
+			isNextYear: nextDate.startsWith(String(new Date().getFullYear() + 1)),
+			type: 'recurring'
+		};
+	});
+
+	// Add type to ephemeral events if not already set
+	const displayableEphemeral = currentEvents.map(event => ({
+		...event,
+		type: 'ephemeral'
+	}));
+
+	// Merge both lists
+	return [...displayableRecurring, ...displayableEphemeral];
 }
 
 function displayEvents() {
@@ -78,14 +149,18 @@ function displayEvents() {
 
 	hideEventsMessages();
 
-	if (currentEvents.length === 0) {
+	// Get merged events list
+	const mergedEvents = getMergedEventsList();
+	const totalCount = mergedEvents.length;
+
+	if (totalCount === 0) {
 		showEventsEmpty();
 		updateFilterInfo(0, 0);
 		return;
 	}
 
-	// Apply filters
-	let filteredEvents = applyEventFilters([...currentEvents]);
+	// Apply filters (including type filter)
+	let filteredEvents = applyEventFilters([...mergedEvents]);
 
 	// Apply sorting
 	let sortedEvents = applySorting(filteredEvents);
@@ -96,7 +171,7 @@ function displayEvents() {
 	}
 
 	// Update filter count
-	updateFilterInfo(sortedEvents.length, currentEvents.length);
+	updateFilterInfo(sortedEvents.length, totalCount);
 
 	// Check if filtered results are empty
 	if (sortedEvents.length === 0) {
@@ -111,37 +186,57 @@ function displayEvents() {
 		const today = new Date();
 		today.setHours(0, 0, 0, 0);
 
-		// Check if event date is before today (past) or if it's today but end hour has passed
-		let isPast = eventDate < today;
+		// For recurring events, they're never truly "past" - they repeat
+		// For ephemeral events, check if date is before today
+		let isPast = false;
+		if (event.type === 'ephemeral') {
+			isPast = eventDate < today;
 
-		// If event is today and has specific time window, check if end hour has passed
-		if (!isPast && eventDate.getTime() === today.getTime()) {
-			const now = new Date();
-			const currentHour = now.getHours();
-			// Event is past if it has an end hour and current hour is after it
-			if (event.endHour !== undefined && event.endHour !== 23 && currentHour > event.endHour) {
-				isPast = true;
+			// If event is today and has specific time window, check if end hour has passed
+			if (!isPast && eventDate.getTime() === today.getTime()) {
+				const now = new Date();
+				const currentHour = now.getHours();
+				if (event.endHour !== undefined && event.endHour !== 23 && currentHour > event.endHour) {
+					isPast = true;
+				}
 			}
 		}
 
 		const formattedDate = formatDate(event.date);
 
+		// Type badge and styling
+		const isRecurring = event.type === 'recurring';
+		const typeBadge = isRecurring ? '<span class="event-type-badge recurring">🔄</span>' : '<span class="event-type-badge ephemeral">📅</span>';
+		const typeLabel = isRecurring ? 'Every year' : eventDate.getFullYear().toString();
+
+		// For recurring events, use the index from the recurring events array
+		// For ephemeral events, use the index from the ephemeral events array
+		const editAction = isRecurring
+			? `window.eventsModule.editRecurringEvent(${event.index})`
+			: `window.eventsModule.editEvent(${event.index})`;
+		const deleteAction = isRecurring
+			? `window.eventsModule.deleteRecurringEvent(${event.index})`
+			: `window.eventsModule.deleteEvent(${event.index})`;
+
 		return `
-			<div class="event-card ${isPast ? 'past-event' : ''}">
+			<div class="event-card ${isPast ? 'past-event' : ''} ${isRecurring ? 'recurring-event' : 'ephemeral-event'}">
 				<div class="event-date-badge">
 					<span class="month">${eventDate.toLocaleString('en-US', { month: 'short' })}</span>
 					<span class="day">${eventDate.getDate()}</span>
-					<span class="year">${eventDate.getFullYear()}</span>
+					${!isRecurring ? `<span class="year">${eventDate.getFullYear()}</span>` : ''}
 				</div>
 				<div class="event-info">
-					<h4>${event.topLine} - ${event.bottomLine}</h4>
+					<div class="event-title-row">
+						${typeBadge}
+						<h4>${event.topLine} / ${event.bottomLine}</h4>
+					</div>
+					<p class="event-type-label">${typeLabel}</p>
 					<p class="event-time">${event.startHour !== 0 || event.endHour !== 23 ? `${String(event.startHour).padStart(2,'0')}:00 - ${String(event.endHour).padStart(2,'0')}:00` : 'All Day'}</p>
-					<p>${formattedDate}</p>
 					<p class="event-meta"><span class="event-color">Color: ${event.colorName}</span><span class="event-separator"> | </span><span class="event-icon">Icon: ${event.iconName || 'None'}</span></p>
 				</div>
 				<div class="event-actions">
-					<button class="btn-pixel btn-primary btn-sm" onclick="window.eventsModule.editEvent(${event.index})">Edit</button>
-					<button class="btn-pixel btn-secondary btn-sm" onclick="window.eventsModule.deleteEvent(${event.index})">Delete</button>
+					<button class="btn-pixel btn-primary btn-sm" onclick="${editAction}">Edit</button>
+					<button class="btn-pixel btn-secondary btn-sm" onclick="${deleteAction}">Delete</button>
 				</div>
 			</div>
 		`;
@@ -199,13 +294,18 @@ export async function saveEvent() {
 }
 
 export function createNewEvent() {
-	// Clear the form and reset editing state
+	// Set editor mode to ephemeral
+	editorMode = 'ephemeral';
 	editingEventIndex = null;
+	editingRecurringIndex = null;
 	clearEventForm();
+
+	// Update form for ephemeral mode
+	updateEditorForMode('ephemeral');
 
 	// Update form title
 	const formTitle = document.getElementById('editor-form-title');
-	if (formTitle) formTitle.textContent = 'Add New Event';
+	if (formTitle) formTitle.textContent = '📅 Add One-Time Event';
 
 	// Switch to add-event tab using the tab system
 	if (window.handleTabSwitch) {
@@ -219,12 +319,19 @@ export function createNewEvent() {
 }
 
 export function editEvent(index) {
+	// Set editor mode to ephemeral
+	editorMode = 'ephemeral';
 	editingEventIndex = index;
+	editingRecurringIndex = null;
+
+	// Update form for ephemeral mode
+	updateEditorForMode('ephemeral');
+
 	populateEditForm();
 
 	// Update form title
 	const formTitle = document.getElementById('editor-form-title');
-	if (formTitle) formTitle.textContent = 'Edit Event';
+	if (formTitle) formTitle.textContent = '📅 Edit One-Time Event';
 
 	// Switch to add-event tab using the tab system
 	if (window.handleTabSwitch) {
@@ -458,7 +565,7 @@ function setupEventFormHandlers() {
 		});
 	}
 
-	// Date input - hide/show placeholder
+	// Date input - hide/show placeholder and check duplicate warning
 	const dateInput = document.getElementById('editor-event-date');
 	if (dateInput) {
 		const updateDatePlaceholder = () => {
@@ -467,8 +574,14 @@ function setupEventFormHandlers() {
 				placeholder.style.display = dateInput.value ? 'none' : 'block';
 			}
 		};
-		dateInput.addEventListener('input', updateDatePlaceholder);
-		dateInput.addEventListener('change', updateDatePlaceholder);
+		dateInput.addEventListener('input', () => {
+			updateDatePlaceholder();
+			updateDuplicateWarning();
+		});
+		dateInput.addEventListener('change', () => {
+			updateDatePlaceholder();
+			updateDuplicateWarning();
+		});
 		// Initial check
 		updateDatePlaceholder();
 	}
@@ -725,6 +838,7 @@ export function applyFilters() {
 	eventFilters.search = document.getElementById('event-search')?.value.toLowerCase() || '';
 	eventFilters.dateFilter = document.getElementById('event-date-filter')?.value || 'all';
 	eventFilters.sort = document.getElementById('event-sort')?.value || 'date-asc';
+	eventFilters.typeFilter = document.getElementById('event-type-filter')?.value || 'all';
 
 	// Redisplay events with filters
 	displayEvents();
@@ -738,6 +852,8 @@ export function clearFilters() {
 	document.getElementById('event-search').value = '';
 	document.getElementById('event-date-filter').value = 'all';
 	document.getElementById('event-sort').value = 'date-asc';
+	const typeFilter = document.getElementById('event-type-filter');
+	if (typeFilter) typeFilter.value = 'all';
 
 	// Apply filters
 	applyFilters();
@@ -745,6 +861,11 @@ export function clearFilters() {
 
 function applyEventFilters(events) {
 	let filtered = events;
+
+	// Type filter
+	if (eventFilters.typeFilter && eventFilters.typeFilter !== 'all') {
+		filtered = filtered.filter(event => event.type === eventFilters.typeFilter);
+	}
 
 	// Text search filter (searches event text AND dates)
 	if (eventFilters.search) {
@@ -786,6 +907,8 @@ function applyEventFilters(events) {
 				case 'upcoming':
 					return eventDate >= today;
 				case 'past':
+					// Recurring events are never past
+					if (event.type === 'recurring') return false;
 					return eventDate < today;
 				case 'today':
 					return eventDate.getTime() === today.getTime();
@@ -860,29 +983,277 @@ function updateClearFiltersButton() {
 	const hasActiveFilters =
 		eventFilters.search !== '' ||
 		eventFilters.dateFilter !== 'all' ||
-		eventFilters.sort !== 'date-asc';
+		eventFilters.sort !== 'date-asc' ||
+		eventFilters.typeFilter !== 'all';
 
 	clearBtn.style.display = hasActiveFilters ? 'inline-block' : 'none';
+}
+
+// =====================
+// RECURRING EVENT FUNCTIONS
+// =====================
+
+// Create a new recurring event (opens editor in recurring mode)
+export function createNewRecurringEvent() {
+	editorMode = 'recurring';
+	editingRecurringIndex = null;
+	editingEventIndex = null;
+	clearEventForm();
+
+	// Update form for recurring mode
+	updateEditorForMode('recurring');
+
+	// Update form title
+	const formTitle = document.getElementById('editor-form-title');
+	if (formTitle) formTitle.textContent = '🔄 Add Recurring Event';
+
+	// Switch to add-event tab
+	if (window.handleTabSwitch) {
+		window.handleTabSwitch('add-event');
+	}
+
+	setTimeout(() => {
+		document.getElementById('editor-recurring-month')?.focus();
+	}, 300);
+}
+
+// Edit an existing recurring event
+export function editRecurringEvent(index) {
+	editorMode = 'recurring';
+	editingRecurringIndex = index;
+	editingEventIndex = null;
+
+	const recurringEvents = getCurrentRecurringEvents();
+	const event = recurringEvents[index];
+
+	if (!event) {
+		showStatus('Recurring event not found', 'error');
+		return;
+	}
+
+	// Update form for recurring mode
+	updateEditorForMode('recurring');
+
+	// Populate the form
+	populateRecurringEditForm(event);
+
+	// Update form title
+	const formTitle = document.getElementById('editor-form-title');
+	if (formTitle) formTitle.textContent = '🔄 Edit Recurring Event';
+
+	// Switch to add-event tab
+	if (window.handleTabSwitch) {
+		window.handleTabSwitch('add-event');
+	}
+
+	setTimeout(() => {
+		document.getElementById('editor-event-top')?.focus();
+		updateEventPreview();
+	}, 300);
+}
+
+// Populate form for editing a recurring event
+function populateRecurringEditForm(event) {
+	// Parse monthDay (MM-DD)
+	const [month, day] = event.monthDay.split('-').map(s => parseInt(s, 10));
+
+	const monthSelect = document.getElementById('editor-recurring-month');
+	const daySelect = document.getElementById('editor-recurring-day');
+
+	if (monthSelect) monthSelect.value = month;
+	if (daySelect) daySelect.value = day;
+
+	document.getElementById('editor-event-top').value = event.topLine;
+	document.getElementById('editor-event-bottom').value = event.bottomLine;
+	document.getElementById('editor-event-color').value = event.colorName;
+	document.getElementById('editor-event-image').value = event.iconName;
+
+	// Set time fields if applicable
+	const hasTimeCheckbox = document.getElementById('editor-event-has-time');
+	const hasSpecificTime = (event.startHour !== undefined && event.startHour !== 0) ||
+	                         (event.endHour !== undefined && event.endHour !== 23);
+	if (hasTimeCheckbox && hasSpecificTime) {
+		hasTimeCheckbox.checked = true;
+		const timeFields = document.getElementById('editor-event-time-fields');
+		if (timeFields) timeFields.classList.remove('hidden');
+
+		const startHourField = document.getElementById('editor-event-start-hour');
+		if (startHourField) startHourField.value = event.startHour !== undefined ? event.startHour : 0;
+
+		const endHourField = document.getElementById('editor-event-end-hour');
+		if (endHourField) endHourField.value = event.endHour !== undefined ? event.endHour : 23;
+	}
+
+	// Update character counters
+	const topCount = document.getElementById('editor-event-top-count');
+	if (topCount) topCount.textContent = `${event.topLine.length}/12`;
+
+	const bottomCount = document.getElementById('editor-event-bottom-count');
+	if (bottomCount) bottomCount.textContent = `${event.bottomLine.length}/12`;
+
+	// Update color preview square
+	updateColorPreview();
+}
+
+// Save a recurring event
+export async function saveRecurringEvent() {
+	const monthSelect = document.getElementById('editor-recurring-month');
+	const daySelect = document.getElementById('editor-recurring-day');
+	const month = monthSelect?.value;
+	const day = daySelect?.value;
+
+	const topLine = document.getElementById('editor-event-top').value;
+	const bottomLine = document.getElementById('editor-event-bottom').value;
+	const colorName = document.getElementById('editor-event-color').value;
+	const iconName = document.getElementById('editor-event-image').value;
+
+	// Get time fields
+	const hasTime = document.getElementById('editor-event-has-time')?.checked || false;
+	const startHour = hasTime ? parseInt(document.getElementById('editor-event-start-hour')?.value || '0') : 0;
+	const endHour = hasTime ? parseInt(document.getElementById('editor-event-end-hour')?.value || '23') : 23;
+
+	if (!month || !day || !topLine || !bottomLine) {
+		showStatus('Please fill in all required fields', 'error');
+		return;
+	}
+
+	const monthDay = `${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+
+	const event = {
+		monthDay,
+		topLine,
+		bottomLine,
+		iconName,
+		colorName,
+		startHour,
+		endHour
+	};
+
+	if (editingRecurringIndex !== null) {
+		updateRecurringEvent(editingRecurringIndex, event);
+		editingRecurringIndex = null;
+	} else {
+		addRecurringEvent(event);
+	}
+
+	try {
+		await saveRecurringEventsToGitHub();
+		showStatus('Recurring event saved successfully!', 'success');
+		await loadAllEvents();
+		closeEventEditor();
+	} catch (error) {
+		showStatus('Failed to save recurring event: ' + error.message, 'error');
+	}
+}
+
+// Delete a recurring event
+export async function deleteRecurringEvent(index) {
+	if (!confirm('Delete this recurring event?')) return;
+
+	try {
+		deleteRecurringEventByIndex(index);
+		await saveRecurringEventsToGitHub();
+		showStatus('Recurring event deleted successfully!', 'success');
+		await loadAllEvents();
+	} catch (error) {
+		showStatus('Failed to delete recurring event: ' + error.message, 'error');
+	}
+}
+
+// =====================
+// EDITOR MODE FUNCTIONS
+// =====================
+
+// Get current editor mode
+export function getEditorMode() {
+	return editorMode;
+}
+
+// Set editor mode and update UI
+export function setEditorMode(mode) {
+	editorMode = mode;
+	updateEditorForMode(mode);
+}
+
+// Update editor UI based on mode
+function updateEditorForMode(mode) {
+	const dateInputWrapper = document.getElementById('editor-date-input-wrapper');
+	const recurringDateWrapper = document.getElementById('editor-recurring-date-wrapper');
+	const dateLabel = document.getElementById('editor-date-label');
+	const duplicateWarning = document.getElementById('editor-duplicate-warning');
+
+	if (mode === 'recurring') {
+		// Show recurring date selectors, hide date input
+		if (dateInputWrapper) dateInputWrapper.classList.add('hidden');
+		if (recurringDateWrapper) recurringDateWrapper.classList.remove('hidden');
+		if (dateLabel) dateLabel.textContent = 'Date (repeats yearly)';
+		if (duplicateWarning) duplicateWarning.classList.add('hidden');
+	} else {
+		// Show date input, hide recurring selectors
+		if (dateInputWrapper) dateInputWrapper.classList.remove('hidden');
+		if (recurringDateWrapper) recurringDateWrapper.classList.add('hidden');
+		if (dateLabel) dateLabel.textContent = 'Date *';
+	}
+}
+
+// Check for duplicate warning when creating ephemeral event
+export function checkDuplicateWarning(date) {
+	if (!date || editorMode !== 'ephemeral') return null;
+
+	const monthDay = date.substring(5); // "2025-01-04" -> "01-04"
+	const recurring = findRecurringEventByMonthDay(monthDay);
+
+	if (recurring) {
+		return `Note: Recurring event "${recurring.topLine} / ${recurring.bottomLine}" exists for this date`;
+	}
+	return null;
+}
+
+// Update duplicate warning display
+function updateDuplicateWarning() {
+	const dateInput = document.getElementById('editor-event-date');
+	const warningEl = document.getElementById('editor-duplicate-warning');
+
+	if (!dateInput || !warningEl) return;
+
+	const warning = checkDuplicateWarning(dateInput.value);
+
+	if (warning) {
+		warningEl.textContent = warning;
+		warningEl.classList.remove('hidden');
+	} else {
+		warningEl.classList.add('hidden');
+	}
 }
 
 // Expose functions globally for onclick handlers
 window.eventsModule = {
 	initializeEvents,
 	loadEvents,
+	loadAllEvents,
 	createNewEvent,
+	createNewRecurringEvent,
 	editEvent,
+	editRecurringEvent,
 	deleteEvent,
+	deleteRecurringEvent,
 	clearPastEvents,
 	saveEvent,
+	saveRecurringEvent,
 	clearEventForm,
 	closeEventEditor,
 	isEditing,
 	initializeColorPreview,
 	applyFilters,
-	clearFilters
+	clearFilters,
+	getEditorMode,
+	setEditorMode,
+	checkDuplicateWarning
 };
 
 // Also expose directly for HTML onclick
 window.createNewEvent = createNewEvent;
+window.createNewRecurringEvent = createNewRecurringEvent;
 window.clearEventForm = clearEventForm;
 window.closeEventEditor = closeEventEditor;
+window.saveRecurringEvent = saveRecurringEvent;

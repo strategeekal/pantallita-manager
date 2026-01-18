@@ -6,7 +6,7 @@ import { parseCSV } from '../core/utils.js';
 // Valid color names for events
 const VALID_COLORS = [
 	'MINT', 'LILAC', 'ORANGE', 'YELLOW', 'BLUE', 'WHITE',
-	'RED', 'GREEN', 'PINK', 'PURPLE', 'BUGAMBILIA', 'AQUA'
+	'RED', 'GREEN', 'PINK', 'PURPLE', 'BUGAMBILIA', 'AQUA', 'DIMMEST_WHITE'
 ];
 
 let validationResults = {
@@ -40,6 +40,7 @@ export async function runValidation() {
 	try {
 		// Run all validation checks
 		await validateEvents();
+		await validateRecurringEvents();
 		await validateSchedules();
 		await validateImages();
 
@@ -69,6 +70,7 @@ export async function runSilentValidation() {
 	try {
 		// Run all validation checks
 		await validateEvents();
+		await validateRecurringEvents();
 		await validateSchedules();
 		await validateImages();
 
@@ -192,6 +194,123 @@ async function validateEvents() {
 			validationResults.errors.push(`Error validating events: ${error.message}`);
 		}
 	}
+}
+
+async function validateRecurringEvents() {
+	updateValidationStatus('Validating recurring events...');
+
+	try {
+		const { content } = await fetchGitHubFile('recurring_events.csv');
+		const events = parseRecurringEventsCSV(content);
+
+		if (events.length === 0) {
+			validationResults.info.push('No recurring events found in recurring_events.csv');
+			return;
+		}
+
+		validationResults.info.push(`Found ${events.length} recurring event(s) to validate`);
+
+		events.forEach((event, index) => {
+			const eventIdentifier = `RECURRING EVENT: "${event.topLine} - ${event.bottomLine}" (${event.monthDay})`;
+
+			// Validate monthDay format (MM-DD)
+			const monthDayRegex = /^(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/;
+			if (!monthDayRegex.test(event.monthDay)) {
+				validationResults.errors.push(
+					`${eventIdentifier}: Invalid date format "${event.monthDay}" (expected MM-DD)`
+				);
+				return; // Skip further validation for this event
+			}
+
+			// Validate month/day combination (check for invalid dates like 02-30)
+			const [month, day] = event.monthDay.split('-').map(Number);
+			const daysInMonth = [0, 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+			if (day > daysInMonth[month]) {
+				validationResults.warnings.push(
+					`${eventIdentifier}: Day ${day} may be invalid for month ${month} (max ${daysInMonth[month]} days)`
+				);
+			}
+
+			// Validate top line length
+			if (event.topLine.length > 12) {
+				validationResults.errors.push(
+					`${eventIdentifier}: Top line exceeds 12 character limit (${event.topLine.length} chars)`
+				);
+			}
+
+			// Validate bottom line length
+			if (event.bottomLine.length > 12) {
+				validationResults.errors.push(
+					`${eventIdentifier}: Bottom line exceeds 12 character limit (${event.bottomLine.length} chars)`
+				);
+			}
+
+			// Validate color
+			if (!VALID_COLORS.includes(event.colorName)) {
+				validationResults.errors.push(
+					`${eventIdentifier}: Invalid color "${event.colorName}" (valid: ${VALID_COLORS.join(', ')})`
+				);
+			}
+
+			// Validate hours
+			if (event.startHour !== undefined && (event.startHour < 0 || event.startHour > 23)) {
+				validationResults.errors.push(
+					`${eventIdentifier}: Invalid start hour ${event.startHour} (must be 0-23)`
+				);
+			}
+
+			if (event.endHour !== undefined && (event.endHour < 0 || event.endHour > 23)) {
+				validationResults.errors.push(
+					`${eventIdentifier}: Invalid end hour ${event.endHour} (must be 0-23)`
+				);
+			}
+
+			// Validate hour range logic
+			if (event.startHour !== undefined && event.endHour !== undefined && event.startHour >= event.endHour) {
+				validationResults.warnings.push(
+					`${eventIdentifier}: Start hour (${event.startHour}) is >= end hour (${event.endHour})`
+				);
+			}
+
+			// Validate image filename
+			if (!event.iconName) {
+				validationResults.warnings.push(
+					`${eventIdentifier}: No image specified`
+				);
+			} else if (!event.iconName.endsWith('.bmp')) {
+				validationResults.errors.push(
+					`${eventIdentifier}: Image "${event.iconName}" must be a .bmp file`
+				);
+			}
+		});
+	} catch (error) {
+		if (error.message.includes('404')) {
+			validationResults.info.push('No recurring_events.csv file found');
+		} else {
+			validationResults.errors.push(`Error validating recurring events: ${error.message}`);
+		}
+	}
+}
+
+function parseRecurringEventsCSV(content) {
+	const lines = parseCSV(content);
+
+	return lines.map((line) => {
+		const parts = line.split(',').map(p => p.trim());
+
+		// Format: MM-DD,TopLine,BottomLine,Image,Color[,StartHour,EndHour]
+		if (parts.length < 5) return null;
+
+		return {
+			monthDay: parts[0],
+			topLine: parts[1],
+			bottomLine: parts[2],
+			iconName: parts[3],
+			colorName: parts[4],
+			startHour: parts.length > 5 ? parseInt(parts[5]) : 0,
+			endHour: parts.length > 6 ? parseInt(parts[6]) : 23
+		};
+	}).filter(e => e !== null);
 }
 
 async function validateSchedules() {
@@ -380,7 +499,7 @@ async function validateImages() {
 
 		validationResults.info.push(`Found ${scheduleImages.length} schedule image(s)`);
 
-		// Check if event images referenced in events exist
+		// Check if event images referenced in ephemeral events exist
 		try {
 			const { content } = await fetchGitHubFile('ephemeral_events.csv');
 			const events = parseEventsCSV(content);
@@ -396,6 +515,23 @@ async function validateImages() {
 			});
 		} catch (error) {
 			// Skip if events file doesn't exist
+		}
+
+		// Check if event images referenced in recurring events exist
+		try {
+			const { content } = await fetchGitHubFile('recurring_events.csv');
+			const recurringEvents = parseRecurringEventsCSV(content);
+
+			recurringEvents.forEach((event, index) => {
+				if (event.iconName && !eventImages.includes(event.iconName)) {
+					const eventIdentifier = `RECURRING EVENT: "${event.topLine} - ${event.bottomLine}" (${event.monthDay})`;
+					validationResults.errors.push(
+						`${eventIdentifier}: Image "${event.iconName}" not found in img/events/ directory`
+					);
+				}
+			});
+		} catch (error) {
+			// Skip if recurring events file doesn't exist
 		}
 
 		// Check if schedule images referenced in schedules exist

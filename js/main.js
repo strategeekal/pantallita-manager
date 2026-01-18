@@ -10,6 +10,9 @@ import { TINYBIT_FONT } from './ui/fonts.js';
 // Import events module
 import * as eventsModule from './events/events-manager.js';
 
+// Import recurring events module
+import * as recurringEventsModule from './events/recurring-events-manager.js';
+
 // Import schedules modules
 import * as scheduleManager from './schedules/schedule-manager.js';
 import * as scheduleEditor from './schedules/schedule-editor.js';
@@ -97,6 +100,43 @@ window.updateSchedulePreview = preview.updateSchedulePreview;
 window.loadEvents = eventsModule.loadEvents;
 window.saveEvent = eventsModule.saveEvent;
 window.clearPastEvents = eventsModule.clearPastEvents;
+
+// Expose recurring events module globally
+window.recurringEventsModule = recurringEventsModule;
+
+// New event dropdown toggle functions
+window.toggleNewEventDropdown = function() {
+	const menu = document.getElementById('new-event-dropdown-menu');
+	if (menu) {
+		menu.classList.toggle('hidden');
+	}
+};
+
+window.closeNewEventDropdown = function() {
+	const menu = document.getElementById('new-event-dropdown-menu');
+	if (menu) {
+		menu.classList.add('hidden');
+	}
+};
+
+// Close dropdown when clicking outside
+document.addEventListener('click', function(event) {
+	const dropdown = document.querySelector('.new-event-dropdown');
+	const menu = document.getElementById('new-event-dropdown-menu');
+	if (dropdown && menu && !dropdown.contains(event.target)) {
+		menu.classList.add('hidden');
+	}
+});
+
+// Handle event save based on editor mode
+window.handleEventSave = function() {
+	const mode = eventsModule.getEditorMode ? eventsModule.getEditorMode() : 'ephemeral';
+	if (mode === 'recurring') {
+		eventsModule.saveRecurringEvent();
+	} else {
+		eventsModule.saveEvent();
+	}
+};
 
 // Expose template manager functions globally
 window.templateManager = {

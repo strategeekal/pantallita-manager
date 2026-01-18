@@ -1082,6 +1082,170 @@ header p {
 	white-space: nowrap;
 }
 
+/* ============================================
+   RECURRING EVENTS STYLES
+   ============================================ */
+
+/* New Event Dropdown */
+.new-event-dropdown {
+	position: relative;
+	display: inline-block;
+}
+
+.new-event-dropdown .dropdown-toggle {
+	cursor: pointer;
+}
+
+.new-event-dropdown .dropdown-menu {
+	position: absolute;
+	top: 100%;
+	left: 0;
+	background: white;
+	border: 3px solid #000;
+	box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.3);
+	z-index: 100;
+	min-width: 200px;
+	margin-top: 5px;
+}
+
+.new-event-dropdown .dropdown-menu.hidden {
+	display: none;
+}
+
+.new-event-dropdown .dropdown-item {
+	display: block;
+	width: 100%;
+	padding: 12px 16px;
+	background: white;
+	border: none;
+	border-bottom: 2px solid #e0e0e0;
+	font-family: 'Courier New', monospace;
+	font-size: 0.9em;
+	text-align: left;
+	cursor: pointer;
+	transition: background 0.1s;
+}
+
+.new-event-dropdown .dropdown-item:last-child {
+	border-bottom: none;
+}
+
+.new-event-dropdown .dropdown-item:hover {
+	background: #00FF88;
+}
+
+/* Event Type Badges */
+.event-type-badge {
+	display: inline-block;
+	font-size: 1.2em;
+	margin-right: 8px;
+	vertical-align: middle;
+}
+
+.event-type-badge.recurring {
+	color: #00AAFF;
+}
+
+.event-type-badge.ephemeral {
+	color: #FF6600;
+}
+
+/* Event Title Row (badge + title) */
+.event-title-row {
+	display: flex;
+	align-items: center;
+	margin-bottom: 5px;
+}
+
+.event-title-row h4 {
+	margin: 0;
+	font-size: 1.2em;
+	font-family: 'Courier New', monospace;
+	text-transform: uppercase;
+}
+
+/* Event Type Label */
+.event-type-label {
+	font-size: 0.85em;
+	color: #888;
+	font-style: italic;
+	margin: 2px 0 5px 0;
+}
+
+/* Recurring Event Card Styling */
+.event-card.recurring-event {
+	border-left: 5px solid #00AAFF;
+}
+
+.event-card.recurring-event .event-date-badge {
+	background: #00AAFF;
+}
+
+/* Ephemeral Event Card Styling (optional differentiation) */
+.event-card.ephemeral-event {
+	border-left: 5px solid #FF6600;
+}
+
+/* Recurring Date Selector */
+.recurring-date-wrapper {
+	display: flex;
+	gap: 10px;
+}
+
+.recurring-date-wrapper.hidden {
+	display: none;
+}
+
+.recurring-date-select {
+	flex: 1;
+	padding: 12px;
+	border: 3px solid #000;
+	background: white;
+	font-size: 1em;
+	font-family: 'Courier New', monospace;
+	cursor: pointer;
+}
+
+.recurring-date-select:focus {
+	outline: none;
+	box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.3);
+}
+
+/* Duplicate Warning */
+.duplicate-warning {
+	background: #FFF3CD;
+	border: 2px solid #FFB800;
+	padding: 10px 15px;
+	margin-top: 10px;
+	font-size: 0.9em;
+	color: #856404;
+	font-family: 'Courier New', monospace;
+}
+
+.duplicate-warning.hidden {
+	display: none;
+}
+
+/* Mobile Responsive for Recurring Features */
+@media (max-width: 768px) {
+	.new-event-dropdown .dropdown-menu {
+		right: 0;
+		left: auto;
+	}
+
+	.event-title-row {
+		flex-wrap: wrap;
+	}
+
+	.event-type-badge {
+		font-size: 1em;
+	}
+
+	.recurring-date-wrapper {
+		flex-direction: column;
+	}
+}
+
 /* Modal Styles */
 .modal {
 	position: fixed;

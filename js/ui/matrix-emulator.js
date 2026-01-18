@@ -204,7 +204,8 @@ const COLOR_MAP = {
     'PINK': '#FF0088',
     'WHITE': '#FFFFFF',
     'CYAN': '#00FFFF',
-    'AQUA': '#00FFFF'
+    'AQUA': '#00FFFF',
+    'DIMMEST_WHITE': '#606060'
 };
 
 // Simple placeholder images (you can replace with actual icon data)

@@ -63,7 +63,8 @@ const configTypes = {
     'stocks_csv_version': 'timestamp',
     'schedules_csv_version': 'timestamp',
     'transits_csv_version': 'timestamp',
-    'ephemeral_events_csv_version': 'timestamp'
+    'ephemeral_events_csv_version': 'timestamp',
+    'recurring_events_csv_version': 'timestamp'
 };
 
 // Configuration ranges for numeric fields
