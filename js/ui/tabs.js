@@ -46,12 +46,15 @@ export async function handleTabSwitch(targetTab) {
 			await window.eventsModule.initializeEvents();
 		}
 	} else if (targetTab === 'configuration') {
-		if (window.configManager && window.configManager.init) {
-			window.configManager.init();
-		}
+		// Config is loaded once at startup - don't reload on tab switch
+		// Reloading would overwrite in-memory timestamp changes
 	} else if (targetTab === 'stocks') {
 		if (window.stocksModule && window.stocksModule.initializeStocks) {
 			await window.stocksModule.initializeStocks();
+		}
+	} else if (targetTab === 'transits') {
+		if (window.transitsManager && window.transitsManager.init) {
+			window.transitsManager.init();
 		}
 	}
 

@@ -22,12 +22,24 @@
 				</div>
 
 				<div class="token-form">
-					<h3>Enter GitHub Access Token</h3>
+					<h3>Connect to Your GitHub Repository</h3>
 					<form id="token-form" onsubmit="window.handleTokenSubmit(event)">
 						<input
 							type="password"
+							id="landing-username-input"
+							placeholder="GitHub Username"
+							required
+						>
+						<input
+							type="password"
+							id="landing-repo-input"
+							placeholder="Repository Name (e.g., pantallita-events)"
+							required
+						>
+						<input
+							type="password"
 							id="landing-token-input"
-							placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
+							placeholder="Personal Access Token (ghp_...)"
 							required
 						>
 						<button type="submit" class="btn-pixel btn-primary">Unlock App</button>
@@ -76,6 +88,7 @@
 				<button class="tab active" data-tab="events">Events</button>
 				<button class="tab" data-tab="schedules">Schedules</button>
 				<button class="tab" data-tab="stocks">Stocks</button>
+				<button class="tab" data-tab="transits">Transits</button>
 				<button class="tab" data-tab="configuration">Configuration</button>
 			</nav>
 
@@ -419,6 +432,15 @@
 									</div>
 
 									<div class="form-group">
+										<label for="mobile-edit-item-nightmode">Night Mode:</label>
+										<select id="mobile-edit-item-nightmode" class="form-input" onchange="window.schedulesModule.liveUpdateItemMobile('nightmode', parseInt(this.value))">
+											<option value="0">Normal Weather</option>
+											<option value="1">Time + Temp Only</option>
+											<option value="2">Clock Only</option>
+										</select>
+									</div>
+
+									<div class="form-group">
 										<button class="btn-pixel btn-danger" onclick="window.schedulesModule.deleteScheduleItemFromPanelMobile()">Delete Item</button>
 									</div>
 								</div>
@@ -468,6 +490,12 @@
 											<input type="checkbox" id="edit-item-progressbar" onchange="window.schedulesModule.liveUpdateItem('progressBar', this.checked)">
 											Show Progress Bar
 										</label>
+										<label for="edit-item-nightmode">Night Mode:</label>
+										<select id="edit-item-nightmode" class="form-input" onchange="window.schedulesModule.liveUpdateItem('nightmode', parseInt(this.value))">
+											<option value="0">Normal Weather</option>
+											<option value="1">Time + Temp Only</option>
+											<option value="2">Clock Only</option>
+										</select>
 									</div>
 								</div>
 							</div>
@@ -504,55 +532,132 @@
 			</div>
 		</div>
 
-		<!-- Configuration Tab -->
-		<section id="configuration-tab" class="tab-content">
-			<h2>Display Configuration</h2>
-			<p class="tab-description">Control what displays on each matrix independently</p>
+		<!-- Transits Tab -->
+		<section id="transits-tab" class="tab-content">
+			<h2>CTA Transit Routes</h2>
+			<p class="tab-description">Manage bus and train routes displayed on your matrix</p>
 
-			<div class="config-container">
-				<!-- Matrix 1 Configuration -->
-				<div class="config-panel">
-					<h3>Matrix 1 Configuration</h3>
-					<div class="config-status">
-						<span id="matrix1-status" class="loading-message hidden">Loading...</span>
-						<span id="matrix1-error" class="error-message hidden"></span>
-					</div>
-					
-					<div id="matrix1-config" class="config-settings">
-						<!-- Settings will be populated here -->
-					</div>
-
-					<div class="config-status">
-						<span id="matrix1-status-bottom" class="loading-message hidden">Loading...</span>
-						<span id="matrix1-error-bottom" class="error-message hidden"></span>
-					</div>
-
-					<div class="config-actions">
-						<button class="btn-pixel btn-primary" onclick="window.configManager.saveConfig('matrix1')">💾 Save Matrix 1</button>
-						<button class="btn-pixel btn-secondary" onclick="window.configManager.loadConfig('matrix1')">🔄 Reload</button>
+			<div class="transits-section">
+				<div class="transits-header">
+					<h3>Your Transit Routes</h3>
+					<div class="list-actions">
+						<button class="btn-pixel btn-primary" onclick="window.transitsManager.openAddTransitDialog()">➕ Add Route</button>
+						<button class="btn-pixel btn-secondary" onclick="window.transitsManager.reloadTransits()">🔄 Refresh</button>
 					</div>
 				</div>
 
-				<!-- Matrix 2 Configuration -->
+				<div id="transits-loading" class="loading-message hidden">
+					Loading transit routes from GitHub...
+				</div>
+
+				<div id="transits-status" class="loading-message hidden"></div>
+
+				<div id="transits-error" class="error-message hidden"></div>
+
+				<div id="transits-empty" class="empty-message hidden">
+					No transit routes configured. Click "+ Add Route" to add your first route!
+				</div>
+
+				<div id="transits-list" class="transits-grid"></div>
+			</div>
+		</section>
+
+		<!-- Transit Editor Modal -->
+		<div id="transit-editor-modal" class="modal hidden">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h3 id="transit-editor-title">Add New Transit Route</h3>
+					<button class="modal-close" onclick="window.transitsManager.closeTransitEditor()">×</button>
+				</div>
+				<div class="modal-body">
+					<form id="transit-form">
+						<!-- Type Field -->
+						<div class="form-group">
+							<label for="transit-type">Type *</label>
+							<select id="transit-type" class="form-input" required>
+								<option value="">Select type...</option>
+								<option value="train">🚇 Train</option>
+								<option value="bus">🚌 Bus</option>
+							</select>
+							<small style="color: #666; font-size: 0.7em;">Train or Bus</small>
+						</div>
+
+						<!-- Route Field -->
+						<div class="form-group">
+							<label for="transit-route">Route *</label>
+							<input type="text" id="transit-route" class="form-input" placeholder="Red, Blue, Brn, G, Org, P, Pink, Y, or bus number" required>
+							<small style="color: #666; font-size: 0.7em;">CTA route code (e.g., "Red", "Brn|P" for multiple, "8" for bus)</small>
+						</div>
+
+						<!-- Display Label Field -->
+						<div class="form-group">
+							<label for="transit-display-label">Display Label *</label>
+							<input type="text" id="transit-display-label" class="form-input" placeholder="96St, Loop, 79st..." required>
+							<small style="color: #666; font-size: 0.7em;">Custom label shown on display</small>
+						</div>
+
+						<!-- Stop Number Field -->
+						<div class="form-group">
+							<label for="transit-stop-number">Stop Number *</label>
+							<input type="text" id="transit-stop-number" class="form-input" placeholder="41220 or 41220|40530 for multiple" required>
+							<small style="color: #666; font-size: 0.7em;">CTA stop ID(s), pipe-separated for multiple</small>
+						</div>
+
+						<!-- Min Time Field -->
+						<div class="form-group">
+							<label for="transit-min-time">Min Time (minutes) *</label>
+							<input type="number" id="transit-min-time" class="form-input" min="0" max="60" value="10" required>
+							<small style="color: #666; font-size: 0.7em;">Minimum arrival time to show</small>
+						</div>
+
+						<!-- Commute Hours Field -->
+						<div class="form-group">
+							<label for="transit-commute-hours">Commute Hours (optional)</label>
+							<input type="text" id="transit-commute-hours" class="form-input" placeholder="9-12 or leave empty">
+							<small style="color: #666; font-size: 0.7em;">Hour range (e.g., "9-12" for 9am-12pm), empty = all day</small>
+						</div>
+
+						<!-- Days Field -->
+						<div class="form-group">
+							<label for="transit-days">Days (optional)</label>
+							<input type="text" id="transit-days" class="form-input" placeholder="weekday, weekend, or 01234">
+							<small style="color: #666; font-size: 0.7em;">Use "weekday", "weekend", or day codes 0-6 (Mon=0, Sun=6), empty = all days</small>
+						</div>
+
+						<div class="form-actions">
+							<button type="submit" class="btn-pixel btn-primary">💾 Save Route</button>
+							<button type="button" class="btn-pixel btn-secondary" onclick="window.transitsManager.closeTransitEditor()">Cancel</button>
+						</div>
+					</form>
+				</div>
+			</div>
+		</div>
+
+		<!-- Configuration Tab -->
+		<section id="configuration-tab" class="tab-content">
+			<h2>Display Configuration</h2>
+			<p class="tab-description">Control display settings for your matrix</p>
+
+			<div class="config-container">
+				<!-- Configuration Settings -->
 				<div class="config-panel">
-					<h3>Matrix 2 Configuration</h3>
 					<div class="config-status">
-						<span id="matrix2-status" class="loading-message hidden">Loading...</span>
-						<span id="matrix2-error" class="error-message hidden"></span>
+						<span id="config-status" class="loading-message hidden">Loading...</span>
+						<span id="config-error" class="error-message hidden"></span>
 					</div>
-					
-					<div id="matrix2-config" class="config-settings">
+
+					<div id="config-settings" class="config-settings">
 						<!-- Settings will be populated here -->
 					</div>
 
 					<div class="config-status">
-						<span id="matrix2-status-bottom" class="loading-message hidden">Loading...</span>
-						<span id="matrix2-error-bottom" class="error-message hidden"></span>
+						<span id="config-status-bottom" class="loading-message hidden">Loading...</span>
+						<span id="config-error-bottom" class="error-message hidden"></span>
 					</div>
 
 					<div class="config-actions">
-						<button class="btn-pixel btn-primary" onclick="window.configManager.saveConfig('matrix2')">💾 Save Matrix 2</button>
-						<button class="btn-pixel btn-secondary" onclick="window.configManager.loadConfig('matrix2')">🔄 Reload</button>
+						<button class="btn-pixel btn-primary" onclick="window.configManager.saveConfig()">💾 Save Configuration</button>
+						<button class="btn-pixel btn-secondary" onclick="window.configManager.loadConfig()">🔄 Reload</button>
 					</div>
 				</div>
 			</div>

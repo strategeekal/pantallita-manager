@@ -1,20 +1,25 @@
 // Landing Page Module - Handle landing page animations and transitions
-import { saveToken, hasToken, getToken, clearToken } from '../core/config.js';
+import { saveCredentials, hasToken, getToken, getUsername, getRepo, clearCredentials } from '../core/config.js';
 import { showStatus } from '../core/utils.js';
 
 export async function handleTokenSubmit(event) {
 	event.preventDefault();
 
+	const usernameInput = document.getElementById('landing-username-input');
+	const repoInput = document.getElementById('landing-repo-input');
 	const tokenInput = document.getElementById('landing-token-input');
+
+	const username = usernameInput.value.trim();
+	const repo = repoInput.value.trim();
 	const token = tokenInput.value.trim();
 
-	if (!token) {
-		showStatus('Please enter a valid GitHub token', 'error');
+	if (!username || !repo || !token) {
+		showStatus('Please fill in all required fields', 'error');
 		return;
 	}
 
-	// Save token and show app
-	saveToken(token);
+	// Save credentials and show app
+	saveCredentials(username, repo, token);
 	await showApp();
 }
 
@@ -23,8 +28,8 @@ export async function logout() {
 		return;
 	}
 
-	// Clear token
-	clearToken();
+	// Clear all credentials
+	clearCredentials();
 
 	// Hide main app
 	const mainApp = document.querySelector('.main-app');
@@ -46,11 +51,13 @@ export async function logout() {
 		window.displayBye(window.landingMatrix);
 	}
 
-	// Clear token input
+	// Clear all input fields
+	const usernameInput = document.getElementById('landing-username-input');
+	const repoInput = document.getElementById('landing-repo-input');
 	const tokenInput = document.getElementById('landing-token-input');
-	if (tokenInput) {
-		tokenInput.value = '';
-	}
+	if (usernameInput) usernameInput.value = '';
+	if (repoInput) repoInput.value = '';
+	if (tokenInput) tokenInput.value = '';
 
 	showStatus('Logged out successfully', 'success');
 }
@@ -94,6 +101,11 @@ export async function showApp() {
 	// Initialize schedules
 	if (window.schedulesModule && window.schedulesModule.initializeSchedules) {
 		await window.schedulesModule.initializeSchedules();
+	}
+
+	// Initialize transits
+	if (window.transitsManager && window.transitsManager.init) {
+		window.transitsManager.init();
 	}
 }
 
