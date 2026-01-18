@@ -324,26 +324,25 @@ export function editEvent(index) {
 	editingEventIndex = index;
 	editingRecurringIndex = null;
 
-	// Update form for ephemeral mode
-	updateEditorForMode('ephemeral');
-
-	populateEditForm();
-
 	// Update form title
 	const formTitle = document.getElementById('editor-form-title');
 	if (formTitle) formTitle.textContent = '📅 Edit One-Time Event';
 
-	// Switch to add-event tab using the tab system
+	// Switch to add-event tab first, then populate form
 	if (window.handleTabSwitch) {
 		window.handleTabSwitch('add-event');
 	}
 
-	// Focus on the top line input and update preview after a delay
+	// Populate form after tab switch to ensure elements are accessible
 	setTimeout(() => {
+		// Update form for ephemeral mode
+		updateEditorForMode('ephemeral');
+		// Populate the form with event data
+		populateEditForm();
+		// Focus and update preview
 		document.getElementById('editor-event-top')?.focus();
-		// Trigger preview update for existing event
 		updateEventPreview();
-	}, 300);
+	}, 50);
 }
 
 export function closeEventEditor() {
@@ -353,40 +352,60 @@ export function closeEventEditor() {
 	}
 }
 
-// Check if currently editing
+// Check if currently editing (either ephemeral or recurring)
 export function isEditing() {
-	return editingEventIndex !== null;
+	return editingEventIndex !== null || editingRecurringIndex !== null;
 }
 
 function populateEditForm() {
+	console.log('populateEditForm: editingEventIndex =', editingEventIndex);
+	console.log('populateEditForm: currentEvents.length =', currentEvents.length);
+
 	const event = currentEvents[editingEventIndex];
 
-	document.getElementById('editor-event-date').value = event.date;
-	document.getElementById('editor-event-top').value = event.topLine;
-	document.getElementById('editor-event-bottom').value = event.bottomLine;
-	document.getElementById('editor-event-color').value = event.colorName;
-	document.getElementById('editor-event-image').value = event.iconName;
+	if (!event) {
+		console.error('populateEditForm: Event not found at index:', editingEventIndex);
+		showStatus('Event not found', 'error');
+		return;
+	}
+
+	console.log('populateEditForm: Loading event:', event);
+
+	const dateField = document.getElementById('editor-event-date');
+	const topField = document.getElementById('editor-event-top');
+	const bottomField = document.getElementById('editor-event-bottom');
+	const colorField = document.getElementById('editor-event-color');
+	const imageField = document.getElementById('editor-event-image');
+
+	if (dateField) dateField.value = event.date;
+	if (topField) topField.value = event.topLine;
+	if (bottomField) bottomField.value = event.bottomLine;
+	if (colorField) colorField.value = event.colorName;
+	if (imageField) imageField.value = event.iconName;
 
 	// Set time fields if applicable (if not all-day event)
 	// All-day event is 0-23, so if either startHour != 0 OR endHour != 23, it has specific time
 	const hasTimeCheckbox = document.getElementById('editor-event-has-time');
 	const hasSpecificTime = (event.startHour !== undefined && event.startHour !== 0) ||
 	                         (event.endHour !== undefined && event.endHour !== 23);
-	if (hasTimeCheckbox && hasSpecificTime) {
-		hasTimeCheckbox.checked = true;
+
+	// Always reset the time checkbox and fields
+	if (hasTimeCheckbox) {
+		hasTimeCheckbox.checked = hasSpecificTime;
 		const timeFields = document.getElementById('editor-event-time-fields');
-		if (timeFields) timeFields.classList.remove('hidden');
-
-		const startHourField = document.getElementById('editor-event-start-hour');
-		if (startHourField) startHourField.value = event.startHour !== undefined ? event.startHour : 0;
-
-		const endHourField = document.getElementById('editor-event-end-hour');
-		if (endHourField) endHourField.value = event.endHour !== undefined ? event.endHour : 23;
+		if (timeFields) {
+			if (hasSpecificTime) {
+				timeFields.classList.remove('hidden');
+			} else {
+				timeFields.classList.add('hidden');
+			}
+		}
 	}
 
-	// Update form title
-	const formTitle = document.getElementById('editor-form-title');
-	if (formTitle) formTitle.textContent = 'Edit Event';
+	const startHourField = document.getElementById('editor-event-start-hour');
+	const endHourField = document.getElementById('editor-event-end-hour');
+	if (startHourField) startHourField.value = event.startHour !== undefined ? event.startHour : 0;
+	if (endHourField) endHourField.value = event.endHour !== undefined ? event.endHour : 23;
 
 	// Update character counters
 	const topCount = document.getElementById('editor-event-top-count');
@@ -1031,25 +1050,25 @@ export function editRecurringEvent(index) {
 		return;
 	}
 
-	// Update form for recurring mode
-	updateEditorForMode('recurring');
-
-	// Populate the form
-	populateRecurringEditForm(event);
-
 	// Update form title
 	const formTitle = document.getElementById('editor-form-title');
 	if (formTitle) formTitle.textContent = '🔄 Edit Recurring Event';
 
-	// Switch to add-event tab
+	// Switch to add-event tab first
 	if (window.handleTabSwitch) {
 		window.handleTabSwitch('add-event');
 	}
 
+	// Populate form after tab switch to ensure elements are accessible
 	setTimeout(() => {
+		// Update form for recurring mode
+		updateEditorForMode('recurring');
+		// Populate the form
+		populateRecurringEditForm(event);
+		// Focus and update preview
 		document.getElementById('editor-event-top')?.focus();
 		updateEventPreview();
-	}, 300);
+	}, 50);
 }
 
 // Populate form for editing a recurring event
