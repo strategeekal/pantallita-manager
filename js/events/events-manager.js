@@ -1052,14 +1052,21 @@ export function createNewRecurringEvent() {
 
 // Edit an existing recurring event
 export function editRecurringEvent(index) {
+	console.log('editRecurringEvent called with index:', index);
+
 	editorMode = 'recurring';
 	editingRecurringIndex = index;
 	editingEventIndex = null;
 
 	const recurringEvents = getCurrentRecurringEvents();
+	console.log('editRecurringEvent: recurringEvents =', recurringEvents);
+	console.log('editRecurringEvent: recurringEvents.length =', recurringEvents.length);
+
 	const event = recurringEvents[index];
+	console.log('editRecurringEvent: event at index', index, '=', event);
 
 	if (!event) {
+		console.error('editRecurringEvent: Event not found at index', index);
 		showStatus('Recurring event not found', 'error');
 		return;
 	}
@@ -1322,6 +1329,8 @@ window.eventsModule = {
 // Also expose directly for HTML onclick
 window.createNewEvent = createNewEvent;
 window.createNewRecurringEvent = createNewRecurringEvent;
+window.editRecurringEvent = editRecurringEvent;
+window.deleteRecurringEvent = deleteRecurringEvent;
 window.clearEventForm = clearEventForm;
 window.closeEventEditor = closeEventEditor;
 window.saveRecurringEvent = saveRecurringEvent;
