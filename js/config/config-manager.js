@@ -607,27 +607,31 @@ export async function updateCSVVersion(csvType) {
     console.log(`updateCSVVersion(${csvType}): configState has ${configState.settings.length} settings`);
 
     // Update the timestamp in memory
-    const setting = configState.settings.find(s => s.name === versionKey);
+    let setting = configState.settings.find(s => s.name === versionKey);
+
     if (setting) {
         const oldValue = setting.value;
         setting.value = timestamp;
         console.log(`✓ Updated CSV version timestamp: ${versionKey}`);
         console.log(`  Old value: ${oldValue}`);
         console.log(`  New value: ${timestamp}`);
-
-        // Queue the save to prevent concurrent saves
-        saveQueue = saveQueue.then(async () => {
-            try {
-                console.log(`  Auto-saving config with updated timestamp...`);
-                await saveConfig();
-            } catch (error) {
-                console.error(`  Failed to auto-save config:`, error);
-            }
-        });
     } else {
-        console.error(`✗ CSV version setting NOT FOUND: ${versionKey}`);
-        console.log(`  Available settings:`, configState.settings.map(s => s.name));
+        // Create the setting if it doesn't exist
+        setting = { name: versionKey, value: timestamp };
+        configState.settings.push(setting);
+        console.log(`✓ Created CSV version timestamp: ${versionKey}`);
+        console.log(`  New value: ${timestamp}`);
     }
+
+    // Queue the save to prevent concurrent saves
+    saveQueue = saveQueue.then(async () => {
+        try {
+            console.log(`  Auto-saving config with updated timestamp...`);
+            await saveConfig();
+        } catch (error) {
+            console.error(`  Failed to auto-save config:`, error);
+        }
+    });
 }
 
 // Expose to window for onclick handlers
