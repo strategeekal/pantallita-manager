@@ -3,6 +3,7 @@ import { fetchGitHubFile, saveGitHubFile, deleteGitHubFile } from '../core/api.j
 import { showStatus, parseCSV, getDayOfWeek, formatImageName } from '../core/utils.js';
 import { loadConfig } from '../core/config.js';
 import { loadSchedules, scheduleImages, scheduleTemplates } from './schedule-manager.js';
+import { updateCSVVersion } from '../config/config-manager.js';
 import { updateTimelineView, refreshTimelineViews } from './timeline.js';
 import { updateSchedulePreview } from './preview.js';
 import { TINYBIT_FONT } from '../ui/fonts.js';
@@ -293,6 +294,7 @@ function parseScheduleCSV(content) {
 			endMin: parseInt(parts[6].trim()),
 			image: parts[7].trim(),
 			progressBar: parts[8].trim() === '1',
+			nightmode: parts.length >= 10 ? parseInt(parts[9].trim()) : 0,
 			index: index
 		};
 	}).filter(item => item !== null);
@@ -758,6 +760,7 @@ export function addScheduleItem() {
 		endMin: endMin,
 		image: '',
 		progressBar: false,
+		nightmode: 0,
 		index: currentScheduleData.items.length
 	};
 
@@ -859,13 +862,21 @@ function renderScheduleItems() {
 							${imageOptions}
 						</select>
 					</div>
-					<div class="schedule-item-row">
+					<div class="schedule-item-row" style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
 						<label class="progress-label">
 							<input type="checkbox"
 								${item.progressBar ? 'checked' : ''}
 								onchange="window.schedulesModule.updateScheduleItem(${index}, 'progressBar', this.checked)">
 							Show Progress Bar
 						</label>
+						<div style="display: flex; align-items: center; gap: 8px;">
+							<span class="item-label" style="margin: 0;">Night Mode:</span>
+							<select class="nightmode-select" onchange="window.schedulesModule.updateScheduleItem(${index}, 'nightmode', parseInt(this.value))">
+								<option value="0" ${(item.nightmode || 0) === 0 ? 'selected' : ''}>Normal Weather</option>
+								<option value="1" ${(item.nightmode || 0) === 1 ? 'selected' : ''}>Time + Temp Only</option>
+								<option value="2" ${(item.nightmode || 0) === 2 ? 'selected' : ''}>Clock Only</option>
+							</select>
+						</div>
 						<button class="btn-pixel btn-secondary btn-sm" onclick="window.schedulesModule.deleteScheduleItem(${index})">
 							🗑️ Delete
 						</button>
@@ -1051,6 +1062,8 @@ export async function saveSchedule() {
 				console.log('Deleted old schedule file:', oldFilename);
 				// Clear sha since we deleted the old file
 				currentScheduleData.sha = null;
+				// Update CSV version timestamp after delete
+				await updateCSVVersion('schedules');
 			} catch (error) {
 				console.error('Failed to delete old schedule file:', error);
 				showStatus('Warning: Could not delete old schedule file', 'warning');
@@ -1064,6 +1077,9 @@ export async function saveSchedule() {
 			currentScheduleData.sha = saveData.content.sha;
 			currentScheduleData.filename = filename;
 		}
+
+		// Update CSV version timestamp after save
+		await updateCSVVersion('schedules');
 
 		showStatus('Schedule saved successfully!', 'success');
 
@@ -1110,14 +1126,15 @@ function validateAllImagesSelected() {
 }
 
 function generateScheduleCSV() {
-	const header = `# Format: name,enabled,days,start_hour,start_min,end_hour,end_min,image,progressbar
+	const header = `# Format: name,enabled,days,start_hour,start_min,end_hour,end_min,image,progressbar,nightmode
 # enabled: 1=true, 0=false
 # days: 0-6 for Mon-Sun (e.g., "01234" = Mon-Fri)
 # progressbar: 1=true, 0=false
+# nightmode: 0=normal weather, 1=time+temp only, 2=clock only
 `;
 
 	const lines = currentScheduleData.items.map(item =>
-		`${item.name},${item.enabled ? 1 : 0},${item.days},${item.startHour},${item.startMin},${item.endHour},${item.endMin},${item.image},${item.progressBar ? 1 : 0}`
+		`${item.name},${item.enabled ? 1 : 0},${item.days},${item.startHour},${item.startMin},${item.endHour},${item.endMin},${item.image},${item.progressBar ? 1 : 0},${item.nightmode || 0}`
 	);
 
 	return header + lines.join('\n');

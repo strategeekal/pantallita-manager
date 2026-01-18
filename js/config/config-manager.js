@@ -1,94 +1,166 @@
 /**
  * Configuration Manager Module
- * Handles loading, editing, and saving matrix configuration files
+ * Handles loading, editing, and saving display configuration file
  */
 
 import { fetchGitHubFile, saveGitHubFile } from '../core/api.js';
 
-let configState = {
-    matrix1: null,
-    matrix2: null
-};
+let configState = null;
+let saveQueue = Promise.resolve(); // Queue for sequential saves
 
 // Configuration metadata for user-friendly labels
 const configLabels = {
-    'show_weather': 'Show Weather',
-    'show_forecast': 'Show Forecast',
-    'show_events': 'Show Events',
-    'show_weekday_indicator': 'Show Weekday Indicator',
-    'show_scheduled_displays': 'Show Scheduled Displays',
-    'show_events_in_between_schedules': 'Show Events Between Schedules',
-    'show_stocks': 'Show Investment Stocks',
-    'stocks_respect_market_hours': 'Stocks: Only During Market Hours',
+    'display_weather': 'Display Weather',
+    'display_forecast': 'Display Forecast',
+    'display_stocks': 'Display Stocks',
+    'display_clock': 'Display Clock',
+    'display_schedules': 'Display Schedules',
+    'display_events': 'Display Events',
+    'temperature_unit': 'Temperature Unit',
     'stocks_display_frequency': 'Stocks: Display Cycle Frequency',
-    'stocks_market_close_grace_period': 'Stocks: After-Hours Grace Period',
-    'show_transit': 'Show Public Transit',
+    'stocks_respect_market_hours': 'Stocks: Only During Market Hours',
+    'stocks_grace_period_minutes': 'Stocks: After-Hrs. Grace Period (min)',
+    'show_weekday_indicator': 'Show Weekday Indicator',
+    'display_transit': 'Display Transit',
     'transit_respect_commute_hours': 'Transit: Only During Commute Hours',
-    'night_mode_minimal_display': 'Night Mode (Minimal Display)',
-    'delayed_start': 'Delayed Start (Safety Feature)'
+    'transit_display_frequency': 'Transit: Display Cycle Frequency'
 };
 
 // Configuration descriptions for tooltips
 const configDescriptions = {
-    'show_weather': 'Display current weather information',
-    'show_forecast': 'Display weather forecast',
-    'show_events': 'Display upcoming events',
-    'show_weekday_indicator': 'Show day of the week indicator',
-    'show_scheduled_displays': 'Show scheduled display items',
-    'show_events_in_between_schedules': 'Show events when no schedule is active',
-    'show_stocks': 'Display investment stock ticker information',
-    'stocks_respect_market_hours': 'On = Show stocks during market hours only',
+    'display_weather': 'Display current weather information',
+    'display_forecast': 'Display weather forecast',
+    'display_stocks': 'Display investment stock ticker information',
+    'display_clock': 'Display clock',
+    'display_schedules': 'Display scheduled items',
+    'display_events': 'Display upcoming events',
+    'temperature_unit': 'Temperature unit (F or C)',
     'stocks_display_frequency': 'Number of cycles between stock displays',
-    'stocks_market_close_grace_period': 'Grace period to continue showing stocks after market closes',
-    'show_transit': 'Display public transit arrival times',
-    'transit_respect_commute_hours': 'On = Show transit during commute hours only',
-    'night_mode_minimal_display': 'Enable minimal display mode during nighttime hours',
-    'delayed_start': 'Enable delayed startup for safety'
+    'stocks_respect_market_hours': 'Show stocks during market hours only',
+    'stocks_grace_period_minutes': '',  // Dynamic description
+    'show_weekday_indicator': 'Show day of the week indicator',
+    'display_transit': 'Display public transit arrival times',
+    'transit_respect_commute_hours': 'Show transit during commute hours only',
+    'transit_display_frequency': 'Number of cycles between transit displays'
 };
 
-// Configuration field types (boolean or number)
+// Configuration field types
 const configTypes = {
-    'show_weather': 'boolean',
-    'show_forecast': 'boolean',
-    'show_events': 'boolean',
-    'show_weekday_indicator': 'boolean',
-    'show_scheduled_displays': 'boolean',
-    'show_events_in_between_schedules': 'boolean',
-    'show_stocks': 'boolean',
-    'stocks_respect_market_hours': 'boolean',
+    'display_weather': 'boolean',
+    'display_forecast': 'boolean',
+    'display_stocks': 'boolean',
+    'display_clock': 'boolean',
+    'display_schedules': 'boolean',
+    'display_events': 'boolean',
+    'temperature_unit': 'select',
     'stocks_display_frequency': 'number',
-    'stocks_market_close_grace_period': 'number',
-    'show_transit': 'boolean',
+    'stocks_respect_market_hours': 'boolean',
+    'stocks_grace_period_minutes': 'number',
+    'show_weekday_indicator': 'boolean',
+    'display_transit': 'boolean',
     'transit_respect_commute_hours': 'boolean',
-    'night_mode_minimal_display': 'boolean',
-    'delayed_start': 'boolean'
+    'transit_display_frequency': 'number',
+    'stocks_csv_version': 'timestamp',
+    'schedules_csv_version': 'timestamp',
+    'transits_csv_version': 'timestamp',
+    'ephemeral_events_csv_version': 'timestamp'
 };
 
 // Configuration ranges for numeric fields
 const configRanges = {
-    'stocks_display_frequency': { min: 1, max: 78, default: 3 },
-    'stocks_market_close_grace_period': { min: 0, max: 120, default: 60, displayAsTime: true }
+    'stocks_display_frequency': { min: 1, max: 78 },
+    'stocks_grace_period_minutes': { min: 0, max: 120, showTimeHelper: true },
+    'transit_display_frequency': { min: 1, max: 78 }
 };
+
+// Select field options
+const configSelectOptions = {
+    'temperature_unit': ['F', 'C']
+};
+
+/**
+ * Generate dynamic grace period description
+ * @param {number} minutes - Grace period in minutes
+ * @returns {string} Description text
+ */
+function getGracePeriodDescription(minutes) {
+    const totalMinutes = minutes || 0;
+    const hours = Math.floor(totalMinutes / 60);
+    const mins = totalMinutes % 60;
+
+    const now = new Date();
+    const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+    // Calculate the offset between ET and UTC
+    const etHour = parseInt(now.toLocaleString('en-US', {
+        timeZone: 'America/New_York',
+        hour: '2-digit',
+        hour12: false
+    }));
+
+    const utcHour = now.getUTCHours();
+    const etOffset = utcHour - etHour;
+
+    // Create a Date object for 4:00 PM ET
+    const marketCloseUTC = new Date(Date.UTC(
+        now.getUTCFullYear(),
+        now.getUTCMonth(),
+        now.getUTCDate(),
+        16 + etOffset,
+        0,
+        0
+    ));
+
+    // Add grace period to get end time
+    const endTime = new Date(marketCloseUTC);
+    endTime.setMinutes(endTime.getMinutes() + totalMinutes);
+
+    // Format the end time in user's local timezone
+    const endTimeStr = endTime.toLocaleString('en-US', {
+        timeZone: userTimeZone,
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+    });
+
+    // Get timezone abbreviation
+    const tzFormatter = new Intl.DateTimeFormat('en-US', {
+        timeZone: userTimeZone,
+        timeZoneName: 'short'
+    });
+    const tzParts = tzFormatter.formatToParts(endTime);
+    const tzAbbr = tzParts.find(part => part.type === 'timeZoneName')?.value || '';
+
+    // Build duration text
+    let durationText = '';
+    if (hours > 0 && mins > 0) {
+        durationText = `${hours} hour${hours > 1 ? 's' : ''} ${mins} minutes`;
+    } else if (hours > 0) {
+        durationText = `${hours} hour${hours > 1 ? 's' : ''}`;
+    } else if (mins > 0) {
+        durationText = `${mins} minutes`;
+    } else {
+        durationText = '0 minutes';
+    }
+
+    return `Stocks will show until ${endTimeStr} ${tzAbbr} (${durationText} after market close)`;
+}
 
 /**
  * Initialize the configuration manager
  */
 export function init() {
     console.log('Initializing Configuration Manager...');
-
-    // Load both configs when the configuration tab is activated
-    loadConfig('matrix1');
-    loadConfig('matrix2');
+    loadConfig();
 }
 
 /**
  * Load configuration file from GitHub
- * @param {string} matrixName - 'matrix1' or 'matrix2'
  */
-export async function loadConfig(matrixName) {
-        const statusEl = document.getElementById(`${matrixName}-status`);
-        const errorEl = document.getElementById(`${matrixName}-error`);
-        const configEl = document.getElementById(`${matrixName}-config`);
+export async function loadConfig() {
+        const statusEl = document.getElementById('config-status');
+        const errorEl = document.getElementById('config-error');
+        const configEl = document.getElementById('config-settings');
 
         // Show loading state
         statusEl.classList.remove('hidden');
@@ -96,7 +168,7 @@ export async function loadConfig(matrixName) {
         errorEl.textContent = '';
 
         try {
-            const filename = `${matrixName}_config.csv`;
+            const filename = 'config.csv';
             console.log(`Loading configuration file: ${filename}`);
 
             const response = await fetchGitHubFile(filename);
@@ -105,11 +177,11 @@ export async function loadConfig(matrixName) {
                 throw new Error('Configuration file not found');
             }
 
-            // Parse the CSV content (content is already decoded by fetchGitHubFile)
+            // Parse the CSV content
             const parsedConfig = parseConfigCSV(response.content);
 
             // Store the parsed config
-            configState[matrixName] = {
+            configState = {
                 settings: parsedConfig.settings,
                 comments: parsedConfig.comments,
                 sha: response.sha,
@@ -117,7 +189,7 @@ export async function loadConfig(matrixName) {
             };
 
             // Render the configuration UI
-            renderConfigSettings(matrixName, parsedConfig.settings);
+            renderConfigSettings(parsedConfig.settings);
 
             // Hide loading, show success briefly
             statusEl.textContent = 'Loaded successfully';
@@ -126,7 +198,7 @@ export async function loadConfig(matrixName) {
             }, 2000);
 
         } catch (error) {
-            console.error(`Error loading ${matrixName} configuration:`, error);
+            console.error('Error loading configuration:', error);
             statusEl.classList.add('hidden');
             errorEl.textContent = `Failed to load configuration: ${error.message}`;
             errorEl.classList.remove('hidden');
@@ -159,8 +231,7 @@ function parseConfigCSV(content) {
 
                 // Check if this comment defines a section
                 const commentText = trimmedLine.substring(1).trim();
-                if (commentText && !commentText.includes(':') && !commentText.toLowerCase().includes('format') && !commentText.toLowerCase().includes('boolean')) {
-                    // This is likely a section header (e.g., "# Core displays")
+                if (commentText && !commentText.includes(':') && !commentText.toLowerCase().includes('format')) {
                     currentSection = commentText;
                 }
                 continue;
@@ -172,22 +243,25 @@ function parseConfigCSV(content) {
                 const settingName = parts[0].trim();
                 const settingValue = parts[1].trim();
 
+                // Skip unknown settings (not in configTypes) - they may be legacy or malformed
+                if (!configTypes[settingName]) {
+                    console.warn(`Unknown config setting (skipping): ${settingName}`);
+                    continue;
+                }
+
                 // Determine the type and parse value accordingly
-                const fieldType = configTypes[settingName] || 'boolean';
+                const fieldType = configTypes[settingName];
                 let parsedValue;
 
                 if (fieldType === 'number') {
                     parsedValue = parseInt(settingValue, 10);
-                    // Validate range if defined
-                    if (configRanges[settingName]) {
-                        const range = configRanges[settingName];
-                        if (isNaN(parsedValue) || parsedValue < range.min || parsedValue > range.max) {
-                            parsedValue = range.default;
-                        }
-                    }
+                } else if (fieldType === 'select') {
+                    parsedValue = settingValue;
+                } else if (fieldType === 'timestamp') {
+                    parsedValue = settingValue;
                 } else {
-                    // Boolean type
-                    parsedValue = settingValue === '1';
+                    // Boolean type - handle both true/false strings and 1/0
+                    parsedValue = settingValue === 'true' || settingValue === '1';
                 }
 
                 settings.push({
@@ -197,7 +271,8 @@ function parseConfigCSV(content) {
                     section: currentSection,
                     label: configLabels[settingName] || settingName.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
                     description: configDescriptions[settingName] || '',
-                    range: configRanges[settingName] || null
+                    range: configRanges[settingName] || null,
+                    options: configSelectOptions[settingName] || null
                 });
             }
         }
@@ -206,21 +281,24 @@ function parseConfigCSV(content) {
 }
 
 /**
- * Render configuration settings as toggles
- * @param {string} matrixName - 'matrix1' or 'matrix2'
+ * Render configuration settings
  * @param {Array} settings - Array of setting objects
  */
-function renderConfigSettings(matrixName, settings) {
-        const configEl = document.getElementById(`${matrixName}-config`);
+function renderConfigSettings(settings) {
+        const configEl = document.getElementById('config-settings');
 
         if (!settings || settings.length === 0) {
             configEl.innerHTML = '<p class="info-message">No configuration settings found.</p>';
             return;
         }
 
-        // Group settings by section
+        // Group settings by section (exclude timestamp fields from UI)
         const sections = {};
         settings.forEach(setting => {
+            // Skip timestamp fields - they're metadata, not user settings
+            if (setting.type === 'timestamp') {
+                return;
+            }
             if (!sections[setting.section]) {
                 sections[setting.section] = [];
             }
@@ -234,72 +312,63 @@ function renderConfigSettings(matrixName, settings) {
             html += `<div class="config-section">`;
             html += `<h4 class="config-section-title">${sectionName}</h4>`;
 
-            sectionSettings.forEach((setting, index) => {
-                const settingId = `${matrixName}-${setting.name}`;
+            sectionSettings.forEach((setting) => {
+                const settingId = `config-${setting.name}`;
 
                 if (setting.type === 'number') {
-                    // Check if this should be displayed as time (hours/minutes)
-                    if (setting.range && setting.range.displayAsTime) {
-                        // Convert total minutes to hours and minutes
-                        const totalMinutes = setting.value || 0;
-                        const hours = Math.floor(totalMinutes / 60);
-                        const minutes = totalMinutes % 60;
+                    // Render number input
+                    const min = setting.range ? setting.range.min : 0;
+                    const max = setting.range ? setting.range.max : 100;
 
-                        html += `
-                            <div class="config-setting">
-                                <div class="config-setting-info">
-                                    <label class="config-label">${setting.label}</label>
-                                    ${setting.description ? `<span class="config-description">${setting.description}</span>` : ''}
-                                </div>
-                                <div class="config-time-input">
-                                    <div class="time-input-group">
-                                        <input type="number"
-                                               id="${settingId}-hours"
-                                               class="time-number-input"
-                                               value="${hours}"
-                                               min="0"
-                                               max="2"
-                                               placeholder="0"
-                                               onchange="window.configManager.updateTimeSettingFromInputs('${matrixName}', '${setting.name}', '${settingId}')">
-                                        <label class="time-unit-label">hours</label>
-                                    </div>
-                                    <div class="time-input-group">
-                                        <input type="number"
-                                               id="${settingId}-minutes"
-                                               class="time-number-input"
-                                               value="${minutes}"
-                                               min="0"
-                                               max="59"
-                                               placeholder="0"
-                                               onchange="window.configManager.updateTimeSettingFromInputs('${matrixName}', '${setting.name}', '${settingId}')">
-                                        <label class="time-unit-label">minutes</label>
-                                    </div>
-                                </div>
-                            </div>
-                        `;
-                    } else {
-                        // Render regular number input
-                        const min = setting.range ? setting.range.min : 0;
-                        const max = setting.range ? setting.range.max : 100;
+                    // Generate dynamic description for grace period
+                    let description = setting.description;
+                    let onInputHandler = '';
 
-                        html += `
-                            <div class="config-setting">
-                                <div class="config-setting-info">
-                                    <label for="${settingId}" class="config-label">${setting.label}</label>
-                                    ${setting.description ? `<span class="config-description">${setting.description}</span>` : ''}
-                                </div>
-                                <div class="config-number-input">
-                                    <input type="number"
-                                           id="${settingId}"
-                                           class="number-input"
-                                           value="${setting.value}"
-                                           min="${min}"
-                                           max="${max}"
-                                           onchange="window.configManager.updateSetting('${matrixName}', '${setting.name}', parseInt(this.value))">
-                                </div>
-                            </div>
-                        `;
+                    if (setting.name === 'stocks_grace_period_minutes') {
+                        description = getGracePeriodDescription(setting.value);
+                        onInputHandler = `oninput="window.configManager.updateGracePeriodDescription('${settingId}', parseInt(this.value))"`;
                     }
+
+                    html += `
+                        <div class="config-setting">
+                            <div class="config-setting-info">
+                                <label for="${settingId}" class="config-label">${setting.label}</label>
+                                ${description ? `<span class="config-description" id="${settingId}-description">${description}</span>` : ''}
+                            </div>
+                            <div class="config-number-input">
+                                <input type="number"
+                                       id="${settingId}"
+                                       class="number-input"
+                                       value="${setting.value}"
+                                       min="${min}"
+                                       max="${max}"
+                                       ${onInputHandler}
+                                       onchange="window.configManager.updateSetting('${setting.name}', parseInt(this.value))">
+                            </div>
+                        </div>
+                    `;
+                } else if (setting.type === 'select') {
+                    // Render select dropdown
+                    const options = setting.options || [];
+                    const optionsHtml = options.map(opt =>
+                        `<option value="${opt}" ${setting.value === opt ? 'selected' : ''}>${opt}</option>`
+                    ).join('');
+
+                    html += `
+                        <div class="config-setting">
+                            <div class="config-setting-info">
+                                <label for="${settingId}" class="config-label">${setting.label}</label>
+                                ${setting.description ? `<span class="config-description">${setting.description}</span>` : ''}
+                            </div>
+                            <div class="config-select">
+                                <select id="${settingId}"
+                                        class="select-input"
+                                        onchange="window.configManager.updateSetting('${setting.name}', this.value)">
+                                    ${optionsHtml}
+                                </select>
+                            </div>
+                        </div>
+                    `;
                 } else {
                     // Render toggle for boolean
                     const checked = setting.value ? 'checked' : '';
@@ -315,7 +384,7 @@ function renderConfigSettings(matrixName, settings) {
                                        id="${settingId}"
                                        class="toggle-checkbox"
                                        ${checked}
-                                       onchange="window.configManager.updateSetting('${matrixName}', '${setting.name}', this.checked)">
+                                       onchange="window.configManager.updateSetting('${setting.name}', this.checked)">
                                 <label for="${settingId}" class="toggle-label">
                                     <span class="toggle-inner"></span>
                                     <span class="toggle-switch"></span>
@@ -334,69 +403,51 @@ function renderConfigSettings(matrixName, settings) {
 
 /**
  * Update a setting value
- * @param {string} matrixName - 'matrix1' or 'matrix2'
  * @param {string} settingName - Name of the setting
- * @param {boolean} value - New value
+ * @param {*} value - New value
  */
-export function updateSetting(matrixName, settingName, value) {
-        if (!configState[matrixName] || !configState[matrixName].settings) {
-            console.error(`Configuration state not found for ${matrixName}`);
+export function updateSetting(settingName, value) {
+        if (!configState || !configState.settings) {
+            console.error('Configuration state not found');
             return;
         }
 
         // Update the setting in the state
-        const setting = configState[matrixName].settings.find(s => s.name === settingName);
+        const setting = configState.settings.find(s => s.name === settingName);
         if (setting) {
             setting.value = value;
-            console.log(`Updated ${matrixName} setting: ${settingName} = ${value}`);
+            console.log(`Updated setting: ${settingName} = ${value}`);
         }
 }
 
 /**
- * Update a time-based setting from hours and minutes inputs
- * @param {string} matrixName - 'matrix1' or 'matrix2'
- * @param {string} settingName - Name of the setting
- * @param {string} settingId - Base ID of the input elements
+ * Update grace period description text in real-time
+ * @param {string} settingId - ID of the setting input
+ * @param {number} minutes - Minutes value
  */
-export function updateTimeSettingFromInputs(matrixName, settingName, settingId) {
-        const hoursInput = document.getElementById(`${settingId}-hours`);
-        const minutesInput = document.getElementById(`${settingId}-minutes`);
-
-        if (!hoursInput || !minutesInput) {
-            console.error(`Time inputs not found for ${settingId}`);
-            return;
-        }
-
-        // Get hours and minutes values
-        const hours = parseInt(hoursInput.value) || 0;
-        const minutes = parseInt(minutesInput.value) || 0;
-
-        // Validate ranges
-        const validHours = Math.max(0, Math.min(2, hours));
-        const validMinutes = Math.max(0, Math.min(59, minutes));
-
-        // Update inputs if they were out of range
-        if (hours !== validHours) hoursInput.value = validHours;
-        if (minutes !== validMinutes) minutesInput.value = validMinutes;
-
-        // Convert to total minutes
-        const totalMinutes = (validHours * 60) + validMinutes;
-
-        // Update the setting
-        updateSetting(matrixName, settingName, totalMinutes);
+export function updateGracePeriodDescription(settingId, minutes) {
+    const descriptionEl = document.getElementById(`${settingId}-description`);
+    if (descriptionEl) {
+        descriptionEl.textContent = getGracePeriodDescription(minutes);
+    }
 }
 
 /**
  * Save configuration file to GitHub
- * @param {string} matrixName - 'matrix1' or 'matrix2'
  */
-export async function saveConfig(matrixName) {
-        const statusEl = document.getElementById(`${matrixName}-status`);
-        const errorEl = document.getElementById(`${matrixName}-error`);
+export async function saveConfig() {
+        const statusEl = document.getElementById('config-status');
+        const errorEl = document.getElementById('config-error');
+        const statusElBottom = document.getElementById('config-status-bottom');
+        const errorElBottom = document.getElementById('config-error-bottom');
 
-        if (!configState[matrixName] || !configState[matrixName].settings) {
+        if (!configState || !configState.settings) {
             errorEl.textContent = 'No configuration loaded to save';
             errorEl.classList.remove('hidden');
+            if (errorElBottom) {
+                errorElBottom.textContent = 'No configuration loaded to save';
+                errorElBottom.classList.remove('hidden');
+            }
             return;
         }
 
@@ -404,38 +455,58 @@ export async function saveConfig(matrixName) {
         statusEl.textContent = 'Saving...';
         statusEl.classList.remove('hidden');
         errorEl.classList.add('hidden');
+        if (statusElBottom) {
+            statusElBottom.textContent = 'Saving...';
+            statusElBottom.classList.remove('hidden');
+        }
+        if (errorElBottom) {
+            errorElBottom.classList.add('hidden');
+        }
 
         try {
             // Build the CSV content
-            const csvContent = buildConfigCSV(configState[matrixName]);
+            const csvContent = buildConfigCSV(configState);
 
             // Save to GitHub
-            const filename = `${matrixName}_config.csv`;
+            const filename = 'config.csv';
 
             const result = await saveGitHubFile(
                 filename,
                 csvContent,
-                configState[matrixName].sha
+                configState.sha
             );
 
-            // Update the SHA for future saves (returned by saveGitHubFile)
+            // Update the SHA for future saves
             if (result && result.content && result.content.sha) {
-                configState[matrixName].sha = result.content.sha;
+                configState.sha = result.content.sha;
             }
 
             // Show success message
             statusEl.textContent = '✓ Saved successfully';
+            if (statusElBottom) {
+                statusElBottom.textContent = '✓ Saved successfully';
+            }
             setTimeout(() => {
                 statusEl.classList.add('hidden');
+                if (statusElBottom) {
+                    statusElBottom.classList.add('hidden');
+                }
             }, 3000);
 
             console.log(`Configuration saved successfully: ${filename}`);
 
         } catch (error) {
-            console.error(`Error saving ${matrixName} configuration:`, error);
+            console.error('Error saving configuration:', error);
             statusEl.classList.add('hidden');
             errorEl.textContent = `Failed to save: ${error.message}`;
             errorEl.classList.remove('hidden');
+            if (statusElBottom) {
+                statusElBottom.classList.add('hidden');
+            }
+            if (errorElBottom) {
+                errorElBottom.textContent = `Failed to save: ${error.message}`;
+                errorElBottom.classList.remove('hidden');
+            }
         }
 }
 
@@ -447,12 +518,15 @@ export async function saveConfig(matrixName) {
 function buildConfigCSV(configData) {
         let csv = '';
 
-        // Add the standard header comments
-        csv += '# Display Configuration for Pantallita\n';
-        csv += '# Format: setting,value\n';
-        csv += '# Boolean values: 1 = True, 0 = False\n';
-        csv += '# This file can be overridden by GitHub remote config at startup\n';
-        csv += '\n';
+        console.log('buildConfigCSV: Building CSV from configState');
+        console.log(`buildConfigCSV: Total settings: ${configData.settings.length}`);
+
+        // Log timestamp values before building
+        const timestampSettings = configData.settings.filter(s => s.type === 'timestamp');
+        console.log('buildConfigCSV: Timestamp settings:');
+        timestampSettings.forEach(s => {
+            console.log(`  ${s.name} = ${s.value}`);
+        });
 
         // Group settings by section
         const sections = {};
@@ -471,8 +545,13 @@ function buildConfigCSV(configData) {
                 let value;
                 if (setting.type === 'number') {
                     value = setting.value;
+                } else if (setting.type === 'select') {
+                    value = setting.value;
+                } else if (setting.type === 'timestamp') {
+                    value = setting.value;
                 } else {
-                    value = setting.value ? '1' : '0';
+                    // Boolean - use true/false strings
+                    value = setting.value ? 'true' : 'false';
                 }
                 csv += `${setting.name},${value}\n`;
             });
@@ -480,15 +559,74 @@ function buildConfigCSV(configData) {
             csv += '\n';
         }
 
+        console.log('buildConfigCSV: CSV built successfully');
         return csv.trim() + '\n';
 }
 
 /**
  * Reload configuration (discard unsaved changes)
- * @param {string} matrixName - 'matrix1' or 'matrix2'
  */
-export function reloadConfig(matrixName) {
-    loadConfig(matrixName);
+export function reloadConfig() {
+    loadConfig();
+}
+
+/**
+ * Wait for config to be loaded
+ * @returns {Promise} Resolves when config is loaded
+ */
+async function waitForConfig() {
+    const maxWait = 5000; // 5 seconds max
+    const checkInterval = 100; // Check every 100ms
+    let elapsed = 0;
+
+    while (!configState || !configState.settings) {
+        if (elapsed >= maxWait) {
+            throw new Error('Config failed to load within 5 seconds');
+        }
+        await new Promise(resolve => setTimeout(resolve, checkInterval));
+        elapsed += checkInterval;
+    }
+}
+
+/**
+ * Update CSV file version timestamp
+ * @param {string} csvType - Type of CSV file ('stocks', 'schedules', 'transits', 'ephemeral_events')
+ */
+export async function updateCSVVersion(csvType) {
+    // Skip if config not loaded yet - timestamps are optional metadata
+    if (!configState || !configState.settings) {
+        console.warn(`updateCSVVersion(${csvType}): Config not loaded yet, skipping`);
+        return;
+    }
+
+    const versionKey = `${csvType}_csv_version`;
+    const timestamp = new Date().toISOString();
+
+    console.log(`updateCSVVersion(${csvType}): Looking for setting ${versionKey}`);
+    console.log(`updateCSVVersion(${csvType}): configState has ${configState.settings.length} settings`);
+
+    // Update the timestamp in memory
+    const setting = configState.settings.find(s => s.name === versionKey);
+    if (setting) {
+        const oldValue = setting.value;
+        setting.value = timestamp;
+        console.log(`✓ Updated CSV version timestamp: ${versionKey}`);
+        console.log(`  Old value: ${oldValue}`);
+        console.log(`  New value: ${timestamp}`);
+
+        // Queue the save to prevent concurrent saves
+        saveQueue = saveQueue.then(async () => {
+            try {
+                console.log(`  Auto-saving config with updated timestamp...`);
+                await saveConfig();
+            } catch (error) {
+                console.error(`  Failed to auto-save config:`, error);
+            }
+        });
+    } else {
+        console.error(`✗ CSV version setting NOT FOUND: ${versionKey}`);
+        console.log(`  Available settings:`, configState.settings.map(s => s.name));
+    }
 }
 
 // Expose to window for onclick handlers
@@ -497,8 +635,9 @@ if (typeof window !== 'undefined') {
         init,
         loadConfig,
         saveConfig,
+        reloadConfig,
         updateSetting,
-        updateTimeSettingFromInputs,
-        reloadConfig
+        updateGracePeriodDescription,
+        updateCSVVersion
     };
 }

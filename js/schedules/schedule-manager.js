@@ -2,6 +2,7 @@
 import { listGitHubDirectory, fetchGitHubFile, saveGitHubFile, deleteGitHubFile } from '../core/api.js';
 import { showStatus } from '../core/utils.js';
 import { loadConfig } from '../core/config.js';
+import { updateCSVVersion } from '../config/config-manager.js';
 
 let currentSchedules = [];
 let scheduleImages = [];
@@ -206,6 +207,8 @@ export async function deleteSchedule(filename) {
 		await deleteGitHubFile(`schedules/${filename}`, schedule.sha);
 		showStatus('Schedule deleted successfully!', 'success');
 		await loadSchedules();
+		// Update CSV version timestamp in config
+		await updateCSVVersion('schedules');
 	} catch (error) {
 		showStatus('Failed to delete schedule: ' + error.message, 'error');
 	}
@@ -229,6 +232,11 @@ export async function clearOldSchedules() {
 
 		showStatus(`Deleted ${toDelete.length} past schedule(s)`, 'success');
 		await loadSchedules();
+
+		// Update CSV version timestamp if any files were deleted
+		if (toDelete.length > 0) {
+			await updateCSVVersion('schedules');
+		}
 	} catch (error) {
 		showStatus('Failed to clear old schedules: ' + error.message, 'error');
 	}
