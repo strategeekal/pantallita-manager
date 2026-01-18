@@ -456,8 +456,16 @@ export async function clearPastEvents() {
 }
 
 export function clearEventForm() {
+	// Clear ephemeral date field
 	const dateField = document.getElementById('editor-event-date');
 	if (dateField) dateField.value = '';
+
+	// Clear recurring date selectors
+	const monthSelect = document.getElementById('editor-recurring-month');
+	if (monthSelect) monthSelect.value = '';
+
+	const daySelect = document.getElementById('editor-recurring-day');
+	if (daySelect) daySelect.value = '';
 
 	const topField = document.getElementById('editor-event-top');
 	if (topField) topField.value = '';
@@ -492,7 +500,9 @@ export function clearEventForm() {
 	const formTitle = document.getElementById('editor-form-title');
 	if (formTitle) formTitle.textContent = 'Add New Event';
 
+	// Reset both editing indices
 	editingEventIndex = null;
+	editingRecurringIndex = null;
 
 	// Clear matrix if on desktop
 	if (window.editorMatrix) {
@@ -502,6 +512,10 @@ export function clearEventForm() {
 
 	// Reset color preview square to MINT
 	updateColorPreview();
+
+	// Hide duplicate warning
+	const duplicateWarning = document.getElementById('editor-duplicate-warning');
+	if (duplicateWarning) duplicateWarning.classList.add('hidden');
 }
 
 async function saveEventsToGitHub() {
@@ -1073,35 +1087,68 @@ export function editRecurringEvent(index) {
 
 // Populate form for editing a recurring event
 function populateRecurringEditForm(event) {
+	console.log('populateRecurringEditForm: event =', event);
+
+	if (!event) {
+		console.error('populateRecurringEditForm: No event provided');
+		return;
+	}
+
+	if (!event.monthDay) {
+		console.error('populateRecurringEditForm: Event has no monthDay:', event);
+		return;
+	}
+
 	// Parse monthDay (MM-DD)
 	const [month, day] = event.monthDay.split('-').map(s => parseInt(s, 10));
+	console.log('populateRecurringEditForm: month =', month, ', day =', day);
 
 	const monthSelect = document.getElementById('editor-recurring-month');
 	const daySelect = document.getElementById('editor-recurring-day');
 
-	if (monthSelect) monthSelect.value = month;
-	if (daySelect) daySelect.value = day;
+	console.log('populateRecurringEditForm: monthSelect =', monthSelect, ', daySelect =', daySelect);
 
-	document.getElementById('editor-event-top').value = event.topLine;
-	document.getElementById('editor-event-bottom').value = event.bottomLine;
-	document.getElementById('editor-event-color').value = event.colorName;
-	document.getElementById('editor-event-image').value = event.iconName;
+	if (monthSelect) {
+		monthSelect.value = String(month);
+		console.log('populateRecurringEditForm: Set month to', month, ', actual value:', monthSelect.value);
+	}
+	if (daySelect) {
+		daySelect.value = String(day);
+		console.log('populateRecurringEditForm: Set day to', day, ', actual value:', daySelect.value);
+	}
+
+	const topField = document.getElementById('editor-event-top');
+	const bottomField = document.getElementById('editor-event-bottom');
+	const colorField = document.getElementById('editor-event-color');
+	const imageField = document.getElementById('editor-event-image');
+
+	if (topField) topField.value = event.topLine;
+	if (bottomField) bottomField.value = event.bottomLine;
+	if (colorField) colorField.value = event.colorName;
+	if (imageField) imageField.value = event.iconName;
 
 	// Set time fields if applicable
 	const hasTimeCheckbox = document.getElementById('editor-event-has-time');
 	const hasSpecificTime = (event.startHour !== undefined && event.startHour !== 0) ||
 	                         (event.endHour !== undefined && event.endHour !== 23);
-	if (hasTimeCheckbox && hasSpecificTime) {
-		hasTimeCheckbox.checked = true;
+
+	// Always reset the time checkbox and fields
+	if (hasTimeCheckbox) {
+		hasTimeCheckbox.checked = hasSpecificTime;
 		const timeFields = document.getElementById('editor-event-time-fields');
-		if (timeFields) timeFields.classList.remove('hidden');
-
-		const startHourField = document.getElementById('editor-event-start-hour');
-		if (startHourField) startHourField.value = event.startHour !== undefined ? event.startHour : 0;
-
-		const endHourField = document.getElementById('editor-event-end-hour');
-		if (endHourField) endHourField.value = event.endHour !== undefined ? event.endHour : 23;
+		if (timeFields) {
+			if (hasSpecificTime) {
+				timeFields.classList.remove('hidden');
+			} else {
+				timeFields.classList.add('hidden');
+			}
+		}
 	}
+
+	const startHourField = document.getElementById('editor-event-start-hour');
+	const endHourField = document.getElementById('editor-event-end-hour');
+	if (startHourField) startHourField.value = event.startHour !== undefined ? event.startHour : 0;
+	if (endHourField) endHourField.value = event.endHour !== undefined ? event.endHour : 23;
 
 	// Update character counters
 	const topCount = document.getElementById('editor-event-top-count');
@@ -1112,6 +1159,8 @@ function populateRecurringEditForm(event) {
 
 	// Update color preview square
 	updateColorPreview();
+
+	console.log('populateRecurringEditForm: Done populating form');
 }
 
 // Save a recurring event
