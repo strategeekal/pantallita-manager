@@ -4,6 +4,7 @@
  */
 
 import { fetchGitHubFile, saveGitHubFile } from '../core/api.js';
+import { getConfigFilename, getDisplay, setDisplay } from '../core/config.js';
 
 let configState = null;
 let saveQueue = Promise.resolve(); // Queue for sequential saves
@@ -204,8 +205,8 @@ export async function loadConfig(forceReload = false) {
         errorEl.textContent = '';
 
         try {
-            const filename = 'config.csv';
-            console.log(`Loading configuration file: ${filename}`);
+            const filename = getConfigFilename();
+            console.log(`Loading configuration file: ${filename} (Display ${getDisplay()})`);
 
             const response = await fetchGitHubFile(filename);
 
@@ -229,6 +230,9 @@ export async function loadConfig(forceReload = false) {
 
             // Mark as loaded
             configLoaded = true;
+
+            // Update display selector UI
+            updateDisplaySelectorUI();
 
             // Hide loading, show success briefly
             statusEl.textContent = 'Loaded successfully';
@@ -511,8 +515,8 @@ export async function saveConfig() {
             // Build the CSV content
             const csvContent = buildConfigCSV(configState);
 
-            // Save to GitHub
-            const filename = 'config.csv';
+            // Save to GitHub (use display-specific config file)
+            const filename = getConfigFilename();
 
             const result = await saveGitHubFile(
                 filename,
@@ -677,6 +681,68 @@ export async function updateCSVVersion(csvType) {
     });
 }
 
+/**
+ * Switch to a different display and reload config
+ * @param {string} displayNum - Display number ('1' or '2')
+ */
+export async function switchDisplay(displayNum) {
+    if (displayNum !== '1' && displayNum !== '2') {
+        console.error('Invalid display number:', displayNum);
+        return;
+    }
+
+    const currentDisplay = getDisplay();
+    if (currentDisplay === displayNum) {
+        console.log(`Already on Display ${displayNum}`);
+        return;
+    }
+
+    console.log(`Switching from Display ${currentDisplay} to Display ${displayNum}`);
+
+    // Update the display setting
+    setDisplay(displayNum);
+
+    // Reset config state to force reload
+    configState = null;
+    configLoaded = false;
+
+    // Reload config for new display
+    await loadConfig(true);
+
+    // Update the display selector UI
+    updateDisplaySelectorUI();
+}
+
+/**
+ * Get the current display number
+ * @returns {string} Current display number ('1' or '2')
+ */
+export function getCurrentDisplay() {
+    return getDisplay();
+}
+
+/**
+ * Update the display selector UI to reflect current state
+ */
+export function updateDisplaySelectorUI() {
+    const currentDisplay = getDisplay();
+
+    // Update button states
+    const btn1 = document.getElementById('display-btn-1');
+    const btn2 = document.getElementById('display-btn-2');
+
+    if (btn1 && btn2) {
+        btn1.classList.toggle('active', currentDisplay === '1');
+        btn2.classList.toggle('active', currentDisplay === '2');
+    }
+
+    // Update the display indicator text if it exists
+    const indicator = document.getElementById('current-display-indicator');
+    if (indicator) {
+        indicator.textContent = `Display ${currentDisplay}`;
+    }
+}
+
 // Expose to window for onclick handlers
 if (typeof window !== 'undefined') {
     window.configManager = {
@@ -687,6 +753,9 @@ if (typeof window !== 'undefined') {
         updateSetting,
         updateGracePeriodDescription,
         updateCSVVersion,
-        isConfigLoaded
+        isConfigLoaded,
+        switchDisplay,
+        getCurrentDisplay,
+        updateDisplaySelectorUI
     };
 }

@@ -708,6 +708,15 @@
 			<div class="config-container">
 				<!-- Configuration Settings -->
 				<div class="config-panel">
+					<!-- Display Selector -->
+					<div class="display-selector-container">
+						<label class="display-selector-label">Configure Display:</label>
+						<div class="display-toggle">
+							<button id="display-btn-1" class="display-btn active" onclick="window.configManager.switchDisplay('1')">Display 1</button>
+							<button id="display-btn-2" class="display-btn" onclick="window.configManager.switchDisplay('2')">Display 2</button>
+						</div>
+					</div>
+
 					<div class="config-status">
 						<span id="config-status" class="loading-message hidden">Loading...</span>
 						<span id="config-error" class="error-message hidden"></span>

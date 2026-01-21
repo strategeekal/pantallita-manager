@@ -4,15 +4,18 @@ import { GITHUB_OWNER, GITHUB_REPO } from './constants.js';
 const TOKEN_KEY = 'pantallita_token';
 const USERNAME_KEY = 'pantallita_username';
 const REPO_KEY = 'pantallita_repo';
+const DISPLAY_KEY = 'pantallita_display';
 
 export function loadConfig() {
 	const token = localStorage.getItem(TOKEN_KEY) || '';
 	const owner = localStorage.getItem(USERNAME_KEY) || GITHUB_OWNER;
 	const repo = localStorage.getItem(REPO_KEY) || GITHUB_REPO;
+	const display = localStorage.getItem(DISPLAY_KEY) || '1';
 	return {
 		token,
 		owner,
-		repo
+		repo,
+		display
 	};
 }
 
@@ -59,4 +62,17 @@ export function clearCredentials() {
 export function hasToken() {
 	const token = getToken();
 	return token && token.length > 0;
+}
+
+export function getDisplay() {
+	return localStorage.getItem(DISPLAY_KEY) || '1';
+}
+
+export function setDisplay(display) {
+	localStorage.setItem(DISPLAY_KEY, display);
+}
+
+export function getConfigFilename() {
+	const display = getDisplay();
+	return `config_display${display}.csv`;
 }
