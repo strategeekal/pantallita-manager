@@ -141,16 +141,38 @@ export async function loadBMPImage(imageName) {
 		imageCache = {};
 	}
 
-	// Find image info
-	const imageInfo = availableImages.find(img => img.name === imageName);
-	if (!imageInfo) {
-		console.error('Image not found in availableImages:', imageName);
+	// Use GitHub API with authentication (works for private repos)
+	try {
+		const url = `https://api.github.com/repos/${config.owner}/${config.repo}/contents/img/events/${imageName}`;
+		const response = await fetch(url, {
+			headers: {
+				'Authorization': `Bearer ${config.token}`,
+				'Accept': 'application/vnd.github.v3+json'
+			}
+		});
+
+		if (!response.ok) {
+			console.error('Failed to fetch event image metadata:', response.status);
+			return null;
+		}
+
+		const data = await response.json();
+
+		// Decode base64 content directly instead of using download_url (works for private repos)
+		const base64Content = data.content.replace(/\n/g, '');
+		const binaryString = atob(base64Content);
+		const bytes = new Uint8Array(binaryString.length);
+		for (let i = 0; i < binaryString.length; i++) {
+			bytes[i] = binaryString.charCodeAt(i);
+		}
+
+		const result = await parseBMPFromBytes(bytes.buffer, imageName);
+		return result;
+
+	} catch (error) {
+		console.error('Error loading event BMP:', error);
 		return null;
 	}
-
-	console.log('Fetching from URL:', imageInfo.url);
-
-	return await fetchAndParseBMP(imageInfo.url, imageName);
 }
 
 // Load schedule BMP image from img/schedules
