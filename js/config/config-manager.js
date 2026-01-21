@@ -21,6 +21,7 @@ const configLabels = {
     'stocks_respect_market_hours': 'Stocks: Only During Market Hours',
     'stocks_grace_period_minutes': 'Stocks: After-Hrs. Grace Period (min)',
     'show_weekday_indicator': 'Show Weekday Indicator',
+    'forecast_display_frequency': 'Forecast: Display Cycle Frequency',
     'display_transit': 'Display Transit',
     'transit_respect_commute_hours': 'Transit: Only During Commute Hours',
     'transit_display_frequency': 'Transit: Display Cycle Frequency'
@@ -39,6 +40,7 @@ const configDescriptions = {
     'stocks_respect_market_hours': 'Show stocks during market hours only',
     'stocks_grace_period_minutes': '',  // Dynamic description
     'show_weekday_indicator': 'Show day of the week indicator',
+    'forecast_display_frequency': 'Number of cycles between forecast displays',
     'display_transit': 'Display public transit arrival times',
     'transit_respect_commute_hours': 'Show transit during commute hours only',
     'transit_display_frequency': 'Number of cycles between transit displays'
@@ -57,6 +59,7 @@ const configTypes = {
     'stocks_respect_market_hours': 'boolean',
     'stocks_grace_period_minutes': 'number',
     'show_weekday_indicator': 'boolean',
+    'forecast_display_frequency': 'number',
     'display_transit': 'boolean',
     'transit_respect_commute_hours': 'boolean',
     'transit_display_frequency': 'number',
@@ -71,6 +74,7 @@ const configTypes = {
 const configRanges = {
     'stocks_display_frequency': { min: 1, max: 78 },
     'stocks_grace_period_minutes': { min: 0, max: 120, showTimeHelper: true },
+    'forecast_display_frequency': { min: 1, max: 78 },
     'transit_display_frequency': { min: 1, max: 78 }
 };
 

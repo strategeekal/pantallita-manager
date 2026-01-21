@@ -3473,6 +3473,44 @@ header p {
 	-moz-appearance: textfield;
 }
 
+/* Select Input Styles for Configuration */
+.config-select {
+	flex-shrink: 0;
+}
+
+.config-select .select-input {
+	min-width: 60px;
+	height: 30px;
+	padding: 3px 8px;
+	background: white;
+	border: 3px solid #000;
+	font-size: 14px;
+	font-family: 'Courier New', monospace;
+	font-weight: bold;
+	text-align: center;
+	box-shadow: 2px 2px 0px rgba(0, 0, 0, 0.3);
+	transition: all 0.2s;
+	cursor: pointer;
+	-webkit-appearance: none;
+	-moz-appearance: none;
+	appearance: none;
+	background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+	background-repeat: no-repeat;
+	background-position: right 6px center;
+	background-size: 14px;
+	padding-right: 28px;
+}
+
+.config-select .select-input:hover {
+	box-shadow: 3px 3px 0px rgba(0, 0, 0, 0.4);
+}
+
+.config-select .select-input:focus {
+	outline: none;
+	border-color: #00FFAA;
+	box-shadow: 0 0 0 3px rgba(0, 255, 170, 0.3);
+}
+
 /* Time Helper Text */
 .time-helper-text {
 	display: inline-block;
@@ -3518,6 +3556,14 @@ header p {
 	}
 
 	.config-toggle {
+		align-self: flex-end;
+	}
+
+	.config-select {
+		align-self: flex-end;
+	}
+
+	.config-number-input {
 		align-self: flex-end;
 	}
 
