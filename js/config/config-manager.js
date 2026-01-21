@@ -7,6 +7,8 @@ import { fetchGitHubFile, saveGitHubFile } from '../core/api.js';
 
 let configState = null;
 let saveQueue = Promise.resolve(); // Queue for sequential saves
+let configLoaded = false; // Track if config was successfully loaded
+let loadInProgress = false; // Prevent concurrent loads
 
 // Configuration metadata for user-friendly labels
 const configLabels = {
@@ -154,18 +156,47 @@ function getGracePeriodDescription(minutes) {
 /**
  * Initialize the configuration manager
  */
-export function init() {
+export async function init() {
     console.log('Initializing Configuration Manager...');
-    loadConfig();
+    await loadConfig();
+}
+
+/**
+ * Check if config is loaded
+ * @returns {boolean} True if config was loaded successfully
+ */
+export function isConfigLoaded() {
+    return configLoaded;
 }
 
 /**
  * Load configuration file from GitHub
+ * @param {boolean} forceReload - Force reload even if already loaded
  */
-export async function loadConfig() {
+export async function loadConfig(forceReload = false) {
+        // Prevent concurrent loads
+        if (loadInProgress) {
+            console.log('Config load already in progress, skipping...');
+            return;
+        }
+
+        // Skip if already loaded (unless force reload)
+        if (configLoaded && !forceReload) {
+            console.log('Config already loaded');
+            return;
+        }
+
         const statusEl = document.getElementById('config-status');
         const errorEl = document.getElementById('config-error');
         const configEl = document.getElementById('config-settings');
+
+        // Elements might not exist yet if tab hasn't been rendered
+        if (!statusEl || !errorEl || !configEl) {
+            console.log('Config UI elements not ready, will retry when tab is opened');
+            return;
+        }
+
+        loadInProgress = true;
 
         // Show loading state
         statusEl.classList.remove('hidden');
@@ -196,18 +227,26 @@ export async function loadConfig() {
             // Render the configuration UI
             renderConfigSettings(parsedConfig.settings);
 
+            // Mark as loaded
+            configLoaded = true;
+
             // Hide loading, show success briefly
             statusEl.textContent = 'Loaded successfully';
             setTimeout(() => {
                 statusEl.classList.add('hidden');
             }, 2000);
 
+            console.log('Configuration loaded successfully');
+
         } catch (error) {
             console.error('Error loading configuration:', error);
+            configLoaded = false;
             statusEl.classList.add('hidden');
             errorEl.textContent = `Failed to load configuration: ${error.message}`;
             errorEl.classList.remove('hidden');
-            configEl.innerHTML = '<p class="error-message">Unable to load configuration settings.</p>';
+            configEl.innerHTML = '<p class="error-message">Unable to load configuration settings. <button class="btn-pixel btn-secondary" onclick="window.configManager.loadConfig(true)" style="margin-left: 10px;">Retry</button></p>';
+        } finally {
+            loadInProgress = false;
         }
 }
 
@@ -647,6 +686,7 @@ if (typeof window !== 'undefined') {
         reloadConfig,
         updateSetting,
         updateGracePeriodDescription,
-        updateCSVVersion
+        updateCSVVersion,
+        isConfigLoaded
     };
 }

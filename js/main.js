@@ -180,7 +180,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 		// CRITICAL: Initialize config manager BEFORE loading events/schedules
 		// This ensures CSV version tracking works properly
-		configManager.init();
+		await configManager.init();
 
 		// Auto-show app if token exists
 		await showApp();
