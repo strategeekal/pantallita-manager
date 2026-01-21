@@ -3212,6 +3212,154 @@ header p {
 }
 
 /* ============================================
+   HELP MODAL STYLES
+   ============================================ */
+
+.help-modal-content {
+	max-width: 900px;
+	max-height: 85vh;
+}
+
+.help-modal-body {
+	display: flex;
+	flex-direction: column;
+	max-height: 60vh;
+}
+
+.help-nav {
+	display: flex;
+	gap: 5px;
+	margin-bottom: 20px;
+	flex-wrap: wrap;
+	border-bottom: 3px solid #000;
+	padding-bottom: 15px;
+}
+
+.help-nav-btn {
+	padding: 10px 15px;
+	font-family: 'Courier New', monospace;
+	font-weight: bold;
+	font-size: 13px;
+	text-transform: uppercase;
+	background: #f0f0f0;
+	color: #666;
+	border: 2px solid #ccc;
+	cursor: pointer;
+	transition: all 0.2s;
+}
+
+.help-nav-btn:hover {
+	background: #e0e0e0;
+	border-color: #999;
+}
+
+.help-nav-btn.active {
+	background: #00FF88;
+	color: #000;
+	border-color: #000;
+}
+
+.help-content {
+	flex: 1;
+	overflow-y: auto;
+	padding-right: 10px;
+}
+
+.help-section {
+	display: none;
+}
+
+.help-section.active {
+	display: block;
+}
+
+.help-section h4 {
+	font-size: 1.5em;
+	margin-bottom: 20px;
+	padding-bottom: 10px;
+	border-bottom: 2px solid #e0e0e0;
+	color: #000;
+	text-transform: uppercase;
+	font-family: 'Courier New', monospace;
+}
+
+.help-section h5 {
+	font-size: 1.1em;
+	margin-top: 25px;
+	margin-bottom: 10px;
+	color: #333;
+	font-family: 'Courier New', monospace;
+}
+
+.help-section p {
+	margin-bottom: 15px;
+	line-height: 1.6;
+	color: #444;
+}
+
+.help-section ul,
+.help-section ol {
+	margin-bottom: 15px;
+	padding-left: 25px;
+}
+
+.help-section li {
+	margin-bottom: 8px;
+	line-height: 1.5;
+	color: #444;
+}
+
+.help-section code {
+	background: #f4f4f4;
+	border: 1px solid #ddd;
+	padding: 2px 6px;
+	font-family: 'Courier New', monospace;
+	font-size: 0.9em;
+	color: #d63384;
+}
+
+.help-section strong {
+	color: #000;
+}
+
+/* Mobile responsiveness for help modal */
+@media (max-width: 768px) {
+	.help-modal-content {
+		max-width: 100%;
+		margin: 10px;
+		max-height: 90vh;
+	}
+
+	.help-modal-body {
+		max-height: 70vh;
+	}
+
+	.help-nav {
+		gap: 5px;
+	}
+
+	.help-nav-btn {
+		padding: 8px 10px;
+		font-size: 11px;
+		flex: 1;
+		min-width: calc(50% - 5px);
+		text-align: center;
+	}
+
+	.help-section h4 {
+		font-size: 1.2em;
+	}
+
+	.help-section h5 {
+		font-size: 1em;
+	}
+
+	.help-content {
+		padding-right: 5px;
+	}
+}
+
+/* ============================================
    VALIDATION BADGE (Footer notification)
    ============================================ */
 

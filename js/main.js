@@ -389,3 +389,101 @@ function drawFeatureIcons() {
 	// Feature icon rendering would go here
 	// Simplified for mobile optimization
 }
+
+// ============================================
+// Help Modal Functions
+// ============================================
+
+function openHelpModal() {
+	const modal = document.getElementById('help-modal');
+	if (modal) {
+		modal.classList.remove('hidden');
+		// Reset to first section
+		showHelpSection('getting-started');
+	}
+}
+
+function closeHelpModal() {
+	const modal = document.getElementById('help-modal');
+	if (modal) {
+		modal.classList.add('hidden');
+	}
+}
+
+function showHelpSection(sectionId) {
+	// Hide all sections
+	document.querySelectorAll('.help-section').forEach(section => {
+		section.classList.remove('active');
+	});
+
+	// Deactivate all nav buttons
+	document.querySelectorAll('.help-nav-btn').forEach(btn => {
+		btn.classList.remove('active');
+	});
+
+	// Show selected section
+	const section = document.getElementById(`help-${sectionId}`);
+	if (section) {
+		section.classList.add('active');
+	}
+
+	// Activate corresponding nav button
+	const navBtn = document.querySelector(`.help-nav-btn[data-section="${sectionId}"]`);
+	if (navBtn) {
+		navBtn.classList.add('active');
+	}
+}
+
+// Initialize help nav click handlers
+function initHelpNavigation() {
+	document.querySelectorAll('.help-nav-btn').forEach(btn => {
+		btn.addEventListener('click', () => {
+			const section = btn.dataset.section;
+			if (section) {
+				showHelpSection(section);
+			}
+		});
+	});
+}
+
+// Expose help functions globally
+window.openHelpModal = openHelpModal;
+window.closeHelpModal = closeHelpModal;
+window.showHelpSection = showHelpSection;
+
+// Initialize help navigation when DOM is ready
+document.addEventListener('DOMContentLoaded', () => {
+	initHelpNavigation();
+});
+
+// ============================================
+// Footer Link Initialization
+// ============================================
+
+function updateFooterDataLink() {
+	const dataLink = document.getElementById('footer-data-link');
+	if (dataLink) {
+		const username = localStorage.getItem('pantallita_username');
+		const repo = localStorage.getItem('pantallita_repo');
+
+		if (username && repo) {
+			dataLink.href = `https://github.com/${username}/${repo}`;
+		} else {
+			dataLink.href = '#';
+		}
+	}
+}
+
+// Update footer link when app shows
+const originalShowApp = window.showApp;
+if (originalShowApp) {
+	window.showApp = async function() {
+		await originalShowApp();
+		updateFooterDataLink();
+	};
+}
+
+// Also update on page load if already logged in
+document.addEventListener('DOMContentLoaded', () => {
+	updateFooterDataLink();
+});

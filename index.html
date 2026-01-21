@@ -862,13 +862,200 @@
 			</div>
 		</div>
 
+		<!-- Help Modal -->
+		<div id="help-modal" class="modal hidden">
+			<div class="modal-content help-modal-content">
+				<div class="modal-header">
+					<h3>Help & Documentation</h3>
+					<button class="modal-close" onclick="window.closeHelpModal()">×</button>
+				</div>
+				<div class="modal-body help-modal-body">
+					<div class="help-nav">
+						<button class="help-nav-btn active" data-section="getting-started">Getting Started</button>
+						<button class="help-nav-btn" data-section="manager-guide">Using the Manager</button>
+						<button class="help-nav-btn" data-section="display-setup">Display Setup</button>
+						<button class="help-nav-btn" data-section="troubleshooting">Troubleshooting</button>
+					</div>
+					<div class="help-content">
+						<!-- Getting Started Section -->
+						<div id="help-getting-started" class="help-section active">
+							<h4>Getting Started</h4>
+
+							<h5>1. Fork the Data Repository</h5>
+							<p>The data repository contains your events, schedules, stocks, and images. To get your own copy:</p>
+							<ol>
+								<li>Go to the original repository on GitHub</li>
+								<li>Click the "Fork" button in the top right</li>
+								<li>This creates your own copy under your GitHub account</li>
+							</ol>
+
+							<h5>2. Create a GitHub Token</h5>
+							<p>You need a Personal Access Token to let the manager read/write your data:</p>
+							<ol>
+								<li>Go to GitHub → Settings → Developer settings → Personal access tokens → Fine-grained tokens</li>
+								<li>Click "Generate new token"</li>
+								<li>Name it something like "SCREENY Manager"</li>
+								<li>Under "Repository access", select "Only select repositories" and choose your forked repo</li>
+								<li>Under "Permissions", grant <strong>Read and Write</strong> access to "Contents"</li>
+								<li>Click "Generate token" and copy it somewhere safe</li>
+							</ol>
+
+							<h5>3. Login to the Manager</h5>
+							<p>On the login screen, enter:</p>
+							<ul>
+								<li><strong>Username:</strong> Your GitHub username</li>
+								<li><strong>Repository:</strong> Your forked repo name (e.g., "pantallita-events")</li>
+								<li><strong>Token:</strong> The token you just created</li>
+							</ul>
+							<p>Your credentials are stored locally in your browser and never sent anywhere except GitHub's API.</p>
+						</div>
+
+						<!-- Manager Guide Section -->
+						<div id="help-manager-guide" class="help-section">
+							<h4>Using the Manager</h4>
+
+							<h5>Events</h5>
+							<p>Events are special occasions displayed on your matrix (birthdays, holidays, etc.).</p>
+							<ul>
+								<li><strong>One-Time Events:</strong> Specific date events (e.g., "2025-12-25")</li>
+								<li><strong>Recurring Events:</strong> Annual events by month/day (e.g., every Dec 25)</li>
+								<li>Each event has two lines of text (max 12 characters each), a color, and an image</li>
+								<li>Optional time window to only show during certain hours</li>
+							</ul>
+
+							<h5>Schedules</h5>
+							<p>Schedules define daily routines displayed on the matrix.</p>
+							<ul>
+								<li><strong>Default Schedule:</strong> Applies every day based on day-of-week settings</li>
+								<li><strong>Date-Specific Schedules:</strong> Override for specific dates</li>
+								<li>Each item has a time range, image, and optional progress bar</li>
+								<li>Use the timeline view to visualize your day</li>
+								<li>Save schedules as templates for reuse</li>
+							</ul>
+
+							<h5>Stocks</h5>
+							<p>Display stock tickers, forex rates, commodities, or crypto prices.</p>
+							<ul>
+								<li>Regular stocks display in groups of 3</li>
+								<li>Highlighted stocks (⭐) display individually</li>
+								<li>Drag to reorder display sequence</li>
+								<li>Use "Lookup" to validate symbols and auto-fill names</li>
+							</ul>
+
+							<h5>Transits</h5>
+							<p>Display CTA bus/train arrival times.</p>
+							<ul>
+								<li>Add routes with stop numbers and display labels</li>
+								<li>Set minimum time threshold (don't show if arriving too soon)</li>
+								<li>Optional commute hours to only show during certain times</li>
+							</ul>
+
+							<h5>Configuration</h5>
+							<p>Control what appears on your display.</p>
+							<ul>
+								<li>Toggle features on/off (weather, stocks, transit, etc.)</li>
+								<li>Set display frequencies (how often stocks/transit cycle)</li>
+								<li>If you have multiple displays, switch between them with the toggle</li>
+							</ul>
+						</div>
+
+						<!-- Display Setup Section -->
+						<div id="help-display-setup" class="help-section">
+							<h4>Raspberry Pi Display Setup</h4>
+
+							<h5>Hardware Requirements</h5>
+							<ul>
+								<li>Raspberry Pi (3B+ or newer recommended)</li>
+								<li>64x32 RGB LED Matrix panel</li>
+								<li>Adafruit RGB Matrix Bonnet or HAT</li>
+								<li>5V power supply (4A+ recommended)</li>
+							</ul>
+
+							<h5>Initial Setup</h5>
+							<ol>
+								<li>Flash Raspberry Pi OS Lite to an SD card</li>
+								<li>Enable SSH and configure WiFi</li>
+								<li>Install the RGB matrix library</li>
+								<li>Clone the display software repository</li>
+								<li>Configure with your GitHub repo details</li>
+							</ol>
+
+							<h5>Adding Custom Images</h5>
+							<p>Images must be added to both the Pi and your GitHub repo:</p>
+							<ol>
+								<li>Create your image as a BMP file:
+									<ul>
+										<li>Event images: 27×28 pixels</li>
+										<li>Schedule images: 40×28 pixels</li>
+										<li>8-bit indexed color, black = transparent</li>
+									</ul>
+								</li>
+								<li>Copy to Pi: <code>scp image.bmp pi@[IP]:/home/pi/pantallita/img/events/</code></li>
+								<li>Upload to GitHub repo in the same <code>img/events/</code> or <code>img/schedules/</code> folder</li>
+								<li>Refresh the manager to see the new image in dropdowns</li>
+							</ol>
+
+							<h5>Display Token (Read-Only)</h5>
+							<p>For the Pi, create a separate fine-grained token with <strong>read-only</strong> "Contents" permission. This is safer since the Pi only needs to read data, not modify it.</p>
+						</div>
+
+						<!-- Troubleshooting Section -->
+						<div id="help-troubleshooting" class="help-section">
+							<h4>Troubleshooting</h4>
+
+							<h5>Manager won't load / shows errors</h5>
+							<ul>
+								<li>Check your token hasn't expired</li>
+								<li>Verify the repository name is correct</li>
+								<li>Make sure your token has "Contents" read/write permission</li>
+								<li>Try logging out and back in</li>
+							</ul>
+
+							<h5>Images not showing in preview</h5>
+							<ul>
+								<li>Images must be uploaded to the GitHub repo's <code>img/</code> folder</li>
+								<li>For private repos, images are fetched via API (may take a moment)</li>
+								<li>Check browser console for 404 errors</li>
+							</ul>
+
+							<h5>Display not updating</h5>
+							<ul>
+								<li>The Pi fetches new data periodically (usually every few minutes)</li>
+								<li>Check the Pi's internet connection</li>
+								<li>Verify the CSV files in your repo look correct</li>
+								<li>Check the Pi's logs for errors</li>
+							</ul>
+
+							<h5>Config not loading on mobile</h5>
+							<ul>
+								<li>Mobile browsers (especially Safari) may clear localStorage</li>
+								<li>Avoid using Private/Incognito mode</li>
+								<li>Add the site to your home screen for better persistence</li>
+							</ul>
+
+							<h5>Validation errors</h5>
+							<ul>
+								<li>Use "Validate Data" in the footer to check for issues</li>
+								<li>Common issues: missing images, past events, duplicate schedule names</li>
+								<li>"Clear Past Events" removes old one-time events</li>
+							</ul>
+						</div>
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button class="btn-pixel btn-secondary" onclick="window.closeHelpModal()">Close</button>
+				</div>
+			</div>
+		</div>
+
 		<footer class="app-footer">
 			<div class="footer-left">
-				<span class="footer-version">SCREENY Manager v1.5.0</span>
-				<a href="https://github.com/strategeekal/pantallita-events" target="_blank" class="footer-link">Data</a>
-				<a href="https://github.com/strategeekal/pantallita-manager" target="_blank" class="footer-link">Code</a>
+				<span class="footer-version">SCREENY Manager v1.9.0</span>
+				<a id="footer-data-link" href="#" target="_blank" class="footer-link">Data</a>
+				<a href="https://github.com/yourusername/pantallita-manager" target="_blank" class="footer-link">Code</a>
 				<span class="footer-separator">|</span>
-				<a href="#" class="footer-link" onclick="window.templateManager.openTemplateManager(); return false;">Template Manager</a>
+				<a href="#" class="footer-link" onclick="window.openHelpModal(); return false;">Help</a>
+				<a href="#" class="footer-link" onclick="window.templateManager.openTemplateManager(); return false;">Templates</a>
 				<span class="footer-separator">|</span>
 				<a href="#" class="footer-link validation-link" onclick="window.runValidation(); return false;">
 					Validate Data
