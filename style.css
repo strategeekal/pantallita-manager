@@ -3328,15 +3328,17 @@ header p {
 	border: 3px solid #000;
 	cursor: pointer;
 	transition: all 0.2s;
+	margin-left: -3px; /* Overlap borders for connected look */
 }
 
 .display-btn:first-child {
-	border-right: none;
+	margin-left: 0;
 }
 
 .display-btn:hover {
 	background: #555;
 	color: #aaa;
+	z-index: 1;
 }
 
 .display-btn.active {

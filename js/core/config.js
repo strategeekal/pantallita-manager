@@ -72,7 +72,11 @@ export function setDisplay(display) {
 	localStorage.setItem(DISPLAY_KEY, display);
 }
 
-export function getConfigFilename() {
+export function getConfigFilename(useLegacyFallback = false) {
 	const display = getDisplay();
+	// If legacy fallback requested (for single-display setups with config.csv)
+	if (useLegacyFallback) {
+		return 'config.csv';
+	}
 	return `config_display${display}.csv`;
 }

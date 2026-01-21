@@ -10,6 +10,7 @@ let configState = null;
 let saveQueue = Promise.resolve(); // Queue for sequential saves
 let configLoaded = false; // Track if config was successfully loaded
 let loadInProgress = false; // Prevent concurrent loads
+let availableDisplays = []; // List of available display config files
 
 // Configuration metadata for user-friendly labels
 const configLabels = {
@@ -159,7 +160,125 @@ function getGracePeriodDescription(minutes) {
  */
 export async function init() {
     console.log('Initializing Configuration Manager...');
+
+    // First, detect available display config files
+    await detectAvailableDisplays();
+
+    // Then load the config for the selected display
     await loadConfig();
+}
+
+/**
+ * Detect available display config files in the repo
+ * Looks for files matching pattern: config_display*.csv or config.csv
+ */
+async function detectAvailableDisplays() {
+    try {
+        const { loadConfig: loadAppConfig } = await import('../core/config.js');
+        const appConfig = loadAppConfig();
+
+        if (!appConfig.token || !appConfig.owner || !appConfig.repo) {
+            console.warn('GitHub not configured, cannot detect displays');
+            availableDisplays = ['1']; // Default to single display
+            return;
+        }
+
+        // Fetch root directory contents
+        const response = await fetch(
+            `https://api.github.com/repos/${appConfig.owner}/${appConfig.repo}/contents/`,
+            {
+                headers: {
+                    'Authorization': `Bearer ${appConfig.token}`,
+                    'Accept': 'application/vnd.github.v3+json'
+                }
+            }
+        );
+
+        if (!response.ok) {
+            console.warn('Could not fetch repo contents, defaulting to single display');
+            availableDisplays = ['1'];
+            return;
+        }
+
+        const files = await response.json();
+
+        // Find all config_display*.csv files
+        const configFiles = files
+            .filter(f => f.name.match(/^config_display(\d+)\.csv$/))
+            .map(f => {
+                const match = f.name.match(/^config_display(\d+)\.csv$/);
+                return match ? match[1] : null;
+            })
+            .filter(Boolean)
+            .sort((a, b) => parseInt(a) - parseInt(b));
+
+        // Also check for legacy config.csv (treat as display 1 if no display-specific configs)
+        const hasLegacyConfig = files.some(f => f.name === 'config.csv');
+
+        if (configFiles.length > 0) {
+            availableDisplays = configFiles;
+            console.log(`Detected ${configFiles.length} display config(s):`, availableDisplays);
+        } else if (hasLegacyConfig) {
+            // Legacy single config.csv - treat as one display
+            availableDisplays = ['1'];
+            console.log('Found legacy config.csv, using single display mode');
+        } else {
+            availableDisplays = ['1'];
+            console.log('No config files found, defaulting to single display');
+        }
+
+        // Validate current display selection
+        const currentDisplay = getDisplay();
+        if (!availableDisplays.includes(currentDisplay)) {
+            console.log(`Current display ${currentDisplay} not available, switching to ${availableDisplays[0]}`);
+            setDisplay(availableDisplays[0]);
+        }
+
+        // Render the display selector UI
+        renderDisplaySelector();
+
+    } catch (error) {
+        console.error('Error detecting displays:', error);
+        availableDisplays = ['1'];
+    }
+}
+
+/**
+ * Render the display selector UI based on available displays
+ */
+function renderDisplaySelector() {
+    const container = document.querySelector('.display-selector-container');
+    if (!container) return;
+
+    // Hide selector if only one display
+    if (availableDisplays.length <= 1) {
+        container.style.display = 'none';
+        return;
+    }
+
+    container.style.display = 'flex';
+
+    // Build toggle buttons
+    const toggleContainer = container.querySelector('.display-toggle');
+    if (!toggleContainer) return;
+
+    const currentDisplay = getDisplay();
+
+    toggleContainer.innerHTML = availableDisplays.map(displayNum => `
+        <button
+            id="display-btn-${displayNum}"
+            class="display-btn ${displayNum === currentDisplay ? 'active' : ''}"
+            onclick="window.configManager.switchDisplay('${displayNum}')"
+        >Display ${displayNum}</button>
+    `).join('');
+}
+
+/**
+ * Get the list of available displays
+ * @returns {string[]} Array of display numbers
+ */
+export function getAvailableDisplays() {
+    return [...availableDisplays];
 }
 
 /**
@@ -205,14 +324,25 @@ export async function loadConfig(forceReload = false) {
         errorEl.textContent = '';
 
         try {
-            const filename = getConfigFilename();
+            let filename = getConfigFilename();
             console.log(`Loading configuration file: ${filename} (Display ${getDisplay()})`);
 
-            const response = await fetchGitHubFile(filename);
+            let response = await fetchGitHubFile(filename);
+
+            // If display-specific config not found, try legacy config.csv
+            if (!response || !response.content) {
+                console.log(`${filename} not found, trying legacy config.csv...`);
+                filename = 'config.csv';
+                response = await fetchGitHubFile(filename);
+            }
 
             if (!response || !response.content) {
                 throw new Error('Configuration file not found');
             }
+
+            // Store the actual filename used (for saving)
+            configState = configState || {};
+            configState.filename = filename;
 
             // Parse the CSV content
             const parsedConfig = parseConfigCSV(response.content);
@@ -515,8 +645,8 @@ export async function saveConfig() {
             // Build the CSV content
             const csvContent = buildConfigCSV(configState);
 
-            // Save to GitHub (use display-specific config file)
-            const filename = getConfigFilename();
+            // Save to GitHub (use the filename that was loaded, or display-specific)
+            const filename = configState.filename || getConfigFilename();
 
             const result = await saveGitHubFile(
                 filename,
@@ -637,57 +767,99 @@ async function waitForConfig() {
 }
 
 /**
- * Update CSV file version timestamp
+ * Update CSV file version timestamp in ALL display config files
+ * Since data files (stocks, events, schedules) are shared, all displays need to know about changes
  * @param {string} csvType - Type of CSV file ('stocks', 'schedules', 'transits', 'ephemeral_events')
  */
 export async function updateCSVVersion(csvType) {
-    // Skip if config not loaded yet - timestamps are optional metadata
-    if (!configState || !configState.settings) {
-        console.warn(`updateCSVVersion(${csvType}): Config not loaded yet, skipping`);
-        return;
-    }
-
     const versionKey = `${csvType}_csv_version`;
     const timestamp = new Date().toISOString();
 
-    console.log(`updateCSVVersion(${csvType}): Looking for setting ${versionKey}`);
-    console.log(`updateCSVVersion(${csvType}): configState has ${configState.settings.length} settings`);
+    console.log(`updateCSVVersion(${csvType}): Updating ${versionKey} in all display configs`);
 
-    // Update the timestamp in memory
-    let setting = configState.settings.find(s => s.name === versionKey);
-
-    if (setting) {
-        const oldValue = setting.value;
-        setting.value = timestamp;
-        console.log(`✓ Updated CSV version timestamp: ${versionKey}`);
-        console.log(`  Old value: ${oldValue}`);
-        console.log(`  New value: ${timestamp}`);
-    } else {
-        // Create the setting if it doesn't exist
-        setting = { name: versionKey, value: timestamp };
-        configState.settings.push(setting);
-        console.log(`✓ Created CSV version timestamp: ${versionKey}`);
-        console.log(`  New value: ${timestamp}`);
+    // Update current display's config (in memory)
+    if (configState && configState.settings) {
+        let setting = configState.settings.find(s => s.name === versionKey);
+        if (setting) {
+            setting.value = timestamp;
+        } else {
+            configState.settings.push({ name: versionKey, value: timestamp, type: 'timestamp', section: 'CSV Versions' });
+        }
     }
 
-    // Queue the save to prevent concurrent saves
+    // Queue saves to prevent concurrent saves
     saveQueue = saveQueue.then(async () => {
         try {
-            console.log(`  Auto-saving config with updated timestamp...`);
-            await saveConfig();
+            // Save current display's config
+            if (configState && configState.settings) {
+                console.log(`  Saving timestamp to current display config...`);
+                await saveConfig();
+            }
+
+            // Update ALL other display config files
+            const currentDisplay = getDisplay();
+            const otherDisplays = availableDisplays.filter(d => d !== currentDisplay);
+
+            for (const displayNum of otherDisplays) {
+                const filename = `config_display${displayNum}.csv`;
+                console.log(`  Updating timestamp in ${filename}...`);
+                await updateTimestampInOtherConfig(filename, versionKey, timestamp);
+            }
+
         } catch (error) {
-            console.error(`  Failed to auto-save config:`, error);
+            console.error(`  Failed to update CSV version:`, error);
         }
     });
 }
 
 /**
+ * Update a timestamp in another display's config file
+ * @param {string} filename - Config filename to update
+ * @param {string} versionKey - The timestamp key to update
+ * @param {string} timestamp - The new timestamp value
+ */
+async function updateTimestampInOtherConfig(filename, versionKey, timestamp) {
+    try {
+        // Fetch the other config file
+        const response = await fetchGitHubFile(filename);
+
+        if (!response || !response.content) {
+            console.warn(`  Could not fetch ${filename} - file may not exist yet`);
+            return;
+        }
+
+        // Parse it
+        const parsedConfig = parseConfigCSV(response.content);
+
+        // Update or add the timestamp
+        let setting = parsedConfig.settings.find(s => s.name === versionKey);
+        if (setting) {
+            setting.value = timestamp;
+        } else {
+            parsedConfig.settings.push({ name: versionKey, value: timestamp, type: 'timestamp', section: 'CSV Versions' });
+        }
+
+        // Build and save
+        const csvContent = buildConfigCSV({ settings: parsedConfig.settings, comments: parsedConfig.comments });
+
+        await saveGitHubFile(filename, csvContent, response.sha);
+
+        console.log(`  ✓ Updated ${versionKey} in ${filename}`);
+
+    } catch (error) {
+        // Don't fail the whole operation if we can't update the other config
+        console.warn(`  Could not update ${filename}:`, error.message);
+    }
+}
+
+/**
  * Switch to a different display and reload config
- * @param {string} displayNum - Display number ('1' or '2')
+ * @param {string} displayNum - Display number (e.g., '1', '2', '3')
  */
 export async function switchDisplay(displayNum) {
-    if (displayNum !== '1' && displayNum !== '2') {
-        console.error('Invalid display number:', displayNum);
+    // Validate against available displays
+    if (!availableDisplays.includes(displayNum)) {
+        console.error('Invalid display number:', displayNum, '- Available:', availableDisplays);
         return;
     }
 
@@ -756,6 +928,7 @@ if (typeof window !== 'undefined') {
         isConfigLoaded,
         switchDisplay,
         getCurrentDisplay,
-        updateDisplaySelectorUI
+        updateDisplaySelectorUI,
+        getAvailableDisplays
     };
 }
