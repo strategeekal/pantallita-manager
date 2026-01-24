@@ -38,4 +38,7 @@ weather_display_duration,240
 forecast_display_duration,60
 stocks_display_duration,30
 transit_display_duration,30
+
+# Display Order
+display_order,weather,forecast,events,stocks,transit
  

@@ -32,7 +32,17 @@ const configLabels = {
     'weather_display_duration': 'Weather Duration (seconds)',
     'forecast_display_duration': 'Forecast Duration (seconds)',
     'stocks_display_duration': 'Stocks Duration (seconds)',
-    'transit_display_duration': 'Transit Duration (seconds)'
+    'transit_display_duration': 'Transit Duration (seconds)',
+    'display_order': 'Display Order'
+};
+
+// Mapping between display_order items and their toggle settings
+const displayOrderMapping = {
+    'weather': { toggle: 'display_weather', label: 'Weather', icon: '🌤️' },
+    'forecast': { toggle: 'display_forecast', label: 'Forecast', icon: '📅' },
+    'events': { toggle: 'display_events', label: 'Events', icon: '🎉' },
+    'stocks': { toggle: 'display_stocks', label: 'Stocks', icon: '📈' },
+    'transit': { toggle: 'display_transit', label: 'Transit', icon: '🚇' }
 };
 
 // Configuration descriptions for tooltips
@@ -55,7 +65,8 @@ const configDescriptions = {
     'weather_display_duration': 'How long weather is displayed on screen',
     'forecast_display_duration': 'How long forecast is displayed on screen',
     'stocks_display_duration': 'How long stocks are displayed on screen',
-    'transit_display_duration': 'How long transit info is displayed on screen'
+    'transit_display_duration': 'How long transit info is displayed on screen',
+    'display_order': 'Drag to reorder how displays cycle on your matrix'
 };
 
 // Configuration field types
@@ -83,7 +94,8 @@ const configTypes = {
     'weather_display_duration': 'number',
     'forecast_display_duration': 'number',
     'stocks_display_duration': 'number',
-    'transit_display_duration': 'number'
+    'transit_display_duration': 'number',
+    'display_order': 'order'
 };
 
 // Configuration ranges for numeric fields
@@ -431,11 +443,10 @@ function parseConfigCSV(content) {
                 continue;
             }
 
-            // Parse setting line: setting,value
+            // Parse setting line: setting,value (or setting,value1,value2,... for order type)
             const parts = trimmedLine.split(',');
-            if (parts.length === 2) {
+            if (parts.length >= 2) {
                 const settingName = parts[0].trim();
-                const settingValue = parts[1].trim();
 
                 // Skip unknown settings (not in configTypes) - they may be legacy or malformed
                 if (!configTypes[settingName]) {
@@ -448,13 +459,17 @@ function parseConfigCSV(content) {
                 let parsedValue;
 
                 if (fieldType === 'number') {
-                    parsedValue = parseInt(settingValue, 10);
+                    parsedValue = parseInt(parts[1].trim(), 10);
                 } else if (fieldType === 'select') {
-                    parsedValue = settingValue;
+                    parsedValue = parts[1].trim();
                 } else if (fieldType === 'timestamp') {
-                    parsedValue = settingValue;
+                    parsedValue = parts[1].trim();
+                } else if (fieldType === 'order') {
+                    // Order type: comma-separated list after the setting name
+                    parsedValue = parts.slice(1).map(p => p.trim()).filter(p => p);
                 } else {
                     // Boolean type - handle both true/false strings and 1/0
+                    const settingValue = parts[1].trim();
                     parsedValue = settingValue === 'true' || settingValue === '1';
                 }
 
@@ -563,6 +578,19 @@ function renderConfigSettings(settings) {
                             </div>
                         </div>
                     `;
+                } else if (setting.type === 'order') {
+                    // Render draggable order boxes
+                    html += `
+                        <div class="config-setting config-setting-order">
+                            <div class="config-setting-info">
+                                <label class="config-label">${setting.label}</label>
+                                ${setting.description ? `<span class="config-description">${setting.description}</span>` : ''}
+                            </div>
+                            <div class="config-order-container" id="${settingId}-container">
+                                ${renderOrderItems(setting.value, settingId)}
+                            </div>
+                        </div>
+                    `;
                 } else {
                     // Render toggle for boolean
                     const checked = setting.value ? 'checked' : '';
@@ -596,6 +624,175 @@ function renderConfigSettings(settings) {
 }
 
 /**
+ * Render order items as draggable boxes
+ * @param {Array} orderArray - Array of display keys in order
+ * @param {string} settingId - The setting element ID
+ * @returns {string} HTML string
+ */
+function renderOrderItems(orderArray, settingId) {
+    let html = '';
+
+    orderArray.forEach((item, index) => {
+        const mapping = displayOrderMapping[item];
+        if (!mapping) return;
+
+        const isEnabled = isDisplayEnabled(mapping.toggle);
+        const disabledClass = isEnabled ? '' : 'order-item-disabled';
+        const disabledTitle = isEnabled ? '' : ' (disabled)';
+
+        html += `
+            <div class="order-item ${disabledClass}"
+                 draggable="true"
+                 data-key="${item}"
+                 data-index="${index}"
+                 data-setting-id="${settingId}"
+                 ondragstart="window.configManager.handleOrderDragStart(event)"
+                 ondragover="window.configManager.handleOrderDragOver(event)"
+                 ondragleave="window.configManager.handleOrderDragLeave(event)"
+                 ondrop="window.configManager.handleOrderDrop(event)"
+                 ondragend="window.configManager.handleOrderDragEnd(event)">
+                <span class="order-item-handle">⋮⋮</span>
+                <span class="order-item-icon">${mapping.icon}</span>
+                <span class="order-item-label">${mapping.label}${disabledTitle}</span>
+                <span class="order-item-position">${index + 1}</span>
+            </div>
+        `;
+    });
+
+    return html;
+}
+
+/**
+ * Check if a display toggle is enabled
+ * @param {string} toggleName - The toggle setting name
+ * @returns {boolean} True if enabled
+ */
+function isDisplayEnabled(toggleName) {
+    if (!configState || !configState.settings) return true;
+    const setting = configState.settings.find(s => s.name === toggleName);
+    return setting ? setting.value : true;
+}
+
+/**
+ * Re-render the order items (called after toggle changes)
+ */
+function refreshOrderDisplay() {
+    const orderSetting = configState?.settings?.find(s => s.type === 'order');
+    if (!orderSetting) return;
+
+    const settingId = `config-${orderSetting.name}`;
+    const container = document.getElementById(`${settingId}-container`);
+    if (container) {
+        container.innerHTML = renderOrderItems(orderSetting.value, settingId);
+    }
+}
+
+// Order drag and drop state
+let orderDraggedIndex = null;
+let orderDraggedElement = null;
+let orderSettingId = null;
+
+/**
+ * Handle drag start for order items
+ * @param {DragEvent} event
+ */
+export function handleOrderDragStart(event) {
+    orderDraggedIndex = parseInt(event.currentTarget.dataset.index);
+    orderDraggedElement = event.currentTarget;
+    orderSettingId = event.currentTarget.dataset.settingId;
+    event.currentTarget.classList.add('order-item-dragging');
+    event.dataTransfer.effectAllowed = 'move';
+    event.dataTransfer.setData('text/plain', orderDraggedIndex.toString());
+}
+
+/**
+ * Handle drag over for order items
+ * @param {DragEvent} event
+ */
+export function handleOrderDragOver(event) {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const target = event.currentTarget;
+    const targetIndex = parseInt(target.dataset.index);
+
+    if (orderDraggedIndex === targetIndex) {
+        return false;
+    }
+
+    // Remove drag-over from siblings
+    const container = target.parentElement;
+    container.querySelectorAll('.order-item').forEach(item => {
+        if (item !== target) {
+            item.classList.remove('order-item-drag-over');
+        }
+    });
+
+    target.classList.add('order-item-drag-over');
+    event.dataTransfer.dropEffect = 'move';
+    return false;
+}
+
+/**
+ * Handle drag leave for order items
+ * @param {DragEvent} event
+ */
+export function handleOrderDragLeave(event) {
+    event.currentTarget.classList.remove('order-item-drag-over');
+}
+
+/**
+ * Handle drop for order items
+ * @param {DragEvent} event
+ */
+export function handleOrderDrop(event) {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const dropIndex = parseInt(event.currentTarget.dataset.index);
+
+    if (orderDraggedIndex !== null && orderDraggedIndex !== dropIndex) {
+        // Find the order setting
+        const orderSetting = configState?.settings?.find(s => s.type === 'order');
+        if (orderSetting && Array.isArray(orderSetting.value)) {
+            // Move the item
+            const draggedItem = orderSetting.value[orderDraggedIndex];
+            orderSetting.value.splice(orderDraggedIndex, 1);
+            orderSetting.value.splice(dropIndex, 0, draggedItem);
+
+            // Re-render the order items
+            const container = document.getElementById(`${orderSettingId}-container`);
+            if (container) {
+                container.innerHTML = renderOrderItems(orderSetting.value, orderSettingId);
+            }
+
+            console.log('Updated display order:', orderSetting.value.join(','));
+        }
+    }
+
+    return false;
+}
+
+/**
+ * Handle drag end for order items
+ * @param {DragEvent} event
+ */
+export function handleOrderDragEnd(event) {
+    if (orderDraggedElement) {
+        orderDraggedElement.classList.remove('order-item-dragging');
+    }
+
+    // Remove drag-over from all items
+    document.querySelectorAll('.order-item').forEach(item => {
+        item.classList.remove('order-item-drag-over');
+    });
+
+    orderDraggedIndex = null;
+    orderDraggedElement = null;
+    orderSettingId = null;
+}
+
+/**
  * Update a setting value
  * @param {string} settingName - Name of the setting
  * @param {*} value - New value
@@ -611,6 +808,11 @@ export function updateSetting(settingName, value) {
         if (setting) {
             setting.value = value;
             console.log(`Updated setting: ${settingName} = ${value}`);
+
+            // If this is a display toggle, refresh the order display
+            if (settingName.startsWith('display_')) {
+                refreshOrderDisplay();
+            }
         }
 }
 
@@ -743,6 +945,9 @@ function buildConfigCSV(configData) {
                     value = setting.value;
                 } else if (setting.type === 'timestamp') {
                     value = setting.value;
+                } else if (setting.type === 'order') {
+                    // Order type - comma-separated list
+                    value = Array.isArray(setting.value) ? setting.value.join(',') : setting.value;
                 } else {
                     // Boolean - use true/false strings
                     value = setting.value ? 'true' : 'false';
@@ -945,6 +1150,11 @@ if (typeof window !== 'undefined') {
         switchDisplay,
         getCurrentDisplay,
         updateDisplaySelectorUI,
-        getAvailableDisplays
+        getAvailableDisplays,
+        handleOrderDragStart,
+        handleOrderDragOver,
+        handleOrderDragLeave,
+        handleOrderDrop,
+        handleOrderDragEnd
     };
 }

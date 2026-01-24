@@ -318,6 +318,7 @@ delayed_start,0
 - `forecast_display_duration` - How long forecast is displayed on screen (numeric: 30-900 seconds, default: 60)
 - `stocks_display_duration` - How long stocks are displayed on screen (numeric: 30-900 seconds, default: 30)
 - `transit_display_duration` - How long transit info is displayed on screen (numeric: 30-900 seconds, default: 30)
+- `display_order` - Order in which active displays cycle (comma-separated list: weather,forecast,events,stocks,transit)
 
 **Example:**
 ```csv
@@ -356,6 +357,9 @@ weather_display_duration,240
 forecast_display_duration,60
 stocks_display_duration,30
 transit_display_duration,30
+
+# Display Order
+display_order,weather,forecast,events,stocks,transit
 ```
 
 Two configuration files are supported for dual matrix setups: `matrix1_config.csv` and `matrix2_config.csv`.
