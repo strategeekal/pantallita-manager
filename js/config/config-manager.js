@@ -28,7 +28,11 @@ const configLabels = {
     'forecast_display_frequency': 'Forecast: Display Cycle Frequency',
     'display_transit': 'Display Transit',
     'transit_respect_commute_hours': 'Transit: Only During Commute Hours',
-    'transit_display_frequency': 'Transit: Display Cycle Frequency'
+    'transit_display_frequency': 'Transit: Display Cycle Frequency',
+    'weather_display_duration': 'Weather Duration (seconds)',
+    'forecast_display_duration': 'Forecast Duration (seconds)',
+    'stocks_display_duration': 'Stocks Duration (seconds)',
+    'transit_display_duration': 'Transit Duration (seconds)'
 };
 
 // Configuration descriptions for tooltips
@@ -47,7 +51,11 @@ const configDescriptions = {
     'forecast_display_frequency': 'Number of cycles between forecast displays',
     'display_transit': 'Display public transit arrival times',
     'transit_respect_commute_hours': 'Show transit during commute hours only',
-    'transit_display_frequency': 'Number of cycles between transit displays'
+    'transit_display_frequency': 'Number of cycles between transit displays',
+    'weather_display_duration': 'How long weather is displayed on screen',
+    'forecast_display_duration': 'How long forecast is displayed on screen',
+    'stocks_display_duration': 'How long stocks are displayed on screen',
+    'transit_display_duration': 'How long transit info is displayed on screen'
 };
 
 // Configuration field types
@@ -71,7 +79,11 @@ const configTypes = {
     'schedules_csv_version': 'timestamp',
     'transits_csv_version': 'timestamp',
     'ephemeral_events_csv_version': 'timestamp',
-    'recurring_events_csv_version': 'timestamp'
+    'recurring_events_csv_version': 'timestamp',
+    'weather_display_duration': 'number',
+    'forecast_display_duration': 'number',
+    'stocks_display_duration': 'number',
+    'transit_display_duration': 'number'
 };
 
 // Configuration ranges for numeric fields
@@ -79,7 +91,11 @@ const configRanges = {
     'stocks_display_frequency': { min: 1, max: 78 },
     'stocks_grace_period_minutes': { min: 0, max: 120, showTimeHelper: true },
     'forecast_display_frequency': { min: 1, max: 78 },
-    'transit_display_frequency': { min: 1, max: 78 }
+    'transit_display_frequency': { min: 1, max: 78 },
+    'weather_display_duration': { min: 30, max: 900 },
+    'forecast_display_duration': { min: 30, max: 900 },
+    'stocks_display_duration': { min: 30, max: 900 },
+    'transit_display_duration': { min: 30, max: 900 }
 };
 
 // Select field options

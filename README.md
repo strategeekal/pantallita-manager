@@ -314,6 +314,10 @@ delayed_start,0
 - `transit_respect_commute_hours` - On = Show transit during commute hours only
 - `night_mode_minimal_display` - Enable minimal display mode during nighttime hours
 - `delayed_start` - Enable delayed startup for safety
+- `weather_display_duration` - How long weather is displayed on screen (numeric: 30-900 seconds, default: 240)
+- `forecast_display_duration` - How long forecast is displayed on screen (numeric: 30-900 seconds, default: 60)
+- `stocks_display_duration` - How long stocks are displayed on screen (numeric: 30-900 seconds, default: 30)
+- `transit_display_duration` - How long transit info is displayed on screen (numeric: 30-900 seconds, default: 30)
 
 **Example:**
 ```csv
@@ -346,6 +350,12 @@ night_mode_minimal_display,1
 
 # Safety features
 delayed_start,0
+
+# Display Time Controls
+weather_display_duration,240
+forecast_display_duration,60
+stocks_display_duration,30
+transit_display_duration,30
 ```
 
 Two configuration files are supported for dual matrix setups: `matrix1_config.csv` and `matrix2_config.csv`.
