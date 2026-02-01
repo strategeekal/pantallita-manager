@@ -69,3 +69,76 @@ export function debounce(func, wait) {
 		timeout = setTimeout(later, wait);
 	};
 }
+
+// Parse schedule filename: "2026-02-01.csv" or "2026-02-01_to_2026-02-05.csv"
+// Returns: { startDate, endDate, isRange, isDefault }
+export function parseScheduleFilename(filename) {
+	if (filename === 'default.csv') {
+		return { startDate: null, endDate: null, isRange: false, isDefault: true };
+	}
+
+	const baseName = filename.replace('.csv', '');
+	const rangeMatch = baseName.match(/^(\d{4}-\d{2}-\d{2})_to_(\d{4}-\d{2}-\d{2})$/);
+
+	if (rangeMatch) {
+		return {
+			startDate: rangeMatch[1],
+			endDate: rangeMatch[2],
+			isRange: true,
+			isDefault: false
+		};
+	}
+
+	// Single date format
+	return {
+		startDate: baseName,
+		endDate: baseName,
+		isRange: false,
+		isDefault: false
+	};
+}
+
+// Count days between two dates (inclusive)
+export function getDaysBetweenDates(startDate, endDate) {
+	const start = new Date(startDate + 'T00:00:00');
+	const end = new Date(endDate + 'T00:00:00');
+	const diffTime = Math.abs(end - start);
+	const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+	return diffDays + 1; // inclusive
+}
+
+// Generate date info for checkboxes
+// Returns: [{ dateStr, label: "2/1", dayOfWeek: 5 }, ...]
+export function generateDateRangeInfo(startDate, endDate) {
+	const dates = [];
+	const current = new Date(startDate + 'T00:00:00');
+	const end = new Date(endDate + 'T00:00:00');
+
+	while (current <= end) {
+		const dateStr = current.toISOString().split('T')[0];
+		const month = current.getMonth() + 1;
+		const day = current.getDate();
+		// Convert JS day (0=Sunday) to schedule day (0=Monday)
+		const dayOfWeek = (current.getDay() + 6) % 7;
+
+		dates.push({
+			dateStr,
+			label: `${month}/${day}`,
+			dayOfWeek
+		});
+
+		current.setDate(current.getDate() + 1);
+	}
+
+	return dates;
+}
+
+// Generate filename from dates
+// Returns: "2026-02-01.csv" or "2026-02-01_to_2026-02-05.csv"
+export function formatScheduleFilename(startDate, endDate) {
+	if (!startDate) return null;
+	if (!endDate || startDate === endDate) {
+		return `${startDate}.csv`;
+	}
+	return `${startDate}_to_${endDate}.csv`;
+}

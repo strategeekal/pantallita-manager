@@ -1,6 +1,6 @@
 // Schedule Editor Module - Edit schedule items, add/delete, save
 import { fetchGitHubFile, saveGitHubFile, deleteGitHubFile } from '../core/api.js';
-import { showStatus, parseCSV, getDayOfWeek, formatImageName } from '../core/utils.js';
+import { showStatus, parseCSV, getDayOfWeek, formatImageName, parseScheduleFilename, getDaysBetweenDates, generateDateRangeInfo, formatScheduleFilename } from '../core/utils.js';
 import { loadConfig } from '../core/config.js';
 import { loadSchedules, scheduleImages, scheduleTemplates } from './schedule-manager.js';
 import { updateCSVVersion } from '../config/config-manager.js';
@@ -216,6 +216,9 @@ export function createNewSchedule() {
 	currentScheduleData = {
 		type: 'new-date',
 		date: null,
+		startDate: null,
+		endDate: null,
+		isRange: false,
 		items: [],
 		isNew: true
 	};
@@ -247,14 +250,24 @@ export async function editSchedule(filename) {
 		const data = await response.json();
 		const content = decodeURIComponent(escape(atob(data.content)));
 
-		const isDefault = filename === 'default.csv';
-		const date = isDefault ? null : filename.replace('.csv', '');
-
+		const parsed = parseScheduleFilename(filename);
 		const parsedItems = parseScheduleCSV(content);
 
+		let scheduleType;
+		if (parsed.isDefault) {
+			scheduleType = 'default';
+		} else if (parsed.isRange) {
+			scheduleType = 'edit-range';
+		} else {
+			scheduleType = 'edit-date';
+		}
+
 		currentScheduleData = {
-			type: isDefault ? 'default' : 'edit-date',
-			date: date,
+			type: scheduleType,
+			date: parsed.startDate, // Keep for backward compatibility
+			startDate: parsed.startDate,
+			endDate: parsed.endDate,
+			isRange: parsed.isRange,
 			filename: filename,
 			sha: data.sha,
 			items: parsedItems,
@@ -264,7 +277,14 @@ export async function editSchedule(filename) {
 		showScheduleEditor();
 		populateScheduleEditor();
 
-		const title = isDefault ? 'Edit Default Schedule' : `Edit Schedule for ${date}`;
+		let title;
+		if (parsed.isDefault) {
+			title = 'Edit Default Schedule';
+		} else if (parsed.isRange) {
+			title = `Edit Schedule for ${parsed.startDate} to ${parsed.endDate}`;
+		} else {
+			title = `Edit Schedule for ${parsed.startDate}`;
+		}
 		const titleElement = document.getElementById('schedule-editor-title');
 
 		if (titleElement) {
@@ -391,8 +411,8 @@ function populateScheduleEditor() {
 					<p class="schedule-mode-info">Editing default schedule template</p>
 				</div>
 			`;
-		} else if (currentScheduleData.type === 'edit-date') {
-			if (!currentScheduleData.date) {
+		} else if (currentScheduleData.type === 'edit-date' || currentScheduleData.type === 'edit-range') {
+			if (!currentScheduleData.startDate) {
 				scheduleInfoForm.innerHTML = `
 					<div class="form-group">
 						<p class="schedule-mode-info error">Error: Date is missing</p>
@@ -400,16 +420,26 @@ function populateScheduleEditor() {
 				`;
 			} else {
 				try {
-					const scheduleDate = new Date(currentScheduleData.date + 'T00:00:00');
-					const dayOfWeek = getDayOfWeek(currentScheduleData.date);
+					const dateRangeInfo = getDateRangeInfoText(currentScheduleData.startDate, currentScheduleData.endDate);
 
 					scheduleInfoForm.innerHTML = `
 						<div class="form-group">
-							<label>Schedule Date</label>
-							<div class="date-input-wrapper">
-								<input type="date" id="schedule-date" value="${currentScheduleData.date}" onchange="window.schedulesModule.handleDateChange()">
+							<label>Schedule Date Range</label>
+							<div class="date-range-group">
+								<div class="date-field">
+									<label>Start Date</label>
+									<div class="date-input-wrapper">
+										<input type="date" id="schedule-date" value="${currentScheduleData.startDate}" onchange="window.schedulesModule.handleDateRangeChange()">
+									</div>
+								</div>
+								<div class="date-field">
+									<label>End Date (optional)</label>
+									<div class="date-input-wrapper">
+										<input type="date" id="schedule-end-date" value="${currentScheduleData.endDate !== currentScheduleData.startDate ? currentScheduleData.endDate : ''}" onchange="window.schedulesModule.handleDateRangeChange()">
+									</div>
+								</div>
 							</div>
-							<small>This schedule is for ${dayOfWeek}</small>
+							<div class="date-range-info">${dateRangeInfo}</div>
 						</div>
 					`;
 
@@ -448,12 +478,28 @@ function populateScheduleEditor() {
 				`<option value="${t.name}">${t.displayName}</option>`
 			).join('');
 
+			const dateRangeInfo = currentScheduleData.startDate
+				? getDateRangeInfoText(currentScheduleData.startDate, currentScheduleData.endDate)
+				: 'Select a start date';
+
 			scheduleInfoForm.innerHTML = `
 				<div class="form-group">
-					<label>Schedule Date *</label>
-					<div class="date-input-wrapper">
-						<input type="date" id="schedule-date" value="${currentScheduleData.date || ''}" onchange="window.schedulesModule.handleDateChange()">
+					<label>Schedule Date Range *</label>
+					<div class="date-range-group">
+						<div class="date-field">
+							<label>Start Date</label>
+							<div class="date-input-wrapper">
+								<input type="date" id="schedule-date" value="${currentScheduleData.startDate || ''}" onchange="window.schedulesModule.handleDateRangeChange()">
+							</div>
+						</div>
+						<div class="date-field">
+							<label>End Date (optional)</label>
+							<div class="date-input-wrapper">
+								<input type="date" id="schedule-end-date" value="${currentScheduleData.endDate && currentScheduleData.endDate !== currentScheduleData.startDate ? currentScheduleData.endDate : ''}" onchange="window.schedulesModule.handleDateRangeChange()">
+							</div>
+						</div>
 					</div>
+					<div class="date-range-info">${dateRangeInfo}</div>
 				</div>
 				<div class="form-group">
 					<label>Start From Template</label>
@@ -498,32 +544,98 @@ function populateScheduleEditor() {
 }
 
 export function handleDateChange() {
-	const dateInput = document.getElementById('schedule-date');
-	if (dateInput && currentScheduleData) {
-		currentScheduleData.date = dateInput.value;
+	// Redirect to new range handler
+	handleDateRangeChange();
+}
 
-		const dayOfWeek = getDayOfWeek(currentScheduleData.date);
-		const smallEl = dateInput.parentElement.querySelector('small');
-		if (smallEl) {
-			smallEl.textContent = `This schedule is for ${dayOfWeek}`;
-		}
+export function handleDateRangeChange() {
+	const startDateInput = document.getElementById('schedule-date');
+	const endDateInput = document.getElementById('schedule-end-date');
 
-		// Update all schedule items to use the new day-of-week
-		if (currentScheduleData.type !== 'default' && currentScheduleData.date) {
-			const scheduleDate = new Date(currentScheduleData.date + 'T00:00:00');
+	if (!startDateInput || !currentScheduleData) return;
+
+	const startDate = startDateInput.value;
+	const endDate = endDateInput?.value || startDate;
+
+	// Validate end date is not before start date
+	if (endDate && startDate && endDate < startDate) {
+		showStatus('End date cannot be before start date', 'error');
+		endDateInput.value = startDate;
+		return;
+	}
+
+	// Update schedule data
+	currentScheduleData.startDate = startDate;
+	currentScheduleData.endDate = endDate || startDate;
+	currentScheduleData.date = startDate; // Keep for backward compatibility
+	currentScheduleData.isRange = endDate && endDate !== startDate;
+
+	// Update type if needed
+	if (currentScheduleData.type === 'edit-date' && currentScheduleData.isRange) {
+		currentScheduleData.type = 'edit-range';
+	} else if (currentScheduleData.type === 'edit-range' && !currentScheduleData.isRange) {
+		currentScheduleData.type = 'edit-date';
+	}
+
+	// Update date range info text
+	updateDateRangeInfo();
+
+	// Update all schedule items' days based on the date range
+	if (currentScheduleData.type !== 'default' && startDate) {
+		let newDaysString;
+
+		if (currentScheduleData.isRange) {
+			// Multi-day range: include all days of week in range
+			const dateInfo = generateDateRangeInfo(startDate, endDate);
+			const uniqueDays = [...new Set(dateInfo.map(d => d.dayOfWeek))].sort();
+			newDaysString = uniqueDays.join('');
+		} else {
+			// Single day: use that day's day-of-week
+			const scheduleDate = new Date(startDate + 'T00:00:00');
 			const scheduleDayOfWeek = (scheduleDate.getDay() + 6) % 7;
-			const newDayString = scheduleDayOfWeek.toString();
-
-			// Update all items to use the new day
-			currentScheduleData.items.forEach(item => {
-				item.days = newDayString;
-			});
-
-			// Re-render items to show updated day
-			renderScheduleItems();
+			newDaysString = scheduleDayOfWeek.toString();
 		}
 
-		refreshTimelineViews();
+		// Update all items to use the new day(s)
+		currentScheduleData.items.forEach(item => {
+			item.days = newDaysString;
+		});
+
+		// Re-render items to show updated day checkboxes
+		renderScheduleItems();
+	}
+
+	refreshTimelineViews();
+}
+
+function getDateRangeInfoText(startDate, endDate) {
+	if (!startDate) return 'Select a start date';
+
+	const effectiveEndDate = endDate || startDate;
+	const isSingleDay = startDate === effectiveEndDate;
+
+	if (isSingleDay) {
+		const dayOfWeek = getDayOfWeek(startDate);
+		return `This schedule is for ${dayOfWeek}`;
+	}
+
+	const numDays = getDaysBetweenDates(startDate, effectiveEndDate);
+	const dateInfo = generateDateRangeInfo(startDate, effectiveEndDate);
+	const uniqueDays = [...new Set(dateInfo.map(d => d.dayOfWeek))];
+	const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+	const daysText = uniqueDays.sort().map(d => dayNames[d]).join(', ');
+
+	if (numDays <= 7) {
+		return `${numDays}-day range: ${dateInfo.map(d => d.label).join(', ')} (${daysText})`;
+	} else {
+		return `${numDays}-day range covering: ${daysText}`;
+	}
+}
+
+function updateDateRangeInfo() {
+	const infoEl = document.querySelector('.date-range-info');
+	if (infoEl && currentScheduleData) {
+		infoEl.textContent = getDateRangeInfoText(currentScheduleData.startDate, currentScheduleData.endDate);
 	}
 }
 
@@ -549,13 +661,23 @@ export async function loadScheduleTemplate() {
 		}));
 
 		// If this is a date-specific schedule, update all items to use the date's day of week
-		if (currentScheduleData.type !== 'default' && currentScheduleData.date) {
-			const scheduleDate = new Date(currentScheduleData.date + 'T00:00:00');
-			const scheduleDayOfWeek = (scheduleDate.getDay() + 6) % 7;
-			const newDayString = scheduleDayOfWeek.toString();
+		if (currentScheduleData.type !== 'default' && currentScheduleData.startDate) {
+			let newDaysString;
+
+			if (currentScheduleData.isRange && currentScheduleData.endDate) {
+				// Multi-day range: include all days of week in range
+				const dateInfo = generateDateRangeInfo(currentScheduleData.startDate, currentScheduleData.endDate);
+				const uniqueDays = [...new Set(dateInfo.map(d => d.dayOfWeek))].sort();
+				newDaysString = uniqueDays.join('');
+			} else {
+				// Single day: use that day's day-of-week
+				const scheduleDate = new Date(currentScheduleData.startDate + 'T00:00:00');
+				const scheduleDayOfWeek = (scheduleDate.getDay() + 6) % 7;
+				newDaysString = scheduleDayOfWeek.toString();
+			}
 
 			currentScheduleData.items.forEach(item => {
-				item.days = newDayString;
+				item.days = newDaysString;
 			});
 		}
 
@@ -701,11 +823,18 @@ export function addScheduleItem() {
 	}
 
 	let defaultDays = '0123456';
-	if (currentScheduleData.type !== 'default' && currentScheduleData.date) {
-		const scheduleDate = new Date(currentScheduleData.date + 'T00:00:00');
-		// Convert JS day (0=Sunday) to schedule day (0=Monday)
-		const scheduleDayOfWeek = (scheduleDate.getDay() + 6) % 7;
-		defaultDays = scheduleDayOfWeek.toString();
+	if (currentScheduleData.type !== 'default' && currentScheduleData.startDate) {
+		if (currentScheduleData.isRange && currentScheduleData.endDate) {
+			// Multi-day range: include all days of week in range
+			const dateInfo = generateDateRangeInfo(currentScheduleData.startDate, currentScheduleData.endDate);
+			const uniqueDays = [...new Set(dateInfo.map(d => d.dayOfWeek))].sort();
+			defaultDays = uniqueDays.join('');
+		} else {
+			// Single day: use that day's day-of-week
+			const scheduleDate = new Date(currentScheduleData.startDate + 'T00:00:00');
+			const scheduleDayOfWeek = (scheduleDate.getDay() + 6) % 7;
+			defaultDays = scheduleDayOfWeek.toString();
+		}
 	}
 
 	// Calculate default times based on existing items
@@ -789,17 +918,50 @@ function renderScheduleItems() {
 			`<option value="${img.name}" ${item.image === img.name ? 'selected' : ''}>${formatImageName(img.name)}</option>`
 		).join('');
 
-		// For date-specific schedules, show read-only day instead of checkboxes
+		// Determine how to display days based on schedule type
 		const isDateSpecific = currentScheduleData.type !== 'default';
 		let daysHTML;
 
-		if (isDateSpecific && currentScheduleData.date) {
-			// Show read-only day name
-			const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-			const scheduleDate = new Date(currentScheduleData.date + 'T00:00:00');
-			// Convert JS day (0=Sunday) to schedule day (0=Monday)
-			const scheduleDayOfWeek = (scheduleDate.getDay() + 6) % 7;
-			daysHTML = `<span class="read-only-day">${dayNames[scheduleDayOfWeek]}</span>`;
+		if (isDateSpecific && currentScheduleData.startDate) {
+			if (currentScheduleData.isRange && currentScheduleData.endDate) {
+				const numDays = getDaysBetweenDates(currentScheduleData.startDate, currentScheduleData.endDate);
+
+				if (numDays <= 7) {
+					// Range <= 7 days: show specific date checkboxes
+					const dateInfo = generateDateRangeInfo(currentScheduleData.startDate, currentScheduleData.endDate);
+					daysHTML = dateInfo.map(d => {
+						const isChecked = item.days.includes(d.dayOfWeek.toString());
+						return `
+							<label class="day-checkbox date-checkbox ${isChecked ? 'checked' : ''}">
+								<input type="checkbox"
+									${isChecked ? 'checked' : ''}
+									data-day="${d.dayOfWeek}"
+									onchange="window.schedulesModule.updateScheduleDays(${index}, this)">
+								${d.label}
+							</label>
+						`;
+					}).join('');
+				} else {
+					// Range > 7 days: show day-of-week checkboxes
+					daysHTML = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, dayIndex) => {
+						const isChecked = item.days.includes(dayIndex.toString());
+						return `
+							<label class="day-checkbox ${isChecked ? 'checked' : ''}">
+								<input type="checkbox"
+									${isChecked ? 'checked' : ''}
+									onchange="window.schedulesModule.updateScheduleDays(${index}, this)">
+								${day}
+							</label>
+						`;
+					}).join('');
+				}
+			} else {
+				// Single day: show read-only day name
+				const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+				const scheduleDate = new Date(currentScheduleData.startDate + 'T00:00:00');
+				const scheduleDayOfWeek = (scheduleDate.getDay() + 6) % 7;
+				daysHTML = `<span class="read-only-day">${dayNames[scheduleDayOfWeek]}</span>`;
+			}
 		} else {
 			// Show checkboxes for default schedule
 			daysHTML = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, dayIndex) => {
@@ -961,7 +1123,14 @@ export function updateScheduleDays(index, checkbox) {
 	if (!currentScheduleData || !currentScheduleData.items[index]) return;
 
 	const item = currentScheduleData.items[index];
-	const dayIndex = Array.from(checkbox.parentElement.parentElement.children).indexOf(checkbox.parentElement);
+
+	// Check if this is a date checkbox with data-day attribute
+	let dayIndex;
+	if (checkbox.hasAttribute('data-day')) {
+		dayIndex = parseInt(checkbox.getAttribute('data-day'));
+	} else {
+		dayIndex = Array.from(checkbox.parentElement.parentElement.children).indexOf(checkbox.parentElement);
+	}
 
 	let days = item.days.split('').filter(d => d !== '');
 	const dayStr = dayIndex.toString();
@@ -1039,19 +1208,32 @@ export async function saveSchedule() {
 	if (currentScheduleData.type === 'default') {
 		filename = 'default.csv';
 	} else {
-		const date = document.getElementById('schedule-date')?.value || currentScheduleData.date;
-		if (!date) {
-			showStatus('Please select a date', 'error');
+		const startDate = document.getElementById('schedule-date')?.value || currentScheduleData.startDate;
+		const endDateInput = document.getElementById('schedule-end-date');
+		const endDate = endDateInput?.value || currentScheduleData.endDate || startDate;
+
+		if (!startDate) {
+			showStatus('Please select a start date', 'error');
 			return;
 		}
-		filename = `${date}.csv`;
+
+		// Validate end date is not before start date
+		if (endDate && endDate < startDate) {
+			showStatus('End date cannot be before start date', 'error');
+			return;
+		}
+
+		filename = formatScheduleFilename(startDate, endDate);
 
 		// Check if date was changed on an existing schedule
 		if (currentScheduleData.filename && currentScheduleData.filename !== filename) {
 			oldFilename = currentScheduleData.filename;
 		}
 
-		currentScheduleData.date = date;
+		currentScheduleData.startDate = startDate;
+		currentScheduleData.endDate = endDate;
+		currentScheduleData.date = startDate; // Keep for backward compatibility
+		currentScheduleData.isRange = endDate && endDate !== startDate;
 	}
 
 	try {

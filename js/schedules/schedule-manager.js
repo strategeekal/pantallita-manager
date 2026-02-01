@@ -1,6 +1,6 @@
 // Schedule Manager Module - List, load, save, delete schedules
 import { listGitHubDirectory, fetchGitHubFile, saveGitHubFile, deleteGitHubFile } from '../core/api.js';
-import { showStatus } from '../core/utils.js';
+import { showStatus, parseScheduleFilename, getDaysBetweenDates, generateDateRangeInfo, formatScheduleFilename } from '../core/utils.js';
 import { loadConfig } from '../core/config.js';
 import { updateCSVVersion } from '../config/config-manager.js';
 
@@ -30,17 +30,23 @@ export async function loadSchedules() {
 		const files = await listGitHubDirectory('schedules');
 		currentSchedules = files
 			.filter(f => f.name.endsWith('.csv'))
-			.map(f => ({
-				name: f.name,
-				url: f.download_url,
-				sha: f.sha,
-				isDefault: f.name === 'default.csv',
-				date: f.name === 'default.csv' ? null : f.name.replace('.csv', '')
-			}))
+			.map(f => {
+				const parsed = parseScheduleFilename(f.name);
+				return {
+					name: f.name,
+					url: f.download_url,
+					sha: f.sha,
+					isDefault: parsed.isDefault,
+					date: parsed.startDate, // Keep for backward compatibility
+					startDate: parsed.startDate,
+					endDate: parsed.endDate,
+					isRange: parsed.isRange
+				};
+			})
 			.sort((a, b) => {
 				if (a.isDefault) return -1;
 				if (b.isDefault) return 1;
-				return new Date(a.date) - new Date(b.date);
+				return new Date(a.startDate) - new Date(b.startDate);
 			});
 
 		displaySchedules();
@@ -71,14 +77,23 @@ function displaySchedules() {
 	}
 
 	const schedulesHTML = currentSchedules.map(schedule => {
-		const displayName = schedule.isDefault ? 'Default Schedule' : `Schedule for ${schedule.date}`;
+		let displayName;
+		if (schedule.isDefault) {
+			displayName = 'Default Schedule';
+		} else if (schedule.isRange) {
+			displayName = `Schedule for ${schedule.startDate} to ${schedule.endDate}`;
+		} else {
+			displayName = `Schedule for ${schedule.startDate}`;
+		}
 
 		// Get current date normalized to midnight
 		const today = new Date();
 		today.setHours(0, 0, 0, 0);
 
 		// Check if schedule date is before today (past dates only)
-		const isPast = schedule.date && new Date(schedule.date + 'T00:00:00') < today;
+		// For ranges, use endDate to determine if past
+		const checkDate = schedule.isRange ? schedule.endDate : schedule.startDate;
+		const isPast = checkDate && new Date(checkDate + 'T00:00:00') < today;
 
 		// Note: Checking if last schedule item has ended would require fetching
 		// the schedule content for each file, which would be too many API calls
@@ -154,22 +169,33 @@ export async function loadScheduleTemplates() {
 }
 
 export async function duplicateSchedule(filename) {
-	const date = prompt('Enter date for new schedule (YYYY-MM-DD):');
-	if (!date) return;
+	const startDate = prompt('Enter start date for new schedule (YYYY-MM-DD):');
+	if (!startDate) return;
+
+	const endDate = prompt('Enter end date for multi-day schedule (YYYY-MM-DD), or leave empty for single day:');
 
 	const schedule = currentSchedules.find(s => s.name === filename);
 	if (!schedule) return;
 
 	try {
 		const { content } = await fetchGitHubFile(`schedules/${filename}`);
-		const newFilename = `${date}.csv`;
+		const newFilename = formatScheduleFilename(startDate, endDate || startDate);
 
-		// Calculate the day of week for the new date
-		const scheduleDate = new Date(date + 'T00:00:00');
-		const scheduleDayOfWeek = (scheduleDate.getDay() + 6) % 7; // Convert JS day to schedule day
-		const newDayString = scheduleDayOfWeek.toString();
+		// Calculate days string based on date range
+		let newDaysString;
+		if (endDate && endDate !== startDate) {
+			// Multi-day range: include all days of week in range
+			const dateInfo = generateDateRangeInfo(startDate, endDate);
+			const uniqueDays = [...new Set(dateInfo.map(d => d.dayOfWeek))].sort();
+			newDaysString = uniqueDays.join('');
+		} else {
+			// Single day: use that day's day-of-week
+			const scheduleDate = new Date(startDate + 'T00:00:00');
+			const scheduleDayOfWeek = (scheduleDate.getDay() + 6) % 7;
+			newDaysString = scheduleDayOfWeek.toString();
+		}
 
-		// Parse and update the CSV to use the new day
+		// Parse and update the CSV to use the new day(s)
 		const lines = content.split('\n');
 		const updatedLines = lines.map(line => {
 			// Skip comments and empty lines
@@ -181,7 +207,7 @@ export async function duplicateSchedule(filename) {
 			const parts = line.split(',');
 			if (parts.length >= 9) {
 				// Format: name,enabled,days,start_hour,start_min,end_hour,end_min,image,progressbar
-				parts[2] = newDayString; // Update days field
+				parts[2] = newDaysString; // Update days field
 				return parts.join(',');
 			}
 			return line;
@@ -223,7 +249,9 @@ export async function clearOldSchedules() {
 		today.setHours(0, 0, 0, 0);
 		const toDelete = currentSchedules.filter(s => {
 			if (s.isDefault) return false;
-			return s.date && new Date(s.date + 'T00:00:00') < today;
+			// For ranges, use endDate; for single dates, use startDate
+			const checkDate = s.isRange ? s.endDate : s.startDate;
+			return checkDate && new Date(checkDate + 'T00:00:00') < today;
 		});
 
 		for (const schedule of toDelete) {

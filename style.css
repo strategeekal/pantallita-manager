@@ -1825,6 +1825,48 @@ header p {
 	flex-shrink: 0;
 }
 
+/* Date range group styling */
+.date-range-group {
+	display: flex;
+	gap: 20px;
+	flex-wrap: wrap;
+}
+
+.date-range-group .date-field {
+	flex: 1;
+	min-width: 150px;
+}
+
+.date-range-group .date-field label {
+	font-size: 0.8em;
+	color: #666;
+	margin-bottom: 4px;
+	text-transform: none;
+}
+
+.date-range-info {
+	margin-top: 8px;
+	font-size: 0.9em;
+	color: #666;
+	font-style: italic;
+}
+
+/* Date checkbox - for specific dates in short ranges */
+.date-checkbox {
+	min-width: 45px;
+}
+
+/* Read-only day display for single-day schedules */
+.read-only-day {
+	background: #e0e0e0;
+	border: 2px solid #000;
+	padding: 6px 12px;
+	font-size: 0.85em;
+	font-weight: bold;
+	font-family: 'Courier New', monospace;
+	color: #333;
+}
+
 .day-badge {
 	background: #000;
 	color: white;
@@ -2610,6 +2652,26 @@ header p {
 		flex: 1;
 		justify-content: center;
 		min-width: 40px;
+	}
+
+	/* Date range group on mobile */
+	.date-range-group {
+		flex-direction: column;
+		gap: 15px;
+	}
+
+	.date-range-group .date-field {
+		min-width: 100%;
+	}
+
+	.date-checkbox {
+		min-width: 35px;
+		flex: 1;
+	}
+
+	.read-only-day {
+		width: 100%;
+		text-align: center;
 	}
 
 	/* Group time inputs side by side on mobile - 2 rows */
